@@ -5,7 +5,10 @@ CREATE TABLE guild_settings(
 
 
 CREATE TABLE user_settings(
-    user_id BIGINT PRIMARY KEY
+    user_id BIGINT PRIMARY KEY,
+    pot_type VARCHAR(50),
+    user_experience INTEGER,
+    pot_colour INTEGER DEFAULT 16414800
 );
 
 
@@ -24,4 +27,15 @@ CREATE TABLE channel_list(
     key VARCHAR(50),
     value VARCHAR(50),
     PRIMARY KEY (guild_id, channel_id, key)
+);
+
+
+CREATE TABLE plant_levels(
+    user_id BIGINT,
+    plant_index INTEGER,
+    plant_type VARCHAR(10),
+    plant_variant INTEGER DEFAULT 0,
+    plant_nourishment INTEGER,
+    last_water_time TIMESTAMP,
+    PRIMARY KEY (user_id, plant_index)
 );

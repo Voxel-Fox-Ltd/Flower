@@ -50,7 +50,7 @@ class BotSettings(utils.Cog):
         except utils.errors.InvokedMetaCommand:
             pass
 
-    @commands.group(cls=utils.Group, enabled=False)
+    @commands.group(cls=utils.Group)
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
     @utils.cooldown.cooldown(1, 60, commands.BucketType.member)
     @commands.guild_only()
@@ -63,13 +63,14 @@ class BotSettings(utils.Cog):
 
         # Create settings menu
         menu = utils.SettingsMenu()
-        settings_mention = utils.SettingsMenuOption.get_user_settings_mention
+        # settings_mention = utils.SettingsMenuOption.get_user_settings_mention
         menu.bulk_add_options(
             ctx,
             {
-                'display': lambda c: "Set setting (currently {0})".format(settings_mention(c, 'setting_id')),
-                'converter_args': [("What do you want to set the setting to?", "setting channel", commands.TextChannelConverter)],
-                'callback': utils.SettingsMenuOption.get_set_user_settings_callback('user_settings', 'setting_id'),
+                'display': lambda c: "Set pot colour (currently #{0.value:0>6X})".format(c.bot.user_settings[c.author.id]['pot_colour']),
+                'converter_args': [("What do you want to set the pot colour to?", "pot colour", commands.ColourConverter)],
+                'callback': utils.SettingsMenuOption.get_set_user_settings_callback('user_settings', 'pot_colour', lambda x: x.value),
+                'allow_nullable': False,
             },
         )
         try:
