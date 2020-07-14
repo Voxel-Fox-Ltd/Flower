@@ -12,3 +12,7 @@ aiohttp
 aiohttp_jinja2
 aiohttp_session
 jinja2
+
+# Image stuff
+pillow
+numpy

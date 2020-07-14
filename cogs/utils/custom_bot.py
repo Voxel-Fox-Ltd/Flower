@@ -54,7 +54,7 @@ class CustomBot(commands.AutoShardedBot):
         self.DEFAULT_USER_SETTINGS = {
             'pot_type': 'clay',
             'user_experience': 0,
-            'pot_colour': discord.Colour(0xFA7850),
+            'pot_hue': 0,
         }
 
         # Aiohttp session
@@ -99,10 +99,7 @@ class CustomBot(commands.AutoShardedBot):
         data = await self.get_all_table_data(db, "user_settings")
         for row in data:
             for key, value in row.items():
-                if key == 'pot_colour':
-                    self.user_settings[row['user_id']][key] = discord.Colour(value)
-                else:
-                    self.user_settings[row['user_id']][key] = value
+                self.user_settings[row['user_id']][key] = value
 
         # Wait for the bot to cache users before continuing
         self.logger.debug("Waiting until ready before completing startup method.")

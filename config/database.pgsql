@@ -8,7 +8,7 @@ CREATE TABLE user_settings(
     user_id BIGINT PRIMARY KEY,
     pot_type VARCHAR(50),
     user_experience INTEGER,
-    pot_colour INTEGER DEFAULT 16414800
+    pot_hue SMALLINT DEFAULT 180
 );
 
 
