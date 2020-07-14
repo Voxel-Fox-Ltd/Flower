@@ -221,10 +221,12 @@ class PlantCommands(utils.Cog):
             plant_level_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", ctx.author.id)
         if user_rows:
             user_experience = user_rows[0]['user_experience']
+            plant_limit = user_rows[0]['plant_limit']
         else:
             user_experience = 0
-        if len(plant_level_rows) >= self.MAXIMUM_PLANT_COUNT:
-            return await ctx.send(f"You can only have {self.MAXIMUM_PLANT_COUNT} plants! :c")
+            plant_limit = 1
+        if len(plant_level_rows) >= plant_limit:
+            return await ctx.send(f"You can only have {plant_limit} plant{'s' if plant_limit > 1 else ''}! :c")
 
         # See what plants are available
         text_rows = [f"What seeds would you like to plant, {ctx.author.mention}?"]
@@ -336,7 +338,7 @@ class PlantCommands(utils.Cog):
             # await ctx.send(f"You gently pour water into your **{plant_data['name'].replace('_', ' ')}**'s soil, gaining you {gained_experience} experience~")
             await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience~")
 
-    @commands.command(cls=utils.Command, aliases=['delete'], hidden=True)
+    @commands.command(cls=utils.Command, aliases=['delete'])
     async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
         """Deletes your plant from the database"""
 

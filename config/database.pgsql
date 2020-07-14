@@ -6,6 +6,7 @@ CREATE TABLE guild_settings(
 
 CREATE TABLE user_settings(
     user_id BIGINT PRIMARY KEY,
+    plant_limit SMALLINT DEFAULT 1,
     pot_type VARCHAR(50),
     user_experience INTEGER,
     pot_hue SMALLINT DEFAULT 180
