@@ -4,6 +4,8 @@ import glob
 import logging
 import typing
 import copy
+import os
+import json
 from datetime import datetime as dt
 from urllib.parse import urlencode
 
@@ -15,6 +17,7 @@ from discord.ext import commands
 from cogs.utils.custom_context import CustomContext
 from cogs.utils.database import DatabaseConnection
 from cogs.utils.redis import RedisConnection
+from cogs.utils.plant_type import PlantType
 
 
 def get_prefix(bot, message:discord.Message):
@@ -57,6 +60,9 @@ class CustomBot(commands.AutoShardedBot):
             'pot_hue': 0,
         }
 
+        # Store the plants
+        self.plants = {}
+
         # Aiohttp session
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -85,6 +91,7 @@ class CustomBot(commands.AutoShardedBot):
         self.logger.debug("Clearing caches")
         self.guild_settings.clear()
         self.user_settings.clear()
+        self.plants.clear()
 
         # Get database connection
         db = await self.database.get_connection()
@@ -100,6 +107,21 @@ class CustomBot(commands.AutoShardedBot):
         for row in data:
             for key, value in row.items():
                 self.user_settings[row['user_id']][key] = value
+
+        # Load up all the plants
+        plant_directories = glob.glob("images/plants/[!_]*/")
+        plant_names = [i.strip(os.sep).split(os.sep)[-1] for i in plant_directories]
+        available_plants = []
+
+        # Check the plant JSON file
+        for name in plant_names:
+            with open(f"images/plants/{name}/pack.json") as a:
+                data = json.load(a)
+            data.update({"name": name})
+            available_plants.append(data)
+
+        # Dictionary it up
+        self.plants = {i['name']: PlantType(**i) for i in available_plants}
 
         # Wait for the bot to cache users before continuing
         self.logger.debug("Waiting until ready before completing startup method.")
