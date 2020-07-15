@@ -1,8 +1,8 @@
 {
     "required_experience": 250,
     "experience_gain": {
-        "minimum": 30,
-        "maximum": 35
+        "minimum": 15,
+        "maximum": 30
     },
     "available_variants": {
         "1": 1,
