@@ -83,6 +83,7 @@ class PlantCommands(utils.Cog):
 
         # Get the plant image we need
         plant_level = 0
+        plant_image = None
         if plant_nourishment != 0:
             plant_level = self.get_available_plants()[plant_type]['nourishment_display_levels'][str(plant_nourishment)]
             if plant_is_dead:
@@ -93,6 +94,13 @@ class PlantCommands(utils.Cog):
         # Paste the bot pack that we want onto the image
         image = Image.open(f"images/pots/{pot_type}/back.png")
         image = self.shift_image_hue(image, pot_hue)
+        if plant_image:
+            offset = (0, plant_image.size[1] - image.size[1])
+            new_image = Image.new(image.mode, plant_image.size)
+            new_image.paste(image, offset, image)
+            image = new_image
+        else:
+            offset = (0, 0)
 
         # Paste the soil that we want onto the image
         pot_soil = Image.open(f"images/pots/{pot_type}/soil.png")
@@ -100,7 +108,7 @@ class PlantCommands(utils.Cog):
             pot_soil = self.shift_image_hue(pot_soil, self.get_available_plants()[plant_type]['soil_hue'])
         else:
             pot_soil = self.shift_image_hue(pot_soil, 0)
-        image.paste(pot_soil, (0, 0), pot_soil)
+        image.paste(pot_soil, offset, pot_soil)
 
         # Paste the plant onto the image
         if plant_nourishment != 0:
@@ -109,10 +117,10 @@ class PlantCommands(utils.Cog):
         # Paste the pot foreground onto the image
         pot_foreground = Image.open(f"images/pots/{pot_type}/front.png")
         pot_foreground = self.shift_image_hue(pot_foreground, pot_hue)
-        image.paste(pot_foreground, (0, 0), pot_foreground)
+        image.paste(pot_foreground, offset, pot_foreground)
 
         # Read the bytes
-        image = self.crop_image_to_content(image.resize((250, 250,), Image.NEAREST))
+        image = self.crop_image_to_content(image.resize((image.size[0] * 5, image.size[1] * 5,), Image.NEAREST))
         image_to_send = io.BytesIO()
         image.save(image_to_send, "PNG")
         image_to_send.seek(0)
@@ -229,12 +237,12 @@ class PlantCommands(utils.Cog):
             return await ctx.send(f"You can only have {plant_limit} plant{'s' if plant_limit > 1 else ''}! :c")
 
         # See what plants are available
-        text_rows = [f"What seeds would you like to plant, {ctx.author.mention}?"]
-        for plant_name, plant in self.get_available_plants().items():
+        text_rows = [f"What seeds would you like to plant, {ctx.author.mention}? You currently have {user_experience} exp."]
+        for plant in sorted(list(self.get_available_plants().values()), key=lambda p: (p['required_experience'], p['name'])):
             if plant['required_experience'] <= user_experience:
-                text_rows.append(f"**{plant_name.capitalize().replace('_', ' ')}** - {plant['required_experience']} exp")
+                text_rows.append(f"**{plant['name'].capitalize().replace('_', ' ')}** - {plant['required_experience']} exp")
             else:
-                text_rows.append(f"~~**{plant_name.capitalize().replace('_', ' ')}** - {plant['required_experience']} exp~~")
+                text_rows.append(f"~~**{plant['name'].capitalize().replace('_', ' ')}** - {plant['required_experience']} exp~~")
         await ctx.send('\n'.join(text_rows))
 
         # Wait for them to respond
