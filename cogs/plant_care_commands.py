@@ -1,4 +1,3 @@
-import random
 from datetime import datetime as dt, timedelta
 
 import discord

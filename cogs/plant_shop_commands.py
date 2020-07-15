@@ -1,5 +1,8 @@
 import asyncio
 from datetime import datetime as dt
+import os
+import glob
+import json
 
 import discord
 from discord.ext import commands
@@ -10,6 +13,28 @@ from cogs import utils
 class PlantShopCommands(utils.Cog):
 
     PLANT_POT_PRICE = 50
+
+    @commands.command(cls=utils.Command)
+    @commands.is_owner()
+    async def reloadplants(self, ctx:utils.Context):
+        """Shows you the available plants"""
+
+        # Load up all the plants
+        plant_directories = glob.glob("images/plants/[!_]*/")
+        plant_names = [i.strip(os.sep).split(os.sep)[-1] for i in plant_directories]
+        available_plants = []
+
+        # Check the plant JSON file
+        for name in plant_names:
+            with open(f"images/plants/{name}/pack.json") as a:
+                data = json.load(a)
+            data.update({"name": name})
+            available_plants.append(data)
+
+        # Dictionary it up
+        self.bot.plants.clear()
+        self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
+        return await ctx.send("Reloaded.")
 
     @commands.command(cls=utils.Command, aliases=['getplant'])
     async def newplant(self, ctx:utils.Context):
@@ -31,6 +56,8 @@ class PlantShopCommands(utils.Cog):
         # See what plants are available
         text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have {user_experience} exp."]
         for plant in sorted(list(self.bot.plants.values())):
+            if not plant.visible:
+                continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 text_rows.append(f"**{plant.name.capitalize().replace('_', ' ')}** - {plant.required_experience} exp")
             else:

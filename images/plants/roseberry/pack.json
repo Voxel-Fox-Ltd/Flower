@@ -22,5 +22,6 @@
         "17": 6,
         "20": 7
     },
-    "soil_hue": 0
+    "soil_hue": 0,
+    "visible": true
 }
