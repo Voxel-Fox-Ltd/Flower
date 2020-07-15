@@ -10,7 +10,10 @@ from cogs import utils
 class PlantCareCommands(utils.Cog):
 
     PLANT_DEATH_TIMEOUT = {
-        'days': 2
+        'days': 2,
+    }
+    PLANT_WATER_COOLDOWN = {
+        'minutes': 15,
     }
 
     def __init__(self, bot):
@@ -32,7 +35,6 @@ class PlantCareCommands(utils.Cog):
             )
 
     @commands.command(cls=utils.Command, aliases=['water'], cooldown_after_parsing=True)
-    @utils.cooldown.cooldown(1, 60 * 15, commands.BucketType.user)
     async def waterplant(self, ctx:utils.Context, *, plant_name:str):
         """Increase the growth level of your plant"""
 
@@ -43,9 +45,14 @@ class PlantCareCommands(utils.Cog):
         plant_level_row = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
         if not plant_level_row:
             await db.disconnect()
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.send(f"You don't have a plant with the name **{plant_name.capitalize()}**! Run `{ctx.prefix}getplant` to plant some new seeds, or `{ctx.prefix}plants` to see the list of plants you have already!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+            return await ctx.send(f"You don't have a plant with the name **{plant_name}**! Run `{ctx.prefix}getplant` to plant some new seeds, or `{ctx.prefix}plants` to see the list of plants you have already!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
+
+        # See if they're allowed to water things
+        if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) > dt.utcnow():
+            await db.disconnect()
+            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN)) - dt.utcnow()).total_seconds())
+            return await ctx.send(f"You need to wait another {timeout.clean_spaced} to be able water your {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
 
         # See if the plant should be dead
         if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_DEATH_TIMEOUT) < dt.utcnow() or plant_level_row[0]['plant_nourishment'] < 0:
@@ -107,7 +114,7 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
         await ctx.send("Done!~")
 
-    @commands.command(cls=utils.Command, aliases=['exp'])
+    @commands.command(cls=utils.Command, aliases=['exp', 'points'])
     async def experience(self, ctx:utils.Context, user:utils.converters.UserID=None):
         """Shows you how much experience a user has"""
 
@@ -133,7 +140,7 @@ class PlantCareCommands(utils.Cog):
         plant_output_string = []
         for i in plant_names:
             if i[2] >= 0:
-                plant_output_string.append(f"**{i[0]}** ({i[1].replace('_', ' ')}, nourishment level {i[2]}/{self.bot.plants[i[1]]['max_nourishment_level']})")
+                plant_output_string.append(f"**{i[0]}** ({i[1].replace('_', ' ')}, nourishment level {i[2]}/{self.bot.plants[i[1]].max_nourishment_level})")
             else:
                 plant_output_string.append(f"**{i[0]}** ({i[1].replace('_', ' ')}, dead)")
         return await ctx.send(
