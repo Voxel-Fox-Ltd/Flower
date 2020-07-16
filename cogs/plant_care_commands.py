@@ -48,18 +48,18 @@ class PlantCareCommands(utils.Cog):
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
         # See if they're allowed to water things
-        if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) > dt.utcnow():
+        if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) > dt.utcnow() and ctx.author.id not in self.bot.owner_ids:
             await db.disconnect()
             timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN)) - dt.utcnow()).total_seconds())
             return await ctx.send(f"You need to wait another {timeout.clean_spaced} to be able water your {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
 
         # See if the plant should be dead
-        if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_DEATH_TIMEOUT) < dt.utcnow() or plant_level_row[0]['plant_nourishment'] < 0:
+        if plant_level_row[0]['plant_nourishment'] < 0:
             plant_level_row = await db(
                 """UPDATE plant_levels SET
                 plant_nourishment=LEAST(-plant_levels.plant_nourishment, plant_levels.plant_nourishment), last_water_time=$3
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
-                RETURNING plant_nourishment""",
+                RETURNING plant_name, plant_nourishment""",
                 ctx.author.id, plant_name, dt.utcnow(),
             )
 

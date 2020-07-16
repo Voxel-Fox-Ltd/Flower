@@ -124,7 +124,7 @@ class PlantShopCommands(utils.Cog):
                 """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time)
                 VALUES ($1, $2, $3, 0, $4) ON CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
-                ctx.author.id, plant_name_message.content, plant_type.name, dt.utcnow(),
+                ctx.author.id, plant_name_message.content, plant_type.name, dt(2000, 1, 1),
             )
             await db(
                 "UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1",

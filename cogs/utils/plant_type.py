@@ -42,7 +42,7 @@ class PlantType(object):
     def get_nourishment_display_level(self, nourishment:int) -> int:
         """Get the display level for a given amount of nourishment"""
 
-        if nourishment == 0:
+        if nourishment <= 0:
             return self.get_nourishment_display_level(1)
         if str(nourishment) in self.nourishment_display_levels:
             return self.nourishment_display_levels[str(nourishment)]
