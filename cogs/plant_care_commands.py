@@ -133,13 +133,13 @@ class PlantCareCommands(utils.Cog):
         if amount <= 0:
             return await ctx.send("You need to give an amount above zero.")
         async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
+            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", ctx.author.id)
             if not user_rows:
                 return await ctx.send("You don't have enough experience to make that transfer! :c")
             if user_rows[0]['user_experience'] < amount:
                 return await ctx.send("You don't have enough experience to make that transfer! :c")
             await db.start_transaction()
-            await db("UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1", user.id, amount)
+            await db("UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1", ctx.author.id, amount)
             await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
                 DO UPDATE SET user_experience=user_settings.user_experience+excluded.user_experience""",
