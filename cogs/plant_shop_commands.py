@@ -12,6 +12,7 @@ from cogs import utils
 
 class PlantShopCommands(utils.Cog):
 
+    HARD_PLANT_CAP = 5
     PLANT_POT_PRICE = 50
 
     @commands.command(cls=utils.Command)
@@ -66,7 +67,7 @@ class PlantShopCommands(utils.Cog):
         # See what other stuff is available
         text_rows.append("")
         text_rows.append("Would you like to buy a new item?")
-        if user_experience >= self.PLANT_POT_PRICE:
+        if user_experience >= self.PLANT_POT_PRICE and plant_limit < self.HARD_PLANT_CAP:
             text_rows.append(f"**Pot** - {self.PLANT_POT_PRICE} exp")
         else:
             text_rows.append(f"~~**Pot** - {self.PLANT_POT_PRICE} exp~~")
@@ -81,6 +82,8 @@ class PlantShopCommands(utils.Cog):
         # See if they want a plant pot
         given_response = plant_type_message.content.lower().replace(' ', '_')
         if given_response == "pot":
+            if plant_limit >= self.HARD_PLANT_CAP:
+                return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
             if user_experience >= self.PLANT_POT_PRICE:
                 async with self.bot.database() as db:
                     await db(
