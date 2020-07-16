@@ -1,5 +1,5 @@
 {
-    "required_experience": 20,
+    "required_experience": 50,
     "experience_gain": {
         "minimum": 3,
         "maximum": 8

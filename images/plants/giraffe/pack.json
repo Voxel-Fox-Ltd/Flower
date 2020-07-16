@@ -1,7 +1,7 @@
 {
-    "required_experience": 250,
+    "required_experience": 1250,
     "experience_gain": {
-        "minimum": 15,
+        "minimum": 16,
         "maximum": 30
     },
     "available_variants": {
@@ -23,5 +23,5 @@
         "20": 7
     },
     "soil_hue": 0,
-    "visible": false
+    "visible": true
 }
