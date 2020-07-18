@@ -46,7 +46,14 @@ class PlantDisplayCommands(utils.Cog):
         image_data_new = image_data[cropBox[0]:cropBox[1] + 1, cropBox[2]:cropBox[3] + 1, :]
         return Image.fromarray(image_data_new)
 
-    def get_plant_bytes(self, plant_type:str, plant_variant:int, plant_nourishment:int, pot_type:str, pot_hue:int) -> io.BytesIO:
+    @staticmethod
+    def image_to_bytes(image:Image) -> io.BytesIO:
+        image_to_send = io.BytesIO()
+        image.save(image_to_send, "PNG")
+        image_to_send.seek(0)
+        return image_to_send
+
+    def get_plant_image(self, plant_type:str, plant_variant:int, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
         """Get a BytesIO object containing the binary data of a given plant/pot item"""
 
         # See if the plant is dead or not
@@ -96,10 +103,33 @@ class PlantDisplayCommands(utils.Cog):
 
         # Read the bytes
         image = self.crop_image_to_content(image.resize((image.size[0] * 5, image.size[1] * 5,), Image.NEAREST))
-        image_to_send = io.BytesIO()
-        image.save(image_to_send, "PNG")
-        image_to_send.seek(0)
-        return image_to_send
+        return image
+
+    @staticmethod
+    def get_display_data(plant_row, user_row) -> dict:
+        """Get the display data of a given plant and return it as a dict"""
+
+        plant_type = None
+        plant_variant = None
+        plant_nourishment = 0
+        pot_type = 'clay'
+        pot_hue = 180
+
+        if plant_row is not None:
+            plant_type = plant_row['plant_type']
+            plant_nourishment = plant_row['plant_nourishment']
+            plant_variant = plant_row['plant_variant']
+        if user_row is not None:
+            pot_type = user_row['pot_type'] or pot_type
+            pot_hue = user_row['pot_hue'] or pot_hue
+
+        return {
+            'plant_type': plant_type,
+            'plant_variant': plant_variant,
+            'plant_nourishment': plant_nourishment,
+            'pot_type': pot_type,
+            'pot_hue': pot_hue,
+        }
 
     @commands.command(cls=utils.Command, aliases=['showplant', 'show', 'display'])
     async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
@@ -114,49 +144,85 @@ class PlantDisplayCommands(utils.Cog):
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
 
         # Filter into variables
-        plant_type = None
-        plant_variant = None
-        if not plant_rows:
-            plant_nourishment = 0
+        if plant_rows and user_rows:
+            display_data = self.get_display_data(plant_rows[0], user_rows[0])
+        elif plant_rows:
+            display_data = self.get_display_data(plant_rows[0], None)
+        elif user_rows:
+            display_data = self.get_display_data(None, user_rows[0])
         else:
-            plant_type = plant_rows[0]['plant_type']
-            plant_nourishment = plant_rows[0]['plant_nourishment']
-            plant_variant = plant_rows[0]['plant_variant']
-        if not user_rows:
-            pot_type = 'clay'
-            pot_hue = 180
-        else:
-            pot_type = user_rows[0]['pot_type'] or 'clay'
-            pot_hue = user_rows[0]['pot_hue'] or 180
+            display_data = self.get_display_data(None, None)
 
         # Generate text
-        if plant_type is None:
+        if display_data['plant_type'] is None:
             if ctx.author.id == user.id:
                 text = f"You don't have a plant yet, {ctx.author.mention}! Run `{ctx.prefix}getplant` to get one!"
             else:
                 text = f"<@{user.id}> doesn't have a plant yet!"
         else:
-            text = f"<@{user.id}>'s {plant_rows[0]['plant_type'].replace('_', ' ')} - **{plant_rows[0]['plant_name']}**"
-            if int(plant_nourishment) > 0:
+            text = f"<@{user.id}>'s {display_data['plant_type'].replace('_', ' ')} - **{plant_rows[0]['plant_name']}**"
+            if int(display_data['plant_nourishment']) > 0:
                 if ctx.author.id == user.id:
                     text += f"! Change your pot colour with `{ctx.prefix}usersettings`~"
                 else:
                     text += "!"
-            elif int(plant_nourishment) < 0:
+            elif int(display_data['plant_nourishment']) < 0:
                 if ctx.author.id == user.id:
                     text += f". It's looking a tad... dead. Run `{ctx.prefix}deleteplant` to plant some new seeds."
                 else:
                     text += ". It looks a bit... worse for wear, to say the least."
-            elif int(plant_nourishment) == 0:
+            elif int(display_data['plant_nourishment']) == 0:
                 if ctx.author.id == user.id:
                     text += f". There are some seeds there, but you need to `{ctx.prefix}water {plant_rows[0]['plant_name']}` them to get them to grow."
                 else:
                     text += ". There are some seeds there I think, but they need to be watered."
 
         # Send image
-        image_data = self.get_plant_bytes(plant_type, plant_variant, plant_nourishment, pot_type, pot_hue)
+        image_data = self.image_to_bytes(self.get_plant_image(**display_data))
         file = discord.File(image_data, filename="plant.png")
         await ctx.send(text, file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+
+    @commands.command(cls=utils.Command, hidden=True)
+    async def displayall(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID]):
+        """Show you all of your plants"""
+
+        # Get data from database
+        user = discord.Object(user) if user else ctx.author
+        async with self.bot.database() as db:
+            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
+            if not plant_rows:
+                return await ctx.send("<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
+
+        # Filter into variables
+        images = []
+        for plant_row in plant_rows:
+            if plant_row and user_rows:
+                display_data = self.get_display_data(plant_row, user_rows[0])
+            elif plant_row:
+                display_data = self.get_display_data(plant_row, None)
+            elif user_rows:
+                display_data = self.get_display_data(None, user_rows[0])
+            else:
+                display_data = self.get_display_data(None, None)
+            images.append(self.get_plant_image(**display_data))
+
+        # Work out our numbers
+        max_height = max([i.size[1] for i in images])
+        total_width = sum([i.size[0] for i in images])
+        image_width = images[0].size[0]
+
+        # Create the new image
+        new_image = Image.new("RGBA", (total_width, max_height,))
+        for index, image in enumerate(images):
+            new_image.paste(image, (image_width * index, max_height - image.size[1],), image)
+
+        # And Discord it up
+        image = self.crop_image_to_content(new_image.resize((new_image.size[0] * 5, new_image.size[1] * 5,), Image.NEAREST))
+        image_to_send = self.image_to_bytes(image)
+        file = discord.File(image_to_send, filename="plant.png")
+        # await ctx.send(file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+        await ctx.send(file=file)
 
 
 def setup(bot:utils.Bot):
