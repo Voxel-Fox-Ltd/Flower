@@ -12,8 +12,14 @@ from cogs import utils
 
 class PlantShopCommands(utils.Cog):
 
-    HARD_PLANT_CAP = 5
+    HARD_PLANT_CAP = 10
     PLANT_POT_PRICE = 50
+
+    @classmethod
+    def get_points_for_plant_pot(cls, current_limit:str):
+        """Get the amount of points needed to get the next level of pot"""
+
+        return int(cls.PLANT_POT_PRICE * (3 ** (current_limit - 1)))
 
     @commands.command(cls=utils.Command)
     @commands.is_owner()
@@ -37,7 +43,7 @@ class PlantShopCommands(utils.Cog):
         self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
         return await ctx.send("Reloaded.")
 
-    @commands.command(cls=utils.Command, aliases=['getplant'])
+    @commands.command(cls=utils.Command, aliases=['getplant', 'shop', 'getpot', 'newpot'])
     async def newplant(self, ctx:utils.Context):
         """Shows you the available plants"""
 
@@ -51,11 +57,11 @@ class PlantShopCommands(utils.Cog):
         else:
             user_experience = 0
             plant_limit = 1
-        if len(plant_level_rows) >= plant_limit and user_experience < self.PLANT_POT_PRICE:
-            return await ctx.send(f"You can only have {plant_limit} plant{'s' if plant_limit > 1 else ''}, and you need {self.PLANT_POT_PRICE} exp to get a new pot (you currently have {user_experience} exp)! :c")
+        # if len(plant_level_rows) >= plant_limit and user_experience < self.get_points_for_plant_pot(plant_limit):
+        #     return await ctx.send(f"You can only have {plant_limit} plant{'s' if plant_limit > 1 else ''}, and you need {self.get_points_for_plant_pot(plant_limit)} exp to get a new pot (you currently have {user_experience} exp)! :c")
 
         # See what plants are available
-        text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have {user_experience} exp."]
+        text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
         for plant in sorted(list(self.bot.plants.values())):
             if not plant.visible:
                 continue
@@ -67,10 +73,10 @@ class PlantShopCommands(utils.Cog):
         # See what other stuff is available
         text_rows.append("")
         text_rows.append("Would you like to buy a new item?")
-        if user_experience >= self.PLANT_POT_PRICE and plant_limit < self.HARD_PLANT_CAP:
-            text_rows.append(f"**Pot** - {self.PLANT_POT_PRICE} exp")
+        if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.HARD_PLANT_CAP:
+            text_rows.append(f"**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp")
         else:
-            text_rows.append(f"~~**Pot** - {self.PLANT_POT_PRICE} exp~~")
+            text_rows.append(f"~~**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp~~")
         await ctx.send('\n'.join(text_rows))
 
         # Wait for them to respond
@@ -84,12 +90,12 @@ class PlantShopCommands(utils.Cog):
         if given_response == "pot":
             if plant_limit >= self.HARD_PLANT_CAP:
                 return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
-            if user_experience >= self.PLANT_POT_PRICE:
+            if user_experience >= self.get_points_for_plant_pot(plant_limit):
                 async with self.bot.database() as db:
                     await db(
                         """INSERT INTO user_settings (user_id, plant_limit, user_experience) VALUES ($1, 2, $2) ON CONFLICT (user_id) DO UPDATE
                         SET plant_limit=user_settings.plant_limit+1, user_experience=user_settings.user_experience-excluded.user_experience""",
-                        ctx.author.id, self.PLANT_POT_PRICE
+                        ctx.author.id, self.get_points_for_plant_pot(plant_limit)
                     )
                 return await ctx.send(f"Given you another plant pot, {ctx.author.mention}!")
             else:
