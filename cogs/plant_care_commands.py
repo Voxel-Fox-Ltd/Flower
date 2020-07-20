@@ -106,7 +106,7 @@ class PlantCareCommands(utils.Cog):
     async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
         """Deletes your plant from the database"""
                            
-        if '"' in words:
+        if '"' in after:
             await ctx.send("No, you fucking idiot!")
         else:    
                          
