@@ -105,13 +105,18 @@ class PlantCareCommands(utils.Cog):
     @commands.command(cls=utils.Command, aliases=['rename'])
     async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
         """Deletes your plant from the database"""
-
-        async with self.bot.database() as db:
-            plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
-            if not plant_has_before_name:
-                return await ctx.send(f"You have no plants with the name `{before}`.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-            await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
-        await ctx.send("Done!~")
+                           
+        if '"' in words:
+            await ctx.send("No, you fucking idiot!")
+        else:    
+                         
+                          
+            async with self.bot.database() as db:
+                plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
+                if not plant_has_before_name:
+                    return await ctx.send(f"You have no plants with the name `{before}`.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+                await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
+            await ctx.send("Done!~")
 
     @commands.command(cls=utils.Command, aliases=['exp', 'points'])
     async def experience(self, ctx:utils.Context, user:utils.converters.UserID=None):
