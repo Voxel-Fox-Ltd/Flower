@@ -1,9 +1,10 @@
 import typing
 import io
+import random
 
 import discord
 from discord.ext import commands
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import colorsys
 
@@ -193,6 +194,7 @@ class PlantDisplayCommands(utils.Cog):
             if not plant_rows:
                 return await ctx.send("<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
+        await ctx.trigger_typing()
 
         # Filter into variables
         images = []
@@ -210,19 +212,22 @@ class PlantDisplayCommands(utils.Cog):
         # Work out our numbers
         max_height = max([i.size[1] for i in images])
         total_width = sum([i.size[0] for i in images])
-        image_width = images[0].size[0]
 
         # Create the new image
         new_image = Image.new("RGBA", (total_width, max_height,))
+        width_offset = 0
         for index, image in enumerate(images):
-            new_image.paste(image, (image_width * index, max_height - image.size[1],), image)
+            if random.randint(0, 1):
+                image = ImageOps.mirror(image)
+            new_image.paste(image, (width_offset, max_height - image.size[1],), image)
+            width_offset += image.size[0]
 
         # And Discord it up
         image = self.crop_image_to_content(new_image.resize((new_image.size[0] * 5, new_image.size[1] * 5,), Image.NEAREST))
         image_to_send = self.image_to_bytes(image)
+        text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
-        # await ctx.send(file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
-        await ctx.send(file=file)
+        await ctx.send(text, file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
 
 def setup(bot:utils.Bot):
