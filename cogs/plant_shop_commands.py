@@ -63,7 +63,7 @@ class PlantShopCommands(utils.Cog):
         # See what plants are available
         text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
         for plant in sorted(list(self.bot.plants.values())):
-            if not plant.visible:
+            if plant.visible is False or plant.available is False:
                 continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 text_rows.append(f"**{plant.name.capitalize().replace('_', ' ')}** - {plant.required_experience} exp")
@@ -106,6 +106,8 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+        if plant_type.available is False:
+            return await ctx.send(f"**{plant_type.name.replace('_', ' ').capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
             return await ctx.send(f"You don't have the required experience to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} :c")
         if len(plant_level_rows) >= plant_limit:

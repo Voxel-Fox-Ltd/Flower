@@ -17,8 +17,7 @@
         "10": 1,
         "11": 1,
         "12": 1,
-        "13": 1,
-        "14": 1
+        "13": 1
     },
     "nourishment_display_levels": {
         "1": 1,
@@ -33,10 +32,9 @@
         "14": 10,
         "16": 11,
         "17": 12,
-        "19": 13,
-        "20": 14
+        "20": 13
     },
     "soil_hue": 0,
-    "visible": true,
-    "available": true
+    "visible": false,
+    "available": false
 }

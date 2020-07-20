@@ -4,7 +4,7 @@ import random
 class PlantType(object):
     """A data type containing the data for any given plant type"""
 
-    def __init__(self, name:str, required_experience:int, experience_gain:dict, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool):
+    def __init__(self, name:str, required_experience:int, experience_gain:dict, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool):
         self.name = name
         self.required_experience = required_experience
         self.experience_gain = experience_gain
@@ -12,6 +12,7 @@ class PlantType(object):
         self.nourishment_display_levels = nourishment_display_levels
         self.soil_hue = soil_hue
         self.visible = visible
+        self.available = available
         self.max_nourishment_level = max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
 
     def __gt__(self, other):
