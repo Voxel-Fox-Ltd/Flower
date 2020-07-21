@@ -109,7 +109,7 @@ class PlantShopCommands(utils.Cog):
         if plant_type.available is False:
             return await ctx.send(f"**{plant_type.name.replace('_', ' ').capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
-            return await ctx.send(f"You don't have the required experience to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} :c")
+            return await ctx.send(f"You don't have the required experience to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
         if len(plant_level_rows) >= plant_limit:
             return await ctx.send(f"You don't have enough plant pots to be able to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} :c")
 

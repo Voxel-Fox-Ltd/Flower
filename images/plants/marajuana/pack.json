@@ -1,8 +1,8 @@
 {
-    "required_experience": 372,
+    "required_experience": 1250,
     "experience_gain": {
-        "minimum": 8,
-        "maximum": 15
+        "minimum": 16,
+        "maximum": 30
     },
     "available_variants": {
         "1": 1,
@@ -10,17 +10,15 @@
         "3": 1,
         "4": 1,
         "5": 1,
-        "6": 1,
-        "7": 1
+        "6": 1
     },
     "nourishment_display_levels": {
         "1": 1,
         "2": 2,
         "5": 3,
         "9": 4,
-        "12": 5,
-        "17": 6,
-        "20": 7
+        "15": 5,
+        "20": 6
     },
     "soil_hue": 0,
     "visible": false,
