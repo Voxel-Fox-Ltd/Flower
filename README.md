@@ -6,11 +6,11 @@ Flower is a tiny bot for growing and taking care of flowers. Discord can be a sc
 
 There are a few available plants in Flower, with more being added regularly. Taking care of them is pretty simple. All you need to do is `p.water` each of your plants every so often (plants will die after two days of not being watered).
 
+![](https://voxelfox.co.uk/static/images/flower/commands.png)
+
 ## How do I do stuff?
 
 There's just a few commands available within Flower, all of which can be run from your DMs.
-
-![](https://voxelfox.co.uk/static/images/flower/flower.png)
 
 * `p.shop`
     * Run this to get new plants and more plant pots. After you run this you'll be shown a menu of things you can buy - simply say the name of the item you want.
