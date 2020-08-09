@@ -43,8 +43,8 @@ class PlantDisplayCommands(utils.Cog):
         image_data_bw = image_data.max(axis=2)
         non_empty_columns = np.where(image_data_bw.max(axis=0) > 0)[0]
         non_empty_rows = np.where(image_data_bw.max(axis=1) > 0)[0]
-        cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
-        image_data_new = image_data[cropBox[0]:cropBox[1] + 1, cropBox[2]:cropBox[3] + 1, :]
+        crop_box = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+        image_data_new = image_data[crop_box[0]:crop_box[1] + 1, crop_box[2]:crop_box[3] + 1, :]
         return Image.fromarray(image_data_new)
 
     @staticmethod

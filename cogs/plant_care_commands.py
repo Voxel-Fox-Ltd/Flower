@@ -126,7 +126,7 @@ class PlantCareCommands(utils.Cog):
             exp_value = 0
         return await ctx.send(f"<@{user.id}> has **{exp_value:,}** experience.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
-    @commands.command(cls=utils.Command, aliases=['giveexp', 'givepoints'])
+    @commands.command(cls=utils.Command, aliases=['giveexp', 'givepoints'], enabled=False)
     async def giveexperience(self, ctx:utils.Context, user:discord.Member, amount:int):
         """Transfers some of your experience to another user"""
 
