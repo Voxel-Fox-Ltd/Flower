@@ -102,6 +102,7 @@ class PlantShopCommands(utils.Cog):
         else:
             user_experience = 0
             plant_limit = 1
+        available_item_count = 0  # Used to make sure we can continue the command
 
         # See what plants are available
         if len(plant_level_rows) >= plant_limit:
@@ -109,10 +110,9 @@ class PlantShopCommands(utils.Cog):
         else:
             text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
         for plant in sorted((await self.get_available_plants(ctx.author.id)).values()):
-            # if plant.visible is False or plant.available is False:
-            #     continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 text_rows.append(f"**{plant.display_name.capitalize()}** - {plant.required_experience} exp")
+                available_item_count += 1
             else:
                 text_rows.append(f"~~**{plant.display_name.capitalize()}** - {plant.required_experience} exp~~")
 
@@ -123,14 +123,22 @@ class PlantShopCommands(utils.Cog):
         # Plant pots
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.HARD_PLANT_CAP:
             text_rows.append(f"**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp")
+            available_item_count += 1
         else:
             text_rows.append(f"~~**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp~~")
 
         # Add revival tokens
         if user_experience >= self.REVIVAL_TOKEN_PRICE:
             text_rows.append(f"**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp")
+            available_item_count += 1
         else:
             text_rows.append(f"~~**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp~~")
+
+        # See if we should cancel
+        if available_item_count == 0:
+            text_rows.append("")
+            text_rows.append("**There is currently nothing available which you can purchase.**")
+            return await ctx.send('\n'.join(text_rows))
 
         # Wait for them to respond
         await ctx.send('\n'.join(text_rows))
