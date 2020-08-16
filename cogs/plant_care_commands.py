@@ -77,6 +77,8 @@ class PlantCareCommands(utils.Cog):
         plant_nourishment = plant_level_row[0]['plant_nourishment']
         if plant_nourishment > 0:
             gained_experience = plant_data.get_experience()
+            if plant_level_row[0]['last_water_time'] + timedelta(seconds=30) <= dt.utcnow():
+                gained_experience = int(gained_experience * 1.5)
             await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
                 DO UPDATE SET user_experience=user_settings.user_experience+$2""",
@@ -193,6 +195,7 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_nourishment=1 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
             await db.commit_transaction()
         return await ctx.send(f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
+
 
 def setup(bot:utils.Bot):
     x = PlantCareCommands(bot)
