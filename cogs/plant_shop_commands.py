@@ -60,7 +60,10 @@ class PlantShopCommands(utils.Cog):
             plant_limit = 1
 
         # See what plants are available
-        text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
+        if len(plant_level_rows) >= plant_limit:
+            text_rows = [f"You currently have no available plant pots, {ctx.author.mention}. You currently have **{user_experience} exp.**"]
+        else:
+            text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
         for plant in sorted(list(self.bot.plants.values())):
             if plant.visible is False or plant.available is False:
                 continue
