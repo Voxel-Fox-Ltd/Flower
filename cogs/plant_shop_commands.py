@@ -65,9 +65,9 @@ class PlantShopCommands(utils.Cog):
             if plant.visible is False or plant.available is False:
                 continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                text_rows.append(f"**{plant.display_name.capitalize()} - {plant.required_experience} exp")
+                text_rows.append(f"**{plant.display_name.capitalize()}** - {plant.required_experience} exp")
             else:
-                text_rows.append(f"~~**{plant.display_name.capitalize()} - {plant.required_experience} exp~~")
+                text_rows.append(f"~~**{plant.display_name.capitalize()}** - {plant.required_experience} exp~~")
 
         # Add the "welcome to items" rows
         text_rows.append("")

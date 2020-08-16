@@ -140,28 +140,6 @@ class PlantCareCommands(utils.Cog):
         # Return to user
         return await ctx.send('\n'.join(output), allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
-    @commands.command(cls=utils.Command, aliases=['giveexp', 'givepoints'], enabled=False)
-    async def giveexperience(self, ctx:utils.Context, user:discord.Member, amount:int):
-        """Transfers some of your experience to another user"""
-
-        if amount <= 0:
-            return await ctx.send("You need to give an amount above zero.")
-        async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", ctx.author.id)
-            if not user_rows:
-                return await ctx.send("You don't have enough experience to make that transfer! :c")
-            if user_rows[0]['user_experience'] < amount:
-                return await ctx.send("You don't have enough experience to make that transfer! :c")
-            await db.start_transaction()
-            await db("UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1", ctx.author.id, amount)
-            await db(
-                """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                DO UPDATE SET user_experience=user_settings.user_experience+excluded.user_experience""",
-                user.id, amount
-            )
-            await db.commit_transaction()
-        return await ctx.send(f"Transferred **{amount:,}** exp from {ctx.author.mention} to <@{user.id}>!", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
-
     @commands.command(cls=utils.Command, aliases=['list'])
     async def plants(self, ctx:utils.Context, user:utils.converters.UserID=None):
         """Shows you all the plants that a given user has"""
