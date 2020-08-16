@@ -113,18 +113,32 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after.strip('"'))
         await ctx.send("Done!~")
 
-    @commands.command(cls=utils.Command, aliases=['exp', 'points'])
-    async def experience(self, ctx:utils.Context, user:utils.converters.UserID=None):
-        """Shows you how much experience a user has"""
+    @commands.command(cls=utils.Command, aliases=['experience', 'exp', 'points', 'inv'])
+    async def inventory(self, ctx:utils.Context, user:utils.converters.UserID=None):
+        """Show you the inventory of a user"""
 
+        # Get user info
         user = discord.Object(user) if user else ctx.author
         async with self.bot.database() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
+            user_inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND amount > 0", user.id)
+
+        # Format exp into a string
         if user_rows:
             exp_value = user_rows[0]['user_experience']
         else:
             exp_value = 0
-        return await ctx.send(f"<@{user.id}> has **{exp_value:,}** experience.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+        output = [f"<@{user.id}> has **{exp_value:,}** experience.", "", "**Inventory**"]
+
+        # Format inventory into a string
+        if not user_inventory_rows:
+            output.append("_There's nothing here :c_")
+        else:
+            for row in user_inventory_rows:
+                output.append(f"{row['item_name']} x{row['amount']:,}")
+
+        # Return to user
+        return await ctx.send('\n'.join(output), allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
     @commands.command(cls=utils.Command, aliases=['giveexp', 'givepoints'], enabled=False)
     async def giveexperience(self, ctx:utils.Context, user:discord.Member, amount:int):

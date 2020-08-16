@@ -40,3 +40,11 @@ CREATE TABLE plant_levels(
     last_water_time TIMESTAMP,
     PRIMARY KEY (user_id, plant_name)
 );
+
+
+CREATE TABLE user_inventory(
+    user_id BIGINT,
+    item_name VARCHAR(50),
+    amount INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, item_name)
+);
