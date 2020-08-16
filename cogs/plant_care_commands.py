@@ -9,7 +9,7 @@ from cogs import utils
 class PlantCareCommands(utils.Cog):
 
     PLANT_DEATH_TIMEOUT = {
-        'days': 2,
+        'days': 3,
     }
     PLANT_WATER_COOLDOWN = {
         'minutes': 15,
