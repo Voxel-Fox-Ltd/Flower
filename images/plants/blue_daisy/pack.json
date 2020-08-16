@@ -1,9 +1,5 @@
 {
-    "required_experience": 0,
-    "experience_gain": {
-        "minimum": 3,
-        "maximum": 5
-    },
+    "plant_level": 0,
     "available_variants": {
         "1": 1,
         "2": 1,

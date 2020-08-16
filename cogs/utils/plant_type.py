@@ -4,10 +4,63 @@ import random
 class PlantType(object):
     """A data type containing the data for any given plant type"""
 
-    def __init__(self, name:str, required_experience:int, experience_gain:dict, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool):
+    PLANT_LEVEL_MAPPING = {
+        0: {
+            "cost": 0,
+            "experience_gain": {
+                "maximum": 5,
+                "minimum": 3,
+            },
+        },
+        1: {
+            "cost": 50,
+            "experience_gain": {
+                "maximum": 8,
+                "minimum": 3,
+            },
+        },
+        2: {
+            "cost": 172,
+            "experience_gain": {
+                "maximum": 12,
+                "minimum": 5,
+            },
+        },
+        3: {
+            "cost": 372,
+            "experience_gain": {
+                "maximum": 15,
+                "minimum": 8,
+            },
+        },
+        4: {
+            "cost": 503,
+            "experience_gain": {
+                "maximum": 23,
+                "minimum": 15,
+            },
+        },
+        5: {
+            "cost": 950,
+            "experience_gain": {
+                "maximum": 25,
+                "minimum": 15,
+            },
+        },
+        6: {
+            "cost": 1250,
+            "experience_gain": {
+                "maximum": 30,
+                "minimum": 16,
+            },
+        },
+    }
+
+    def __init__(self, name:str, plant_level:int, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool):
         self.name = name
-        self.required_experience = required_experience
-        self.experience_gain = experience_gain
+        self.plant_level = plant_level
+        self.required_experience = self.PLANT_LEVEL_MAPPING[self.plant_level]["cost"]
+        self.experience_gain = self.PLANT_LEVEL_MAPPING[self.plant_level]["experience_gain"]
         self.available_variants = available_variants
         self.nourishment_display_levels = nourishment_display_levels
         self.soil_hue = soil_hue

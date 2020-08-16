@@ -57,8 +57,6 @@ class PlantShopCommands(utils.Cog):
         else:
             user_experience = 0
             plant_limit = 1
-        # if len(plant_level_rows) >= plant_limit and user_experience < self.get_points_for_plant_pot(plant_limit):
-        #     return await ctx.send(f"You can only have {plant_limit} plant{'s' if plant_limit > 1 else ''}, and you need {self.get_points_for_plant_pot(plant_limit)} exp to get a new pot (you currently have {user_experience} exp)! :c")
 
         # See what plants are available
         text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
@@ -138,7 +136,6 @@ class PlantShopCommands(utils.Cog):
                 "UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1",
                 ctx.author.id, plant_type.required_experience,
             )
-        # self.bot.get_command("water").reset_cooldown(ctx)
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
 
 
