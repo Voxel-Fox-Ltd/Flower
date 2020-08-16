@@ -107,11 +107,11 @@ class PlantShopCommands(utils.Cog):
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
         if plant_type.available is False:
-            return await ctx.send(f"**{plant_type.name.replace('_', ' ').capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
+            return await ctx.send(f"**{plant_type.display_name.capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
-            return await ctx.send(f"You don't have the required experience to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
+            return await ctx.send(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
         if len(plant_level_rows) >= plant_limit:
-            return await ctx.send(f"You don't have enough plant pots to be able to get a **{plant_type.name.replace('_', ' ')}**, {ctx.author.mention} :c")
+            return await ctx.send(f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c")
 
         # Get a name for the plant
         await ctx.send("What name do you want to give your plant?")
@@ -139,7 +139,7 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_type.required_experience,
             )
         # self.bot.get_command("water").reset_cooldown(ctx)
-        await ctx.send(f"Planted your **{plant_type.name.replace('_', ' ')}** seeds!")
+        await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
 
 
 def setup(bot):

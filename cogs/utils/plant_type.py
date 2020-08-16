@@ -15,6 +15,10 @@ class PlantType(object):
         self.available = available
         self.max_nourishment_level = max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
 
+    @property
+    def display_name(self):
+        return self.name.replace("_", " ")
+
     def __gt__(self, other):
         if not isinstance(other, self.__class__):
             raise ValueError()
