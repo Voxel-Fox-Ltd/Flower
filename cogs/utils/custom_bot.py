@@ -18,6 +18,7 @@ from cogs.utils.custom_context import CustomContext
 from cogs.utils.database import DatabaseConnection
 from cogs.utils.redis import RedisConnection
 from cogs.utils.plant_type import PlantType
+from cogs.utils.item_type import ItemType
 
 
 def get_prefix(bot, message:discord.Message):
@@ -62,6 +63,7 @@ class CustomBot(commands.AutoShardedBot):
 
         # Store the plants
         self.plants = {}
+        self.items = {}
 
         # Aiohttp session
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -122,6 +124,11 @@ class CustomBot(commands.AutoShardedBot):
 
         # Dictionary it up
         self.plants = {i['name']: PlantType(**i) for i in available_plants}
+
+        # Dictionary it up
+        self.items = {
+            "revival_token": ItemType(item_name="revival_token", item_price=300),
+        }
 
         # Wait for the bot to cache users before continuing
         self.logger.debug("Waiting until ready before completing startup method.")

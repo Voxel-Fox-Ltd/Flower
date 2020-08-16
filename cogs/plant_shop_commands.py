@@ -127,12 +127,13 @@ class PlantShopCommands(utils.Cog):
         else:
             text_rows.append(f"~~**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp~~")
 
-        # Add revival tokens
-        if user_experience >= self.REVIVAL_TOKEN_PRICE:
-            text_rows.append(f"**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp")
-            available_item_count += 1
-        else:
-            text_rows.append(f"~~**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp~~")
+        # Add items
+        for item in self.bot.items.values():
+            if user_experience >= item.price:
+                text_rows.append(f"**{item.display_name.capitalize()}** - {item.price} exp")
+                available_item_count += 1
+            else:
+                text_rows.append(f"~~**{item.display_name.capitalize()}** - {item.price} exp~~")
 
         # See if we should cancel
         if available_item_count == 0:
@@ -164,24 +165,25 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
 
         # See if they want a revival token
-        if given_response == "revival_token":
-            if user_experience >= self.REVIVAL_TOKEN_PRICE:
+        item_type = self.bot.items.get(given_response)
+        if item_type is not None:
+            if user_experience >= item_type.price:
                 async with self.bot.database() as db:
                     await db.start_transaction()
                     await db(
                         """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE
                         SET user_experience=user_settings.user_experience-excluded.user_experience""",
-                        ctx.author.id, self.REVIVAL_TOKEN_PRICE
+                        ctx.author.id, item_type.price
                     )
                     await db(
-                        """INSERT INTO user_inventory (user_id, item_name, amount) VALUES ($1, 'revival_token', 1)
+                        """INSERT INTO user_inventory (user_id, item_name, amount) VALUES ($1, $2, 1)
                         ON CONFLICT (user_id, item_name) DO UPDATE SET amount=user_inventory.amount+excluded.amount""",
-                        ctx.author.id
+                        ctx.author.id, item_type.name
                     )
                     await db.commit_transaction()
-                return await ctx.send(f"Given you a revival token, {ctx.author.mention}!")
+                return await ctx.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}!")
             else:
-                return await ctx.send(f"You don't have the required experience to get a revival token, {ctx.author.mention} :c")
+                return await ctx.send(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
 
         # See if they want a plant
         try:
