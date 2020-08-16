@@ -162,6 +162,20 @@ class PlantCareCommands(utils.Cog):
         )
 
     @commands.command(cls=utils.Command)
+    async def giveitem(self, ctx:utils.Context, user:discord.Member, *, item_type:str):
+        """Send an item to another member"""
+
+        async with self.bot.database() as db:
+            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", ctx.author.id, item_type.replace(' ', '_'))
+            if not inventory_rows or inventory_rows[0]['amount'] < 1:
+                return await ctx.send(f"You don't have any of that item, {ctx.author.mention}! :c")
+            await db.start_transaction()
+            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", ctx.author.id, item_type.replace(' ', '_'))
+            await db("UPDATE user_inventory SET amount=user_inventory.amount+1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", user.id, item_type.replace(' ', '_'))
+            await db.commit_transaction()
+        return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
+
+    @commands.command(cls=utils.Command)
     async def revive(self, ctx:utils.Context, *, plant_name:str):
         """Use one of your revival tokens to be able to revive your plant"""
 
