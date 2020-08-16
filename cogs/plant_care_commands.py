@@ -135,7 +135,7 @@ class PlantCareCommands(utils.Cog):
             output.append("_There's nothing here :c_")
         else:
             for row in user_inventory_rows:
-                output.append(f"{row['item_name']} x{row['amount']:,}")
+                output.append(f"{row['item_name'].replace('_', ' ').capitalize()} x{row['amount']:,}")
 
         # Return to user
         return await ctx.send('\n'.join(output), allowed_mentions=discord.AllowedMentions(users=[ctx.author]))

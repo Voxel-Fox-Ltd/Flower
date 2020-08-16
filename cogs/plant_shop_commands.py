@@ -14,6 +14,7 @@ class PlantShopCommands(utils.Cog):
 
     HARD_PLANT_CAP = 10
     PLANT_POT_PRICE = 50
+    REVIVAL_TOKEN_PRICE = 300
 
     @classmethod
     def get_points_for_plant_pot(cls, current_limit:str):
@@ -43,8 +44,8 @@ class PlantShopCommands(utils.Cog):
         self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
         return await ctx.send("Reloaded.")
 
-    @commands.command(cls=utils.Command, aliases=['getplant', 'shop', 'getpot', 'newpot'])
-    async def newplant(self, ctx:utils.Context):
+    @commands.command(cls=utils.Command, aliases=['getplant', 'getpot', 'newpot', 'newplant'])
+    async def shop(self, ctx:utils.Context):
         """Shows you the available plants"""
 
         # Get the experience
@@ -64,27 +65,35 @@ class PlantShopCommands(utils.Cog):
             if plant.visible is False or plant.available is False:
                 continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                text_rows.append(f"**{plant.name.capitalize().replace('_', ' ')}** - {plant.required_experience} exp")
+                text_rows.append(f"**{plant.display_name.capitalize()} - {plant.required_experience} exp")
             else:
-                text_rows.append(f"~~**{plant.name.capitalize().replace('_', ' ')}** - {plant.required_experience} exp~~")
+                text_rows.append(f"~~**{plant.display_name.capitalize()} - {plant.required_experience} exp~~")
 
-        # See what other stuff is available
+        # Add the "welcome to items" rows
         text_rows.append("")
         text_rows.append("Would you like to buy a new item?")
+
+        # Plant pots
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.HARD_PLANT_CAP:
             text_rows.append(f"**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp")
         else:
             text_rows.append(f"~~**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp~~")
-        await ctx.send('\n'.join(text_rows))
+
+        # Add revival tokens
+        if user_experience >= self.REVIVAL_TOKEN_PRICE:
+            text_rows.append(f"**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp")
+        else:
+            text_rows.append(f"~~**Revival token** - {self.REVIVAL_TOKEN_PRICE} exp~~")
 
         # Wait for them to respond
+        await ctx.send('\n'.join(text_rows))
         try:
             plant_type_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
+        given_response = plant_type_message.content.lower().replace(' ', '_')
 
         # See if they want a plant pot
-        given_response = plant_type_message.content.lower().replace(' ', '_')
         if given_response == "pot":
             if plant_limit >= self.HARD_PLANT_CAP:
                 return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
@@ -98,6 +107,26 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"Given you another plant pot, {ctx.author.mention}!")
             else:
                 return await ctx.send(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
+
+        # See if they want a revival token
+        if given_response == "revival_token":
+            if user_experience >= self.REVIVAL_TOKEN_PRICE:
+                async with self.bot.database() as db:
+                    await db.start_transaction()
+                    await db(
+                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE
+                        SET user_experience=user_settings.user_experience-excluded.user_experience""",
+                        ctx.author.id, self.REVIVAL_TOKEN_PRICE
+                    )
+                    await db(
+                        """INSERT INTO user_inventory (user_id, item_name, amount) VALUES ($1, 'revival_token', 1)
+                        ON CONFLICT (user_id, item_name) DO UPDATE SET amount=user_inventory.amount+excluded.amount""",
+                        ctx.author.id
+                    )
+                    await db.commit_transaction()
+                return await ctx.send(f"Given you a revival token, {ctx.author.mention}!")
+            else:
+                return await ctx.send(f"You don't have the required experience to get a revival token, {ctx.author.mention} :c")
 
         # See if they want a plant
         try:
