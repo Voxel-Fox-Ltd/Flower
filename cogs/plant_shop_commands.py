@@ -3,6 +3,8 @@ from datetime import datetime as dt
 import os
 import glob
 import json
+import collections
+import random
 
 import discord
 from discord.ext import commands
@@ -15,12 +17,54 @@ class PlantShopCommands(utils.Cog):
     HARD_PLANT_CAP = 10
     PLANT_POT_PRICE = 50
     REVIVAL_TOKEN_PRICE = 300
+    LEVEL_ZERO_PLANT_NAME = "blue_daisy"
 
     @classmethod
     def get_points_for_plant_pot(cls, current_limit:str):
         """Get the amount of points needed to get the next level of pot"""
 
         return int(cls.PLANT_POT_PRICE * (3 ** (current_limit - 1)))
+
+    async def get_available_plants(self, user_id:int) -> dict:
+        """Get the available plants for a given user at each given level"""
+
+        async with self.bot.database() as db:
+
+            # Check what plants they have available
+            plant_shop_rows = await db("SELECT * FROM user_available_plants WHERE user_id=$1", user_id)
+
+            # If they don't have any available plants, generate new ones for the shop
+            if not plant_shop_rows or plant_shop_rows[0]['last_shop_timestamp'].month != dt.utcnow().month:
+                possible_available_plants = collections.defaultdict(list)
+                for item in self.bot.plants.values():
+                    if item.available is False:
+                        continue
+                    possible_available_plants[item.plant_level].append(item)
+                available_plants = {}
+                for level, plants in possible_available_plants.items():
+                    available_plants[level] = random.choice(plants)
+                available_plants[0] = self.bot.plants['blue_daisy']
+                await db(
+                    """INSERT INTO user_available_plants VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id) DO UPDATE SET
+                    last_shop_timestamp=excluded.last_shop_timestamp, plant_level_1=excluded.plant_level_1, plant_level_2=excluded.plant_level_2,
+                    plant_level_3=excluded.plant_level_3, plant_level_4=excluded.plant_level_4, plant_level_5=excluded.plant_level_5,
+                    plant_level_6=excluded.plant_level_6""",
+                    user_id, dt.utcnow(), available_plants[1].name, available_plants[2].name, available_plants[3].name, available_plants[4].name,
+                    available_plants[5].name, available_plants[6].name,
+                )
+
+            # They have available plants, format into new dictionary
+            else:
+                available_plants = {
+                    0: self.bot.plants['blue_daisy'],
+                    1: self.bot.plants[plant_shop_rows[0]['plant_level_1']],
+                    2: self.bot.plants[plant_shop_rows[0]['plant_level_2']],
+                    3: self.bot.plants[plant_shop_rows[0]['plant_level_3']],
+                    4: self.bot.plants[plant_shop_rows[0]['plant_level_4']],
+                    5: self.bot.plants[plant_shop_rows[0]['plant_level_5']],
+                    6: self.bot.plants[plant_shop_rows[0]['plant_level_6']],
+                }
+        return available_plants
 
     @commands.command(cls=utils.Command)
     @commands.is_owner()
@@ -64,9 +108,9 @@ class PlantShopCommands(utils.Cog):
             text_rows = [f"You currently have no available plant pots, {ctx.author.mention}. You currently have **{user_experience} exp.**"]
         else:
             text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
-        for plant in sorted(list(self.bot.plants.values())):
-            if plant.visible is False or plant.available is False:
-                continue
+        for plant in sorted((await self.get_available_plants(ctx.author.id)).values()):
+            # if plant.visible is False or plant.available is False:
+            #     continue
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 text_rows.append(f"**{plant.display_name.capitalize()}** - {plant.required_experience} exp")
             else:
@@ -136,8 +180,8 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
-        if plant_type.available is False:
-            return await ctx.send(f"**{plant_type.display_name.capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
+        # if plant_type.available is False:
+        #     return await ctx.send(f"**{plant_type.display_name.capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
             return await ctx.send(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
         if len(plant_level_rows) >= plant_limit:
