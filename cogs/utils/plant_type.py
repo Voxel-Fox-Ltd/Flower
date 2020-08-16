@@ -68,6 +68,9 @@ class PlantType(object):
         self.available = available
         self.max_nourishment_level = max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
 
+    def __str__(self):
+        return f"<Plant {self.name} - level {self.plant_level}>"
+
     @property
     def display_name(self):
         return self.name.replace("_", " ")
