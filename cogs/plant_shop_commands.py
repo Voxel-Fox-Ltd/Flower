@@ -204,20 +204,21 @@ class PlantShopCommands(utils.Cog):
             plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
+        plant_name = plant_name_message.content.strip('"')
 
         # Save that to database
         async with self.bot.database() as db:
             plant_name_exists = await db(
                 "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
-                ctx.author.id, plant_name_message.content
+                ctx.author.id, plant_name
             )
             if plant_name_exists:
-                return await ctx.send(f"You've already used the name `{plant_name_message.content}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
+                return await ctx.send(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
             await db(
                 """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time)
                 VALUES ($1, $2, $3, 0, $4) ON CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
-                ctx.author.id, plant_name_message.content, plant_type.name, dt(2000, 1, 1),
+                ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1),
             )
             await db(
                 "UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1",

@@ -108,11 +108,26 @@ class PlantCareCommands(utils.Cog):
     async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
+        # Make sure some names were provided
+        after = after.strip('"')
+        if not after:
+            raise utils.MissingRequiredArgumentString("after")
+
+        # See about changing the name
         async with self.bot.database() as db:
+
+            # Make sure the given name exists
             plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
             if not plant_has_before_name:
-                return await ctx.send(f"You have no plants with the name `{before}`.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-            await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after.strip('"'))
+                return await ctx.send(f"You have no plants with the name **{before}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+
+            # Make sure they aren't trying to rename to a currently existing name
+            plant_name_exists = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, after)
+            if plant_name_exists:
+                return await ctx.send(f"You already have a plant with the name **{after}**!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+
+            # Update plant name
+            await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
         await ctx.send("Done!~")
 
     @commands.command(cls=utils.Command, aliases=['experience', 'exp', 'points', 'inv'])
@@ -130,12 +145,11 @@ class PlantCareCommands(utils.Cog):
             exp_value = user_rows[0]['user_experience']
         else:
             exp_value = 0
-        output = [f"<@{user.id}> has **{exp_value:,}** experience.", "", "**Inventory**"]
+        output = [f"<@{user.id}> has **{exp_value:,}** experience.", ""]
 
         # Format inventory into a string
-        if not user_inventory_rows:
-            output.append("_There's nothing here :c_")
-        else:
+        if user_inventory_rows:
+            output.append("**Inventory**")
             for row in user_inventory_rows:
                 output.append(f"{row['item_name'].replace('_', ' ').capitalize()} x{row['amount']:,}")
 
