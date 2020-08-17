@@ -59,7 +59,7 @@ class PlantCareCommands(utils.Cog):
                 """UPDATE plant_levels SET
                 plant_nourishment=LEAST(-plant_levels.plant_nourishment, plant_levels.plant_nourishment), last_water_time=$3
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
-                RETURNING plant_name, plant_nourishment""",
+                RETURNING plant_name, plant_nourishment, last_water_time""",
                 ctx.author.id, plant_name, dt.utcnow(),
             )
 
@@ -69,7 +69,7 @@ class PlantCareCommands(utils.Cog):
                 """UPDATE plant_levels
                 SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4), last_water_time=$3
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
-                RETURNING plant_name, plant_nourishment""",
+                RETURNING plant_name, plant_nourishment, last_water_time""",
                 ctx.author.id, plant_name, dt.utcnow(), plant_data.max_nourishment_level,
             )
 
@@ -173,7 +173,11 @@ class PlantCareCommands(utils.Cog):
                 return await ctx.send(f"You don't have any of that item, {ctx.author.mention}! :c")
             await db.start_transaction()
             await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", ctx.author.id, item_type.replace(' ', '_'))
-            await db("UPDATE user_inventory SET amount=user_inventory.amount+1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", user.id, item_type.replace(' ', '_'))
+            await db(
+                """INSERT INTO user_inventory VALUES ($1, $2, 1) ON CONFLICT (user_id, item_name) DO UPDATE SET
+                amount=user_inventory.amount+excluded.amount""",
+                user.id, item_type.replace(' ', '_')
+            )
             await db.commit_transaction()
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
 
