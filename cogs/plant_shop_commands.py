@@ -109,7 +109,8 @@ class PlantShopCommands(utils.Cog):
             text_rows = [f"You currently have no available plant pots, {ctx.author.mention}. You currently have **{user_experience} exp.**"]
         else:
             text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
-        for plant in sorted((await self.get_available_plants(ctx.author.id)).values()):
+        available_plants = await self.get_available_plants(ctx.author.id)
+        for plant in sorted(available_plants.values()):
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 text_rows.append(f"**{plant.display_name.capitalize()}** - {plant.required_experience} exp")
                 available_item_count += 1
@@ -190,8 +191,8 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
-        # if plant_type.available is False:
-        #     return await ctx.send(f"**{plant_type.display_name.capitalize()}** plants are unavailable right now, {ctx.author.mention} :c")
+        if plant_type not in available_plants.values():
+            return await ctx.send(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
             return await ctx.send(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
         if len(plant_level_rows) >= plant_limit:
