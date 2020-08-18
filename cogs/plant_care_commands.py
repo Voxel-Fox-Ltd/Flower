@@ -210,7 +210,11 @@ class PlantCareCommands(utils.Cog):
                 return await ctx.send(f"Your **{plant_rows[0]['plant_name']}** plant isn't dead!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
             await db.start_transaction()
             await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
-            await db("UPDATE plant_levels SET plant_nourishment=1 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
+            await db(
+                """UPDATE plant_levels SET plant_nourishment=1, LAST_WATER_TIME=TIMEZONE('UTC', NOW()) - INTERVAL '15 MINUTES'
+                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                ctx.author.id, plant_name
+            )
             await db.commit_transaction()
         return await ctx.send(f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
 
