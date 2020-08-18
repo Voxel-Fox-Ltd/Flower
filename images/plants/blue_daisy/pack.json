@@ -18,5 +18,6 @@
     },
     "soil_hue": 0,
     "visible": true,
-    "available": true
+    "available": true,
+    "artist": "AzunaPixels"
 }

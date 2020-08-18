@@ -56,7 +56,7 @@ class PlantType(object):
         },
     }
 
-    def __init__(self, name:str, plant_level:int, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool):
+    def __init__(self, name:str, plant_level:int, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool, artist:str):
         self.name = name
         self.plant_level = plant_level
         self.required_experience = self.PLANT_LEVEL_MAPPING[self.plant_level]["cost"]
@@ -66,6 +66,7 @@ class PlantType(object):
         self.soil_hue = soil_hue
         self.visible = visible
         self.available = available
+        self.artist = artist
         self.max_nourishment_level = max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
 
     def __str__(self):
