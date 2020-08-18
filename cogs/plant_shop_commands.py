@@ -68,6 +68,7 @@ class PlantShopCommands(utils.Cog):
 
     @commands.command(cls=utils.Command)
     @commands.is_owner()
+    @commands.bot_has_permissions(send_messages=True)
     async def reloadplants(self, ctx:utils.Context):
         """Shows you the available plants"""
 
@@ -89,6 +90,7 @@ class PlantShopCommands(utils.Cog):
         return await ctx.send("Reloaded.")
 
     @commands.command(cls=utils.Command, aliases=['getplant', 'getpot', 'newpot', 'newplant'])
+    @commands.bot_has_permissions(send_messages=True)
     async def shop(self, ctx:utils.Context):
         """Shows you the available plants"""
 

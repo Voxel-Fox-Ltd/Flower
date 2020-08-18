@@ -34,6 +34,7 @@ class PlantCareCommands(utils.Cog):
             )
 
     @commands.command(cls=utils.Command, aliases=['water'], cooldown_after_parsing=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def waterplant(self, ctx:utils.Context, *, plant_name:str):
         """Increase the growth level of your plant"""
 
@@ -97,6 +98,7 @@ class PlantCareCommands(utils.Cog):
             await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience~")
 
     @commands.command(cls=utils.Command, aliases=['delete'])
+    @commands.bot_has_permissions(send_messages=True)
     async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
         """Deletes your plant from the database"""
 
@@ -105,6 +107,7 @@ class PlantCareCommands(utils.Cog):
         await ctx.send("Done.")
 
     @commands.command(cls=utils.Command, aliases=['rename'])
+    @commands.bot_has_permissions(send_messages=True)
     async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
@@ -131,6 +134,7 @@ class PlantCareCommands(utils.Cog):
         await ctx.send("Done!~")
 
     @commands.command(cls=utils.Command, aliases=['experience', 'exp', 'points', 'inv'])
+    @commands.bot_has_permissions(send_messages=True)
     async def inventory(self, ctx:utils.Context, user:utils.converters.UserID=None):
         """Show you the inventory of a user"""
 
@@ -157,6 +161,7 @@ class PlantCareCommands(utils.Cog):
         return await ctx.send('\n'.join(output), allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
     @commands.command(cls=utils.Command, aliases=['list'])
+    @commands.bot_has_permissions(send_messages=True)
     async def plants(self, ctx:utils.Context, user:utils.converters.UserID=None):
         """Shows you all the plants that a given user has"""
 
@@ -178,6 +183,7 @@ class PlantCareCommands(utils.Cog):
         )
 
     @commands.command(cls=utils.Command)
+    @commands.bot_has_permissions(send_messages=True)
     async def giveitem(self, ctx:utils.Context, user:discord.Member, *, item_type:str):
         """Send an item to another member"""
 
@@ -196,6 +202,7 @@ class PlantCareCommands(utils.Cog):
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
 
     @commands.command(cls=utils.Command)
+    @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx:utils.Context, *, plant_name:str):
         """Use one of your revival tokens to be able to revive your plant"""
 

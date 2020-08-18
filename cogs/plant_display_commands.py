@@ -133,6 +133,7 @@ class PlantDisplayCommands(utils.Cog):
         }
 
     @commands.command(cls=utils.Command, aliases=['showplant', 'show', 'display'])
+    @commands.bot_has_permissions(send_messages=True, attach_files=True)
     async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
         """Shows you your plant status"""
 
@@ -184,6 +185,7 @@ class PlantDisplayCommands(utils.Cog):
         await ctx.send(text, file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
 
     @commands.command(cls=utils.Command, hidden=True)
+    @commands.bot_has_permissions(send_messages=True, attach_files=True)
     async def displayall(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID]):
         """Show you all of your plants"""
 
