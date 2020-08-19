@@ -70,12 +70,12 @@ class PlantDisplayCommands(utils.Cog):
         if plant_nourishment != 0:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
             if plant_is_dead:
-                plant_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}.png")
+                plant_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}.png").convert("RGBA")
             else:
-                plant_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}.png")
+                plant_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}.png").convert("RGBA")
 
         # Paste the bot pack that we want onto the image
-        image = Image.open(f"images/pots/{pot_type}/back.png")
+        image = Image.open(f"images/pots/{pot_type}/back.png").convert("RGBA")
         image = self.shift_image_hue(image, pot_hue)
         if plant_image:
             offset = (0, plant_image.size[1] - image.size[1])
@@ -86,7 +86,7 @@ class PlantDisplayCommands(utils.Cog):
             offset = (0, 0)
 
         # Paste the soil that we want onto the image
-        pot_soil = Image.open(f"images/pots/{pot_type}/soil.png")
+        pot_soil = Image.open(f"images/pots/{pot_type}/soil.png").convert("RGBA")
         if plant_type:
             pot_soil = self.shift_image_hue(pot_soil, self.bot.plants[plant_type].soil_hue)
         else:
@@ -98,7 +98,7 @@ class PlantDisplayCommands(utils.Cog):
             image.paste(plant_image, (0, 0), plant_image)
 
         # Paste the pot foreground onto the image
-        pot_foreground = Image.open(f"images/pots/{pot_type}/front.png")
+        pot_foreground = Image.open(f"images/pots/{pot_type}/front.png").convert("RGBA")
         pot_foreground = self.shift_image_hue(pot_foreground, pot_hue)
         image.paste(pot_foreground, offset, pot_foreground)
 
