@@ -10,7 +10,7 @@ from cogs import utils
 class PlantInfoCommands(utils.Cog):
 
     def __init__(self, bot:utils.Bot):
-        self.bot = bot
+        super().__init__(bot)
         self._artist_info = None
 
     @property
@@ -45,9 +45,8 @@ class PlantInfoCommands(utils.Cog):
         artist_info = self.artist_info[plant.artist].copy()
         discord_id = artist_info.pop('discord', None)
         if discord_id:
-            user = await self.bot.fetch_user(discord_id)
-            description_list.append(f"**Artist `{user!s}`**")
-            description_list.append(f"Discord: {user.mention}")
+            description_list.append(f"**Artist `{plant.artist}`**")
+            description_list.append(f"Discord: <@{discord_id}> (`{discord_id}`)")
         else:
             description_list.append(f"**Artist `{plant.artist}`**")
         for i, o in sorted(artist_info.items()):

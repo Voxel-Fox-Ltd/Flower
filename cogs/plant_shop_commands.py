@@ -87,6 +87,11 @@ class PlantShopCommands(utils.Cog):
         # Dictionary it up
         self.bot.plants.clear()
         self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
+
+        # Reset the artist dict
+        self.bot.get_cog("PlantInfoCommands")._artist_info = None
+
+        # And done
         return await ctx.send("Reloaded.")
 
     @commands.command(cls=utils.Command, aliases=['getplant', 'getpot', 'newpot', 'newplant'])

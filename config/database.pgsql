@@ -34,7 +34,7 @@ CREATE TABLE channel_list(
 CREATE TABLE plant_levels(
     user_id BIGINT,
     plant_name VARCHAR(50),
-    plant_type VARCHAR(10),
+    plant_type VARCHAR(20),
     plant_variant INTEGER DEFAULT 0,
     plant_nourishment INTEGER,
     last_water_time TIMESTAMP,
