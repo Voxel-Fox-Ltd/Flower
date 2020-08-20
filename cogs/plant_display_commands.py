@@ -133,7 +133,7 @@ class PlantDisplayCommands(utils.Cog):
         }
 
     @commands.command(cls=utils.Command, aliases=['showplant', 'show', 'display'])
-    @commands.bot_has_permissions(send_messages=True, attach_files=True)
+    @commands.bot_has_permissions(send_messages=True, attach_files=True, embed_links=True)
     async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
         """Shows you your plant status"""
 
@@ -165,7 +165,8 @@ class PlantDisplayCommands(utils.Cog):
             text = f"<@{user.id}>'s {display_data['plant_type'].replace('_', ' ')} - **{plant_rows[0]['plant_name']}**"
             if int(display_data['plant_nourishment']) > 0:
                 if ctx.author.id == user.id:
-                    text += f"! Change your pot colour with `{ctx.prefix}usersettings`~"
+                    # text += f"! Change your pot colour with `{ctx.prefix}usersettings`~"
+                    text += "!"
                 else:
                     text += "!"
             elif int(display_data['plant_nourishment']) < 0:
@@ -182,7 +183,8 @@ class PlantDisplayCommands(utils.Cog):
         # Send image
         image_data = self.image_to_bytes(self.get_plant_image(**display_data))
         file = discord.File(image_data, filename="plant.png")
-        await ctx.send(text, file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        await ctx.send(embed=embed, file=file)
 
     @commands.command(cls=utils.Command, hidden=True)
     @commands.bot_has_permissions(send_messages=True, attach_files=True)

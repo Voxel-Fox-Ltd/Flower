@@ -95,7 +95,7 @@ class PlantShopCommands(utils.Cog):
         return await ctx.send("Reloaded.")
 
     @commands.command(cls=utils.Command, aliases=['getplant', 'getpot', 'newpot', 'newplant'])
-    @commands.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx:utils.Context):
         """Shows you the available plants"""
 
@@ -110,47 +110,44 @@ class PlantShopCommands(utils.Cog):
             user_experience = 0
             plant_limit = 1
         available_item_count = 0  # Used to make sure we can continue the command
+        embed = utils.Embed(use_random_colour=True, description="")
 
-        # See what plants are available
-        if len(plant_level_rows) >= plant_limit:
-            text_rows = [f"You currently have no available plant pots, {ctx.author.mention}. You currently have **{user_experience} exp.**"]
-        else:
-            text_rows = [f"What seeds would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**."]
+        # See what we wanna get to doing
+        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**, and you're using {len(plant_level_rows)} of your {plant_limit} available plant pots.\n"
         available_plants = await self.get_available_plants(ctx.author.id)
+
+        # Add plants to the embed
+        plant_text = []
         for plant in sorted(available_plants.values()):
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                text_rows.append(f"**{plant.display_name.capitalize()}** - {plant.required_experience} exp")
+                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience} exp`")
                 available_item_count += 1
             else:
-                text_rows.append(f"~~**{plant.display_name.capitalize()}** - {plant.required_experience} exp~~")
+                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience} exp`~~")
+        embed.add_field("Available Plants", '\n'.join(plant_text), inline=True)
 
-        # Add the "welcome to items" rows
-        text_rows.append("")
-        text_rows.append("Would you like to buy a new item?")
-
-        # Plant pots
+        # Add items to the embed
+        item_text = []
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.HARD_PLANT_CAP:
-            text_rows.append(f"**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp")
+            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`")
             available_item_count += 1
         else:
-            text_rows.append(f"~~**Pot** - {self.get_points_for_plant_pot(plant_limit)} exp~~")
-
-        # Add items
+            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`~~")
         for item in self.bot.items.values():
             if user_experience >= item.price:
-                text_rows.append(f"**{item.display_name.capitalize()}** - {item.price} exp")
+                item_text.append(f"{item.display_name.capitalize()} - `{item.price} exp`")
                 available_item_count += 1
             else:
-                text_rows.append(f"~~**{item.display_name.capitalize()}** - {item.price} exp~~")
+                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price} exp`~~")
+        embed.add_field("Available Items", '\n'.join(item_text), inline=True)
 
         # See if we should cancel
         if available_item_count == 0:
-            text_rows.append("")
-            text_rows.append("**There is currently nothing available which you can purchase.**")
-            return await ctx.send('\n'.join(text_rows))
+            embed.description += "\n**There is currently nothing available which you can purchase.**\n"
+            return await ctx.send(embed=embed)
 
         # Wait for them to respond
-        await ctx.send('\n'.join(text_rows))
+        await ctx.send(embed=embed)
         try:
             plant_type_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
         except asyncio.TimeoutError:

@@ -59,8 +59,7 @@ class PlantCareCommands(utils.Cog):
             plant_level_row = await db(
                 """UPDATE plant_levels SET
                 plant_nourishment=LEAST(-plant_levels.plant_nourishment, plant_levels.plant_nourishment), last_water_time=$3
-                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
-                RETURNING plant_name, plant_nourishment, last_water_time""",
+                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *""",
                 ctx.author.id, plant_name, dt.utcnow(),
             )
 
@@ -69,33 +68,37 @@ class PlantCareCommands(utils.Cog):
             plant_level_row = await db(
                 """UPDATE plant_levels
                 SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4), last_water_time=$3
-                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
-                RETURNING plant_name, plant_nourishment, last_water_time""",
+                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *""",
                 ctx.author.id, plant_name, dt.utcnow(), plant_data.max_nourishment_level,
             )
 
-        # Add to the user exp
+        # Add to the user exp if the plant is alive
         plant_nourishment = plant_level_row[0]['plant_nourishment']
+        gained_experience = 0
         if plant_nourishment > 0:
+
+            # Get the experience that they should have gained
             gained_experience = plant_data.get_experience()
+
+            # See if we want to give them a 30 second water-time bonus
             if plant_level_row[0]['last_water_time'] + timedelta(seconds=30) <= dt.utcnow():
                 gained_experience = int(gained_experience * 1.5)
+
+            # Update db
             await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
                 DO UPDATE SET user_experience=user_settings.user_experience+$2""",
                 ctx.author.id, gained_experience,
             )
-        else:
-            gained_experience = 0
-        await db.disconnect()
 
         # Send an output
+        await db.disconnect()
         if plant_nourishment < 0:
-            await ctx.send("You sadly pour water into the dry soil of your silently wilting plant :c")
+            return await ctx.send("You sadly pour water into the dry soil of your silently wilting plant :c")
         elif plant_data.get_nourishment_display_level(plant_nourishment) > plant_data.get_nourishment_display_level(plant_nourishment - 1):
-            await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience, watching your plant grow!~")
+            return await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience, watching your plant grow!~")
         else:
-            await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience~")
+            return await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience~")
 
     @commands.command(cls=utils.Command, aliases=['delete'])
     @commands.bot_has_permissions(send_messages=True)
@@ -103,8 +106,10 @@ class PlantCareCommands(utils.Cog):
         """Deletes your plant from the database"""
 
         async with self.bot.database() as db:
-            await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
-        await ctx.send("Done.")
+            data = await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *", ctx.author.id, plant_name)
+        if not data:
+            return await ctx.send(f"You have no plant names **{plant_name}**!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+        return await ctx.send(f"Done - you've deleted your {data[0]['plant_type'].replace('_', ' ')}.")
 
     @commands.command(cls=utils.Command, aliases=['rename'])
     @commands.bot_has_permissions(send_messages=True)
@@ -133,96 +138,38 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
         await ctx.send("Done!~")
 
-    @commands.command(cls=utils.Command, aliases=['experience', 'exp', 'points', 'inv'])
-    @commands.bot_has_permissions(send_messages=True)
-    async def inventory(self, ctx:utils.Context, user:utils.converters.UserID=None):
-        """Show you the inventory of a user"""
-
-        # Get user info
-        user = discord.Object(user) if user else ctx.author
-        async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
-            user_inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND amount > 0", user.id)
-
-        # Format exp into a string
-        if user_rows:
-            exp_value = user_rows[0]['user_experience']
-        else:
-            exp_value = 0
-        output = [f"<@{user.id}> has **{exp_value:,}** experience.", ""]
-
-        # Format inventory into a string
-        if user_inventory_rows:
-            output.append("**Inventory**")
-            for row in user_inventory_rows:
-                output.append(f"{row['item_name'].replace('_', ' ').capitalize()} x{row['amount']:,}")
-
-        # Return to user
-        return await ctx.send('\n'.join(output), allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
-
-    @commands.command(cls=utils.Command, aliases=['list'])
-    @commands.bot_has_permissions(send_messages=True)
-    async def plants(self, ctx:utils.Context, user:utils.converters.UserID=None):
-        """Shows you all the plants that a given user has"""
-
-        user = discord.Object(user) if user else ctx.author
-        async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
-        plant_names = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment']) for i in user_rows])
-        if not plant_names:
-            return await ctx.send(f"<@{user.id}> has no plants :c", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
-        plant_output_string = []
-        for i in plant_names:
-            if i[2] >= 0:
-                plant_output_string.append(f"**{i[0]}** ({i[1].replace('_', ' ')}, nourishment level {i[2]}/{self.bot.plants[i[1]].max_nourishment_level})")
-            else:
-                plant_output_string.append(f"**{i[0]}** ({i[1].replace('_', ' ')}, dead)")
-        return await ctx.send(
-            f"<@{user.id}> has the following:\n" + '\n'.join(plant_output_string),
-            allowed_mentions=discord.AllowedMentions(users=[ctx.author], everyone=False, roles=False)
-        )
-
-    @commands.command(cls=utils.Command)
-    @commands.bot_has_permissions(send_messages=True)
-    async def giveitem(self, ctx:utils.Context, user:discord.Member, *, item_type:str):
-        """Send an item to another member"""
-
-        async with self.bot.database() as db:
-            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", ctx.author.id, item_type.replace(' ', '_'))
-            if not inventory_rows or inventory_rows[0]['amount'] < 1:
-                return await ctx.send(f"You don't have any of that item, {ctx.author.mention}! :c")
-            await db.start_transaction()
-            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)", ctx.author.id, item_type.replace(' ', '_'))
-            await db(
-                """INSERT INTO user_inventory VALUES ($1, $2, 1) ON CONFLICT (user_id, item_name) DO UPDATE SET
-                amount=user_inventory.amount+excluded.amount""",
-                user.id, item_type.replace(' ', '_')
-            )
-            await db.commit_transaction()
-        return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
-
     @commands.command(cls=utils.Command)
     @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx:utils.Context, *, plant_name:str):
         """Use one of your revival tokens to be able to revive your plant"""
 
         async with self.bot.database() as db:
+
+            # See if they have enough revival tokens
             inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
             if not inventory_rows or inventory_rows[0]['amount'] < 1:
                 return await ctx.send(f"You don't have any revival tokens, {ctx.author.mention}! :c")
+
+            # See if the plant they specified exists
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
             if not plant_rows:
                 return await ctx.send(f"You have no plants named **{plant_name}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+
+            # See if the plant they specified is dead
             if plant_rows[0]['plant_nourishment'] >= 0:
                 return await ctx.send(f"Your **{plant_rows[0]['plant_name']}** plant isn't dead!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+
+            # Revive the plant and remove a token
             await db.start_transaction()
             await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
             await db(
-                """UPDATE plant_levels SET plant_nourishment=1, LAST_WATER_TIME=TIMEZONE('UTC', NOW()) - INTERVAL '15 MINUTES'
+                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=TIMEZONE('UTC', NOW()) - INTERVAL '15 MINUTES'
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
                 ctx.author.id, plant_name
             )
             await db.commit_transaction()
+
+        # And now we done
         return await ctx.send(f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
 
 
