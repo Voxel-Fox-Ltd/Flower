@@ -124,6 +124,9 @@ class PlantShopCommands(utils.Cog):
                 available_item_count += 1
             else:
                 plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience} exp`~~")
+        now = dt.utcnow()
+        remaining_time = utils.TimeValue((dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now).total_seconds())
+        plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
         embed.add_field("Available Plants", '\n'.join(plant_text), inline=True)
 
         # Add items to the embed
