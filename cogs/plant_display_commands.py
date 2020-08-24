@@ -66,24 +66,32 @@ class PlantDisplayCommands(utils.Cog):
 
         # Get the plant image we need
         plant_level = 0
-        plant_image = None
+        plant_image: Image = None
+        plant_overlay_image: Image = None
         if plant_nourishment != 0:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
             if plant_is_dead:
                 plant_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}.png").convert("RGBA")
+                try:
+                    plant_overlay_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}_overlay.png").convert("RGBA")
+                except FileNotFoundError:
+                    pass
             else:
                 plant_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}.png").convert("RGBA")
+                try:
+                    plant_overlay_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}_overlay.png").convert("RGBA")
+                except FileNotFoundError:
+                    pass
 
         # Paste the bot pack that we want onto the image
         image = Image.open(f"images/pots/{pot_type}/back.png").convert("RGBA")
         image = self.shift_image_hue(image, pot_hue)
+        offset = (0, 0)  # The offset for the plant pot being pasted into the image
         if plant_image:
-            offset = (0, plant_image.size[1] - image.size[1])
+            offset = (int((plant_image.size[0] - image.size[0]) / 2), plant_image.size[1] - image.size[1])
             new_image = Image.new(image.mode, plant_image.size)
             new_image.paste(image, offset, image)
             image = new_image
-        else:
-            offset = (0, 0)
 
         # Paste the soil that we want onto the image
         pot_soil = Image.open(f"images/pots/{pot_type}/soil.png").convert("RGBA")
@@ -101,6 +109,10 @@ class PlantDisplayCommands(utils.Cog):
         pot_foreground = Image.open(f"images/pots/{pot_type}/front.png").convert("RGBA")
         pot_foreground = self.shift_image_hue(pot_foreground, pot_hue)
         image.paste(pot_foreground, offset, pot_foreground)
+
+        # And see if we have a pot overlay to paste
+        if plant_overlay_image:
+            image.paste(plant_overlay_image, (0, 0), plant_overlay_image)
 
         # Read the bytes
         image = self.crop_image_to_content(image.resize((image.size[0] * 5, image.size[1] * 5,), Image.NEAREST))
