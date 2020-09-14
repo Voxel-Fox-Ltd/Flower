@@ -7,8 +7,8 @@ dm_uncaught_errors = false
 
 # Data that's copied directly over to a command without processing
 [command_data]
-    guild_invite = ""
-    github = ""
+    guild_invite = "https://discord.gg/vfl"
+    github = "https://github.com/4Kaylum/Flower"
     patreon = ""
     invite_command_enabled = true
     echo_command_enabled = true
