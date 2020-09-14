@@ -209,7 +209,7 @@ class PlantDisplayCommands(utils.Cog):
         async with self.bot.database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
             if not plant_rows:
-                return await ctx.send("<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+                return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
         await ctx.trigger_typing()
 
