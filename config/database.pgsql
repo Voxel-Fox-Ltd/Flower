@@ -53,6 +53,7 @@ CREATE TABLE user_inventory(
 CREATE TABLE user_available_plants(
     user_id BIGINT PRIMARY KEY,
     last_shop_timestamp TIMESTAMP NOT NULL,
+    plant_level_0 VARCHAR(20),
     plant_level_1 VARCHAR(20),
     plant_level_2 VARCHAR(20),
     plant_level_3 VARCHAR(20),

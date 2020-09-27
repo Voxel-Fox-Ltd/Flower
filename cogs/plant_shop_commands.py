@@ -17,7 +17,6 @@ class PlantShopCommands(utils.Cog):
     HARD_PLANT_CAP = 10
     PLANT_POT_PRICE = 50
     REVIVAL_TOKEN_PRICE = 300
-    LEVEL_ZERO_PLANT_NAME = "blue_daisy"
 
     @classmethod
     def get_points_for_plant_pot(cls, current_limit:str):
@@ -43,20 +42,21 @@ class PlantShopCommands(utils.Cog):
                 available_plants = {}
                 for level, plants in possible_available_plants.items():
                     available_plants[level] = random.choice(plants)
-                available_plants[0] = self.bot.plants['blue_daisy']
                 await db(
-                    """INSERT INTO user_available_plants VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id) DO UPDATE SET
-                    last_shop_timestamp=excluded.last_shop_timestamp, plant_level_1=excluded.plant_level_1, plant_level_2=excluded.plant_level_2,
-                    plant_level_3=excluded.plant_level_3, plant_level_4=excluded.plant_level_4, plant_level_5=excluded.plant_level_5,
-                    plant_level_6=excluded.plant_level_6""",
-                    user_id, dt.utcnow(), available_plants[1].name, available_plants[2].name, available_plants[3].name, available_plants[4].name,
-                    available_plants[5].name, available_plants[6].name,
+                    """INSERT INTO user_available_plants
+                    (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (user_id) DO UPDATE SET
+                    last_shop_timestamp=excluded.last_shop_timestamp, plant_level_0=excluded.plant_level_0, plant_level_1=excluded.plant_level_1,
+                    plant_level_2=excluded.plant_level_2, plant_level_3=excluded.plant_level_3, plant_level_4=excluded.plant_level_4,
+                    plant_level_5=excluded.plant_level_5, plant_level_6=excluded.plant_level_6""",
+                    user_id, dt.utcnow(), available_plants[0].name, available_plants[1].name, available_plants[2].name, available_plants[3].name,
+                    available_plants[4].name, available_plants[5].name, available_plants[6].name,
                 )
 
             # They have available plants, format into new dictionary
             else:
                 available_plants = {
-                    0: self.bot.plants['blue_daisy'],
+                    0: self.bot.plants[plant_shop_rows[0]['plant_level_0']],
                     1: self.bot.plants[plant_shop_rows[0]['plant_level_1']],
                     2: self.bot.plants[plant_shop_rows[0]['plant_level_2']],
                     3: self.bot.plants[plant_shop_rows[0]['plant_level_3']],
