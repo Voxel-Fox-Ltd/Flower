@@ -215,6 +215,8 @@ class PlantShopCommands(utils.Cog):
             plant_name = plant_name_message.content.strip('"“')
             if len(plant_name) > 50 or len(plant_name) == 0:
                 await ctx.send("That name is too long! Please give another one instead!")
+            elif '\n' in plant_name:
+                await ctx.send("You can't have names with multiple lines in them! Please give another one instead!")
             else:
                 break
 

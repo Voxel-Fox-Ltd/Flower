@@ -125,6 +125,8 @@ class PlantCareCommands(utils.Cog):
         if len(after) > 50 or len(after) == 0:
             await ctx.send("That name is too long! Please give another one instead!")
             return
+        if '\n' in after:
+            await ctx.send("You can't have names with multiple lines in them! Please give another one instead!")
 
         # See about changing the name
         async with self.bot.database() as db:
