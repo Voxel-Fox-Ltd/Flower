@@ -68,7 +68,7 @@ class PlantDisplayCommands(utils.Cog):
         plant_level = 0
         plant_image: Image = None
         plant_overlay_image: Image = None
-        if plant_nourishment != 0:
+        if plant_nourishment != 0 and plant_type is not None:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
             if plant_is_dead:
                 plant_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}.png").convert("RGBA")
@@ -146,7 +146,7 @@ class PlantDisplayCommands(utils.Cog):
         }
 
     @commands.command(cls=utils.Command, aliases=['showplant', 'show', 'display'])
-    @commands.bot_has_permissions(send_messages=True, attach_files=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
         """Shows you your plant status"""
 
@@ -178,13 +178,10 @@ class PlantDisplayCommands(utils.Cog):
             text = f"<@{user.id}>'s {display_data['plant_type'].replace('_', ' ')} - **{plant_rows[0]['plant_name']}**"
             if int(display_data['plant_nourishment']) > 0:
                 if ctx.author.id == user.id:
-                    # text += f"! Change your pot colour with `{ctx.prefix}usersettings`~"
-                    text += "!"
-                else:
                     text += "!"
             elif int(display_data['plant_nourishment']) < 0:
                 if ctx.author.id == user.id:
-                    text += f". It's looking a tad... dead. Run `{ctx.prefix}deleteplant` to plant some new seeds."
+                    text += f". It's looking a tad... dead. Run `{ctx.prefix}deleteplant {plant_name}` to plant some new seeds."
                 else:
                     text += ". It looks a bit... worse for wear, to say the least."
             elif int(display_data['plant_nourishment']) == 0:
@@ -199,8 +196,8 @@ class PlantDisplayCommands(utils.Cog):
         embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
         await ctx.send(embed=embed, file=file)
 
-    @commands.command(cls=utils.Command, hidden=True)
-    @commands.bot_has_permissions(send_messages=True, attach_files=True)
+    @commands.command(cls=utils.Command, hidden=True, aliases=['showall'])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def displayall(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID]):
         """Show you all of your plants"""
 
@@ -244,7 +241,8 @@ class PlantDisplayCommands(utils.Cog):
         image_to_send = self.image_to_bytes(image)
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
-        await ctx.send(text, file=file, allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        await ctx.send(embed=embed, file=file)
 
 
 def setup(bot:utils.Bot):
