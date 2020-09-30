@@ -117,9 +117,14 @@ class PlantCareCommands(utils.Cog):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
         # Make sure some names were provided
-        after = after.strip('"')
+        after = after.strip('"“')
         if not after:
             raise utils.MissingRequiredArgumentString("after")
+        if len(before) > 50 or len(before) == 0:
+            return await ctx.send(f"You have no plants with the name **{before}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+        if len(after) > 50 or len(after) == 0:
+            await ctx.send("That name is too long! Please give another one instead!")
+            return
 
         # See about changing the name
         async with self.bot.database() as db:

@@ -207,11 +207,16 @@ class PlantShopCommands(utils.Cog):
 
         # Get a name for the plant
         await ctx.send("What name do you want to give your plant?")
-        try:
-            plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
-        except asyncio.TimeoutError:
-            return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
-        plant_name = plant_name_message.content.strip('"')
+        while True:
+            try:
+                plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
+            plant_name = plant_name_message.content.strip('"“')
+            if len(plant_name) > 50 or len(plant_name) == 0:
+                await ctx.send("That name is too long! Please give another one instead!")
+            else:
+                break
 
         # Save that to database
         async with self.bot.database() as db:
