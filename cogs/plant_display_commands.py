@@ -119,7 +119,7 @@ class PlantDisplayCommands(utils.Cog):
         return image
 
     @staticmethod
-    def get_display_data(plant_row, user_row) -> dict:
+    def get_display_data(plant_row, user_row, user_id:int=None) -> dict:
         """Get the display data of a given plant and return it as a dict"""
 
         plant_type = None
@@ -127,7 +127,8 @@ class PlantDisplayCommands(utils.Cog):
         plant_nourishment = 0
         pot_type = 'clay'
         # pot_hue = 180
-        pot_hue = user_row['user_id'] % 360
+        user_id = user_id if user_row is None else user_row['user_id']
+        pot_hue = user_id % 360
 
         if plant_row is not None:
             plant_type = plant_row['plant_type']
@@ -162,11 +163,11 @@ class PlantDisplayCommands(utils.Cog):
         if plant_rows and user_rows:
             display_data = self.get_display_data(plant_rows[0], user_rows[0])
         elif plant_rows:
-            display_data = self.get_display_data(plant_rows[0], None)
+            display_data = self.get_display_data(plant_rows[0], None, user.id)
         elif user_rows:
             display_data = self.get_display_data(None, user_rows[0])
         else:
-            display_data = self.get_display_data(None, None)
+            display_data = self.get_display_data(None, None, user.id)
 
         # Generate text
         if display_data['plant_type'] is None:
