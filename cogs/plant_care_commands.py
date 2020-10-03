@@ -117,7 +117,7 @@ class PlantCareCommands(utils.Cog):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
         # Make sure some names were provided
-        after = after.strip('"“')
+        after = after.strip('"“”\'')
         if not after:
             raise utils.MissingRequiredArgumentString("after")
         if len(before) > 50 or len(before) == 0:
