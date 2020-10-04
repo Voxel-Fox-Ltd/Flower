@@ -93,14 +93,18 @@ class PlantCareCommands(utils.Cog):
         # Add to the user exp if the plant is alive
         plant_nourishment = plant_level_row[0]['plant_nourishment']
         gained_experience = 0
+        original_gained_experience = 0
+        multipliers = []  # List[Tuple[float, "reason"]]
         if plant_nourishment > 0:
 
             # Get the experience that they should have gained
             gained_experience = plant_data.get_experience()
+            original_gained_experience = gained_experience
 
             # See if we want to give them a 30 second water-time bonus
-            if plant_level_row[0]['last_water_time'] + timedelta(seconds=30) <= dt.utcnow():
+            if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) + timedelta(seconds=30) >= dt.utcnow():
                 gained_experience = int(gained_experience * 1.5)
+                multipliers.append((1.5, "plant was watered within 30 seconds of it's cooldown resetting"))
 
             # Update db
             await db(
@@ -113,10 +117,16 @@ class PlantCareCommands(utils.Cog):
         await db.disconnect()
         if plant_nourishment < 0:
             return await ctx.send("You sadly pour water into the dry soil of your silently wilting plant :c")
-        elif plant_data.get_nourishment_display_level(plant_nourishment) > plant_data.get_nourishment_display_level(plant_nourishment - 1):
-            return await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience, watching your plant grow!~")
+
+        # Send our SPECIAL outputs
+        gained_exp_string = f"**{gained_experience}**" if gained_experience == original_gained_experience else f"~~{original_gained_experience}~~ **{gained_experience}**"
+        if plant_data.get_nourishment_display_level(plant_nourishment) > plant_data.get_nourishment_display_level(plant_nourishment - 1):
+            text = f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~"
         else:
-            return await ctx.send(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_experience} experience~")
+            text = f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~"
+        for m, t in multipliers:
+            text += f"\n(Received a {m}x multiplier because {t})"
+        return await ctx.send(text)
 
     @commands.command(cls=utils.Command, aliases=['delete'])
     @commands.bot_has_permissions(send_messages=True)
@@ -135,7 +145,7 @@ class PlantCareCommands(utils.Cog):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
         # Make sure some names were provided
-        _, name = self.validate_name(after)
+        _, after = self.validate_name(after)
         if not after:
             raise utils.MissingRequiredArgumentString("after")
         if len(before) > 50 or len(before) == 0:
