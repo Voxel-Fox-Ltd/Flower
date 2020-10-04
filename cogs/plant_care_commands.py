@@ -33,6 +33,24 @@ class PlantCareCommands(utils.Cog):
                 dt.utcnow(), timedelta(**self.PLANT_DEATH_TIMEOUT),
             )
 
+    @staticmethod
+    def validate_name(name:str):
+        """Validates the name of a plant
+        Input is the name, output is a (bool, Optional[str]) tuple - the boolean is whether their given name is valid, and the
+        string is their plant's name. More often than not that'll be the same as the input, but quote marks are stripped from the
+        name before being given as an output
+        """
+
+        name_is_valid = True
+        name = name.strip('"“”\'')
+        if '\n' in name:
+            name_is_valid = False
+        elif len(name) <= 0:
+            name_is_valid = False
+        elif len(name) > 50:
+            name_is_valid = False
+        return name_is_valid, name
+
     @commands.command(cls=utils.Command, aliases=['water'], cooldown_after_parsing=True)
     @commands.bot_has_permissions(send_messages=True)
     async def waterplant(self, ctx:utils.Context, *, plant_name:str):
@@ -117,7 +135,7 @@ class PlantCareCommands(utils.Cog):
         """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
 
         # Make sure some names were provided
-        after = after.strip('"“”\'')
+        _, name = self.validate_name(after)
         if not after:
             raise utils.MissingRequiredArgumentString("after")
         if len(before) > 50 or len(before) == 0:

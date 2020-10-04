@@ -212,7 +212,7 @@ class PlantShopCommands(utils.Cog):
                 plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
             except asyncio.TimeoutError:
                 return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
-            plant_name = plant_name_message.content.strip('"“”\'')
+            _, plant_name = self.bot.get_cog("PlantCareCommands").validate_name(plant_name_message.content)
             if len(plant_name) > 50 or len(plant_name) == 0:
                 await ctx.send("That name is too long! Please give another one instead!")
             elif '\n' in plant_name:
