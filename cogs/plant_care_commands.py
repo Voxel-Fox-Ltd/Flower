@@ -71,6 +71,7 @@ class PlantCareCommands(utils.Cog):
             await db.disconnect()
             timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN)) - dt.utcnow()).total_seconds())
             return await ctx.send(f"You need to wait another {timeout.clean_spaced} to be able water your {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
+        last_water_time = plant_level_row[0]['last_water_time']
 
         # See if the plant should be dead
         if plant_level_row[0]['plant_nourishment'] < 0:
@@ -102,7 +103,7 @@ class PlantCareCommands(utils.Cog):
             original_gained_experience = gained_experience
 
             # See if we want to give them a 30 second water-time bonus
-            if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) + timedelta(seconds=30) >= dt.utcnow():
+            if dt.utcnow() - last_water_time - timedelta(**self.PLANT_WATER_COOLDOWN) <= timedelta(seconds=30):
                 gained_experience = int(gained_experience * 1.5)
                 multipliers.append((1.5, "plant was watered within 30 seconds of it's cooldown resetting"))
 
