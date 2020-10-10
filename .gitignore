@@ -1,0 +1,8 @@
+__pycache__/
+config/config.toml
+
+
+images/plants/*/
+!images/plants/blue_daisy/
+images/pots/*/
+!images/pots/clay/

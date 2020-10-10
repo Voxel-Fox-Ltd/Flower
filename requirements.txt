@@ -1,0 +1,8 @@
+voxelbotutils
+discord.py
+toml
+
+asyncpg
+
+pillow
+numpy
