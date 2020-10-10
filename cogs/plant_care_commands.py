@@ -132,13 +132,13 @@ class PlantCareCommands(utils.Cog):
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - timedelta(**self.PLANT_WATER_COOLDOWN) <= timedelta(seconds=30):
                 gained_experience = int(gained_experience * 1.5)
-                multipliers.append((1.5, "you watered within 30 seconds of your plant's cooldown resetting"))
+                multipliers.append((1.5, "You watered within 30 seconds of your plant's cooldown resetting"))
 
             # See if we want to give them the voter bonus
             if self.bot.config.get('topgg_token'):
                 if await self.get_user_voted(ctx.author.id):
                     gained_experience = int(gained_experience * 1.2)
-                    multipliers.append((1.2, "you voted for the bot on Top.gg"))
+                    multipliers.append((1.2, f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg"))
                     topgg_voted = True
 
             # Update db
@@ -161,7 +161,7 @@ class PlantCareCommands(utils.Cog):
         else:
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~")
         for m, t in multipliers:
-            output_lines.append(f"(Received a {m}x multiplier because {t})")
+            output_lines.append(f"**{m}x**: {t}")
         for t in additional_text:
             output_lines.append(t)
 
