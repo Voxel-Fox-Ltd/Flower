@@ -14,6 +14,7 @@ class PlantCareCommands(utils.Cog):
     PLANT_WATER_COOLDOWN = {
         'minutes': 15,
     }
+    TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot.user.id}/check"
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -21,6 +22,30 @@ class PlantCareCommands(utils.Cog):
 
     def cog_unload(self):
         self.plant_death_timeout_loop.cancel()
+
+    async def get_user_voted(self, user_id:int) -> bool:
+        """Returns whether or not the user with the given ID has voted for the bot on Top.gg
+
+        Args:
+            user_id (int): The ID of the user we want to check
+
+        Returns:
+            bool: Whether or not the user voted for the bot
+        """
+
+        topgg_token = self.bot.config.get('topgg_token')
+        if not topgg_token:
+            return False
+        params = {"userId": user_id}
+        headers = {"Authorization": topgg_token}
+        async with self.bot.session.get(self.TOPGG_GET_VOTES_ENDPOINT.format(bot=self.bot), params=params, headers=headers) as r:
+            try:
+                data = await r.json()
+            except Exception:
+                return False
+            if r.status != 200:
+                return False
+        return bool(data['voted'])
 
     @tasks.loop(minutes=1)
     async def plant_death_timeout_loop(self):
@@ -96,6 +121,8 @@ class PlantCareCommands(utils.Cog):
         gained_experience = 0
         original_gained_experience = 0
         multipliers = []  # List[Tuple[float, "reason"]]
+        additional_text = []  # List[str]
+        topgg_voted = False
         if plant_nourishment > 0:
 
             # Get the experience that they should have gained
@@ -105,7 +132,14 @@ class PlantCareCommands(utils.Cog):
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - timedelta(**self.PLANT_WATER_COOLDOWN) <= timedelta(seconds=30):
                 gained_experience = int(gained_experience * 1.5)
-                multipliers.append((1.5, "plant was watered within 30 seconds of it's cooldown resetting"))
+                multipliers.append((1.5, "you watered within 30 seconds of your plant's cooldown resetting"))
+
+            # See if we want to give them the voter bonus
+            if self.bot.config.get('topgg_token'):
+                if await self.get_user_voted(ctx.author.id):
+                    gained_experience = int(gained_experience * 1.2)
+                    multipliers.append((1.2, "you voted for the bot on Top.gg"))
+                    topgg_voted = True
 
             # Update db
             await db(
@@ -121,13 +155,30 @@ class PlantCareCommands(utils.Cog):
 
         # Send our SPECIAL outputs
         gained_exp_string = f"**{gained_experience}**" if gained_experience == original_gained_experience else f"~~{original_gained_experience}~~ **{gained_experience}**"
+        output_lines = []
         if plant_data.get_nourishment_display_level(plant_nourishment) > plant_data.get_nourishment_display_level(plant_nourishment - 1):
-            text = f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~"
+            output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~")
         else:
-            text = f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~"
+            output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~")
         for m, t in multipliers:
-            text += f"\n(Received a {m}x multiplier because {t})"
-        return await ctx.send(text)
+            output_lines.append(f"(Received a {m}x multiplier because {t})")
+        for t in additional_text:
+            output_lines.append(t)
+
+        # Let's embed the thing, fuck it
+        embed = None
+        if ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).embed_links:
+            embed = utils.Embed(
+                use_random_colour=True, description=output_lines[0]
+            )
+            if len(output_lines) > 1:
+                embed.add_field(
+                    "Multipliers", "\n".join([i.strip('') for i in output_lines[1:]]), inline=False
+                )
+            if self.bot.config.get('topgg_token') and topgg_voted is False:
+                embed.set_footer(f"Get a 1.2x exp multiplier by voting on Top.gg! ({ctx.prefix}vote)")
+            output_lines.clear()
+        return await ctx.send("\n".join(output_lines), embed=embed)
 
     @commands.command(cls=utils.Command, aliases=['delete'])
     @commands.bot_has_permissions(send_messages=True)

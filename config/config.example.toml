@@ -2,8 +2,7 @@ token = "bot_token"
 topgg_token = ""
 owners = [ 141231597155385344, ]  # The first should always be the developer
 dm_uncaught_errors = false
-default_prefix = "!"  # The prefix for the bot's commands
-guild_id = 1  # The ID of the main/support guild
+default_prefix = "p."  # The prefix for the bot's commands
 event_webhook_url = ""
 
 # Data that's copied directly over to a command without processing
