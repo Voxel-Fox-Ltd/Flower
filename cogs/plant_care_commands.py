@@ -23,7 +23,8 @@ class PlantCareCommands(utils.Cog):
         self.plant_death_timeout_loop.cancel()
 
     async def get_user_voted(self, user_id:int) -> bool:
-        """Returns whether or not the user with the given ID has voted for the bot on Top.gg
+        """
+        Returns whether or not the user with the given ID has voted for the bot on Top.gg.
 
         Args:
             user_id (int): The ID of the user we want to check
@@ -48,7 +49,9 @@ class PlantCareCommands(utils.Cog):
 
     @tasks.loop(minutes=1)
     async def plant_death_timeout_loop(self):
-        """Loop to see if we should kill off any plants that may have been timed out"""
+        """
+        Loop to see if we should kill off any plants that may have been timed out
+        """
 
         async with self.bot.database() as db:
             await db(
@@ -59,10 +62,11 @@ class PlantCareCommands(utils.Cog):
 
     @staticmethod
     def validate_name(name:str):
-        """Validates the name of a plant
+        """
+        Validates the name of a plant
         Input is the name, output is a (bool, Optional[str]) tuple - the boolean is whether their given name is valid, and the
         string is their plant's name. More often than not that'll be the same as the input, but quote marks are stripped from the
-        name before being given as an output
+        name before being given as an output.
         """
 
         name_is_valid = True
@@ -78,7 +82,9 @@ class PlantCareCommands(utils.Cog):
     @utils.command(aliases=['water'], cooldown_after_parsing=True)
     @commands.bot_has_permissions(send_messages=True)
     async def waterplant(self, ctx:utils.Context, *, plant_name:str):
-        """Increase the growth level of your plant"""
+        """
+        Increase the growth level of your plant.
+        """
 
         # Decide on our plant type - will be ignored if there's already a plant
         db = await self.bot.database.get_connection()
@@ -193,7 +199,9 @@ class PlantCareCommands(utils.Cog):
     @utils.command(aliases=['rename'])
     @commands.bot_has_permissions(send_messages=True)
     async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
-        """Gives a new name to your plant. Use "quotes" if your plant has a space in its name."""
+        """
+        Gives a new name to your plant. Use "quotes" if your plant has a space in its name.
+        """
 
         # Make sure some names were provided
         _, after = self.validate_name(after)

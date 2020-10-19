@@ -125,7 +125,6 @@ class PlantDisplayCommands(utils.Cog):
         plant_variant = None
         plant_nourishment = 0
         pot_type = 'clay'
-        # pot_hue = 180
         user_id = user_id if user_row is None else user_row['user_id']
         pot_hue = user_id % 360
 
@@ -133,9 +132,9 @@ class PlantDisplayCommands(utils.Cog):
             plant_type = plant_row['plant_type']
             plant_nourishment = plant_row['plant_nourishment']
             plant_variant = plant_row['plant_variant']
+            pot_hue = plant_row['original_owner_id'] % 360
         if user_row is not None:
             pot_type = user_row['pot_type'] or pot_type
-            # pot_hue = user_row['pot_hue'] or pot_hue
 
         return {
             'plant_type': plant_type,
