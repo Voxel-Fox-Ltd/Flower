@@ -141,6 +141,11 @@ class PlantCareCommands(utils.Cog):
                 gained_experience = int(gained_experience * 1.5)
                 multipliers.append((1.5, "You watered within 30 seconds of your plant's cooldown resetting"))
 
+            # See if we want to give the new owner bonus
+            if plant_level_row[0]['user_id'] != plant_level_row[0]['original_owner_id']:
+                gained_experience = int(gained_experience * 1.05)
+                multipliers.append((1.05, "You watered a plant that you got from a trade"))
+
             # See if we want to give them the voter bonus
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token'):
                 if await self.get_user_voted(ctx.author.id):
@@ -308,7 +313,7 @@ class PlantCareCommands(utils.Cog):
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
                         last_water_time, original_owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7)""",
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
-                        row['plant_nourishment'],dt(2000, 1, 1), row['user_id']
+                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['user_id']
                     )
                 await db.commit_transaction()
         except Exception:
