@@ -208,6 +208,19 @@ class PlantCareCommands(utils.Cog):
         elif ctx.author.id == user.id:
             return await ctx.send(":/")
 
+        # Get their alive plants _now_, even if we have to do it later again
+        async with self.bot.database() as db:
+            rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
+        alive_plants = collections.defaultdict(list)
+        for row in rows:
+            alive_plants[row['user_id']].append(row)
+
+        # Make sure they both have some plants before we ask them about trades
+        if not alive_plants[ctx.author.id]:
+            return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
+        elif not alive_plants[user.id]:
+            return await ctx.send(f"{user.mention} doesn't have any alive plants to trade, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+
         # See if they want to trade
         m = await ctx.send(f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?")
         await m.add_reaction("\N{THUMBS UP SIGN}")
@@ -220,14 +233,14 @@ class PlantCareCommands(utils.Cog):
         if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
             return await ctx.send(f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
-        # Get their alive plants
+        # Get their alive plants _again_
         async with self.bot.database() as db:
             rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
         alive_plants = collections.defaultdict(list)
         for row in rows:
             alive_plants[row['user_id']].append(row)
 
-        # Make sure they both have stuff
+        # Make sure they both still have plants that are alive
         if not alive_plants[ctx.author.id]:
             return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
         elif not alive_plants[user.id]:
@@ -307,7 +320,8 @@ class PlantCareCommands(utils.Cog):
             async with self.bot.database() as db:
                 await db.start_transaction()
                 for row in plants_being_traded:
-                    await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2", row['user_id'], row['plant_name'])
+                    v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
+                    assert v is not None
                 for row in plants_being_traded:
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
@@ -357,6 +371,8 @@ class PlantCareCommands(utils.Cog):
             plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
             if not plant_has_before_name:
                 return await ctx.send(f"You have no plants with the name **{before}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+
+            # Make sure they own the plant
             if plant_has_before_name[0]['original_owner_id'] != ctx.author.id:
                 return await ctx.send("You can't rename plants that you didn't own originally.")
 
