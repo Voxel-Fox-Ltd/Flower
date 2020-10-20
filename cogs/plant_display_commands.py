@@ -117,24 +117,43 @@ class PlantDisplayCommands(utils.Cog):
         image = self.crop_image_to_content(image.resize((image.size[0] * 5, image.size[1] * 5,), Image.NEAREST))
         return image
 
+    @classmethod
+    def compile_plant_images(cls, *plants, add_flipping:bool=True):
+        """Add together some plant images"""
+
+        # Work out our numbers
+        max_height = max([i.size[1] for i in plants])
+        total_width = sum([i.size[0] for i in plants])
+
+        # Create the new image
+        new_image = Image.new("RGBA", (total_width, max_height,))
+        width_offset = 0
+        for index, image in enumerate(plants):
+            if add_flipping:
+                if random.randint(0, 1):
+                    image = ImageOps.mirror(image)
+            new_image.paste(image, (width_offset, max_height - image.size[1],), image)
+            width_offset += image.size[0]
+
+        # And Discord it up
+        # image = self.crop_image_to_content(new_image.resize((new_image.size[0] * 5, new_image.size[1] * 5,), Image.NEAREST))
+        return cls.crop_image_to_content(new_image)
+
     @staticmethod
-    def get_display_data(plant_row, user_row, user_id:int=None) -> dict:
+    def get_display_data(plant_row, user_id:int=None) -> dict:
         """Get the display data of a given plant and return it as a dict"""
 
         plant_type = None
         plant_variant = None
         plant_nourishment = 0
         pot_type = 'clay'
-        user_id = user_id if user_row is None else user_row['user_id']
-        pot_hue = user_id % 360
+        pot_hue = (user_id or 0) % 360  # the "or 0" is just to avoid errors when the user ID isn't passed
 
         if plant_row is not None:
             plant_type = plant_row['plant_type']
             plant_nourishment = plant_row['plant_nourishment']
             plant_variant = plant_row['plant_variant']
             pot_hue = plant_row['original_owner_id'] % 360
-        if user_row is not None:
-            pot_type = user_row['pot_type'] or pot_type
 
         return {
             'plant_type': plant_type,
@@ -155,17 +174,12 @@ class PlantDisplayCommands(utils.Cog):
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user.id, plant_name)
             if not plant_rows:
                 return await ctx.send(f"You have no plant named **{plant_name.capitalize()}**", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
 
         # Filter into variables
-        if plant_rows and user_rows:
-            display_data = self.get_display_data(plant_rows[0], user_rows[0])
-        elif plant_rows:
-            display_data = self.get_display_data(plant_rows[0], None, user.id)
-        elif user_rows:
-            display_data = self.get_display_data(None, user_rows[0])
+        if plant_rows:
+            display_data = self.get_display_data(plant_rows[0], user_id=user.id)
         else:
-            display_data = self.get_display_data(None, None, user.id)
+            display_data = self.get_display_data(None, user_id=user.id)
 
         # Generate text
         if display_data['plant_type'] is None:
@@ -206,37 +220,19 @@ class PlantDisplayCommands(utils.Cog):
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
             if not plant_rows:
                 return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
-            user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
         await ctx.trigger_typing()
 
         # Filter into variables
         images = []
         for plant_row in plant_rows:
-            if plant_row and user_rows:
-                display_data = self.get_display_data(plant_row, user_rows[0])
-            elif plant_row:
-                display_data = self.get_display_data(plant_row, None)
-            elif user_rows:
-                display_data = self.get_display_data(None, user_rows[0])
+            if plant_row:
+                display_data = self.get_display_data(plant_row, user_id=user.id)
             else:
-                display_data = self.get_display_data(None, None)
+                display_data = self.get_display_data(None, user_id=user.id)
             images.append(self.get_plant_image(**display_data))
 
-        # Work out our numbers
-        max_height = max([i.size[1] for i in images])
-        total_width = sum([i.size[0] for i in images])
-
-        # Create the new image
-        new_image = Image.new("RGBA", (total_width, max_height,))
-        width_offset = 0
-        for index, image in enumerate(images):
-            if random.randint(0, 1):
-                image = ImageOps.mirror(image)
-            new_image.paste(image, (width_offset, max_height - image.size[1],), image)
-            width_offset += image.size[0]
-
-        # And Discord it up
-        image = self.crop_image_to_content(new_image.resize((new_image.size[0] * 5, new_image.size[1] * 5,), Image.NEAREST))
+        # Get our images
+        image = self.compile_plant_images(*images)
         image_to_send = self.image_to_bytes(image)
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
