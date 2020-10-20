@@ -357,6 +357,8 @@ class PlantCareCommands(utils.Cog):
             plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
             if not plant_has_before_name:
                 return await ctx.send(f"You have no plants with the name **{before}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+            if plant_has_before_name[0]['original_owner_id'] != ctx.author.id:
+                return await ctx.send("You can't rename plants that you didn't own originally.")
 
             # Make sure they aren't trying to rename to a currently existing name
             plant_name_exists = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, after)
