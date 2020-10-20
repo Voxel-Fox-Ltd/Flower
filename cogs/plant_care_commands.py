@@ -187,12 +187,11 @@ class PlantCareCommands(utils.Cog):
                 embed.add_field(
                     "Multipliers", "\n".join([i.strip('') for i in output_lines[1:]]), inline=False
                 )
-            if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and topgg_voted is False:
-                embed.set_footer(f"Get a 1.2x exp multiplier by voting on Top.gg! ({ctx.prefix}vote)")
+            ctx._set_footer(embed)
             output_lines.clear()
         return await ctx.send("\n".join(output_lines), embed=embed)
 
-    @utils.command(hidden=True)
+    @utils.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
     @commands.guild_only()
     async def trade(self, ctx, user:discord.Member):

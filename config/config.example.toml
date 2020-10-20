@@ -48,6 +48,15 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
     [[embed.footer]]  # an array of possible footers
         text = "Add the bot to your server! ({ctx.clean_prefix}invite)"  # text to appear in the footer
         amount = 1  # the amount of times this particular text is added to the pool
+    [[embed.footer]]  # an array of possible footers
+        text = "Vote for Flower on Top.gg! ({ctx.clean_prefix}vote)"
+        amount = 1
+    [[embed.footer]]
+        text = "Trade plants with your friends! ({ctx.clean_prefix}trade)"
+        amount = 1
+    [[embed.footer]]
+        text = "Suggest new plants for Flower! ({ctx.clean_prefix}suggest)"
+        amount = 1
 
 # What the bot is playing
 [presence]
