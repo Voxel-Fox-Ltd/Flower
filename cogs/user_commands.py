@@ -107,9 +107,11 @@ class UserCommands(utils.Cog):
 
         if ctx.message.attachments:
             return await ctx.send("I can't send images as suggestions :<")
+        if len(suggestion) > 1000:
+            return await ctx.send("That's a bit long - the maximum length of your suggestion should be 1000 characters.")
         for owner_id in self.bot.owner_ids:
             user = self.bot.get_user(owner_id) or await self.bot.fetch_user(owner_id)
-            await user.send(f"Suggestion: {suggestion}")
+            await user.send(f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}")
         return await ctx.send("Sent in your suggestion!")
 
 
