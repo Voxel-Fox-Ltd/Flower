@@ -61,3 +61,8 @@ CREATE TABLE IF NOT EXISTS user_available_plants(
     plant_level_5 VARCHAR(20),
     plant_level_6 VARCHAR(20)
 );
+
+
+CREATE TABLE IF NOT EXISTS blacklisted_suggestion_users(
+    user_id BIGINT PRIMARY KEY
+);

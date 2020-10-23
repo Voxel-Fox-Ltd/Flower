@@ -105,7 +105,11 @@ class UserCommands(utils.Cog):
     async def suggest(self, ctx:utils.Context, *, suggestion:str):
         """Send a suggestion for Flower to the bot developer"""
 
-        if ctx.message.attachments:
+        async with self.bot.database() as db:
+            rows = await db("SELECT * FROM blacklisted_suggestion_users WHERE user_id=$1", ctx.author.id)
+        if rows:
+            return await ctx.send("You've been blacklisted from sending in suggestions.")
+        if len(suggestion) == 0:
             return await ctx.send("I can't send images as suggestions :<")
         if len(suggestion) > 1000:
             return await ctx.send("That's a bit long - the maximum length of your suggestion should be 1000 characters.")
