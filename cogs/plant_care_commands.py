@@ -191,10 +191,10 @@ class PlantCareCommands(utils.Cog):
             output_lines.clear()
         return await ctx.send("\n".join(output_lines), embed=embed)
 
-    @utils.command()
+    @utils.command(aliases=['trade'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
     @commands.guild_only()
-    async def trade(self, ctx, user:discord.Member):
+    async def tradeplant(self, ctx, user:discord.Member):
         """
         Trade a plant with a given user.
         """
@@ -326,7 +326,7 @@ class PlantCareCommands(utils.Cog):
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
                         last_water_time, original_owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7)""",
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
-                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['user_id']
+                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['original_owner_id'] or row['user_id']
                     )
                 await db.commit_transaction()
         except Exception:
