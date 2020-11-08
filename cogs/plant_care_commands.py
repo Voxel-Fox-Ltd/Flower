@@ -124,13 +124,14 @@ class PlantCareCommands(utils.Cog):
             )
 
         # Add to the user exp if the plant is alive
-        plant_nourishment = plant_level_row[0]['plant_nourishment']
+        plant_data = plant_level_row[0]
         gained_experience = 0
         original_gained_experience = 0
         multipliers = []  # List[Tuple[float, "reason"]]
         additional_text = []  # List[str]
-        topgg_voted = False
-        if plant_nourishment > 0:
+
+        # And now let's water the damn thing
+        if plant_data['plant_nourishment'] > 0:
 
             # Get the experience that they should have gained
             gained_experience = plant_data.get_experience()
@@ -138,22 +139,26 @@ class PlantCareCommands(utils.Cog):
 
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - timedelta(**self.PLANT_WATER_COOLDOWN) <= timedelta(seconds=30):
-                gained_experience = int(gained_experience * 1.5)
-                multipliers.append((1.5, "You watered within 30 seconds of your plant's cooldown resetting"))
+                multipliers.append((1.5, "You watered within 30 seconds of your plant's cooldown resetting."))
 
             # See if we want to give the new owner bonus
             if plant_level_row[0]['user_id'] != plant_level_row[0]['original_owner_id']:
-                gained_experience = int(gained_experience * 1.05)
-                multipliers.append((1.05, "You watered a plant that you got from a trade"))
+                multipliers.append((1.05, "You watered a plant that you got from a trade."))
 
             # See if we want to give them the voter bonus
-            if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token'):
-                if await self.get_user_voted(ctx.author.id):
-                    gained_experience = int(gained_experience * 1.2)
-                    multipliers.append((1.2, f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg"))
-                    topgg_voted = True
+            if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and await self.get_user_voted(ctx.author.id):
+                multipliers.append((1.1, f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg."))
+
+            # See if we want to give them the plant longevity bonus
+            if plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
+                multipliers.append((1.1, "Your plant has been alive for longer than a week;"))
+
+            # Add the actual multiplier values
+            for multiplier, _ in multipliers:
+                gained_experience *= multiplier
 
             # Update db
+            gained_experience = int(gained_experience)
             await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
                 DO UPDATE SET user_experience=user_settings.user_experience+$2""",
@@ -162,13 +167,13 @@ class PlantCareCommands(utils.Cog):
 
         # Send an output
         await db.disconnect()
-        if plant_nourishment < 0:
+        if plant_data['plant_nourishment'] < 0:
             return await ctx.send("You sadly pour water into the dry soil of your silently wilting plant :c")
 
-        # Send our SPECIAL outputs
+        # Set up our output text
         gained_exp_string = f"**{gained_experience}**" if gained_experience == original_gained_experience else f"~~{original_gained_experience}~~ **{gained_experience}**"
         output_lines = []
-        if plant_data.get_nourishment_display_level(plant_nourishment) > plant_data.get_nourishment_display_level(plant_nourishment - 1):
+        if plant_data.get_nourishment_display_level(plant_data['plant_nourishment']) > plant_data.get_nourishment_display_level(plant_data['plant_nourishment'] - 1):
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~")
         else:
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~")
@@ -177,18 +182,33 @@ class PlantCareCommands(utils.Cog):
         for t in additional_text:
             output_lines.append(t)
 
-        # Let's embed the thing, fuck it
+        # Try and embed the message
         embed = None
         if ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).embed_links:
-            embed = utils.Embed(
-                use_random_colour=True, description=output_lines[0]
-            )
+
+            # Make initial embed
+            embed = utils.Embed(use_random_colour=True, description=output_lines[0])
+
+            # Add multipliers
             if len(output_lines) > 1:
                 embed.add_field(
                     "Multipliers", "\n".join([i.strip('') for i in output_lines[1:]]), inline=False
                 )
-            ctx._set_footer(embed)
+
+            # Add "please vote for Flower" footer
+            counter = 0
+            while counter < 100:
+                embed.set_footer("")
+                while 'vote' not in embed.footer.text.lower():
+                    ctx._set_footer(embed)
+                    counter += 1
+                    if counter >= 100:
+                        break
+
+            # Clear the text we would otherwise output
             output_lines.clear()
+
+        # Send message
         return await ctx.send("\n".join(output_lines), embed=embed)
 
     @utils.command(aliases=['trade'])
