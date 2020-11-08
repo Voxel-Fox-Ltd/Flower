@@ -124,14 +124,14 @@ class PlantCareCommands(utils.Cog):
             )
 
         # Add to the user exp if the plant is alive
-        plant_data = plant_level_row[0]
+        user_plant_data = plant_level_row[0]
         gained_experience = 0
         original_gained_experience = 0
         multipliers = []  # List[Tuple[float, "reason"]]
         additional_text = []  # List[str]
 
         # And now let's water the damn thing
-        if plant_data['plant_nourishment'] > 0:
+        if user_plant_data['plant_nourishment'] > 0:
 
             # Get the experience that they should have gained
             gained_experience = plant_data.get_experience()
@@ -167,13 +167,13 @@ class PlantCareCommands(utils.Cog):
 
         # Send an output
         await db.disconnect()
-        if plant_data['plant_nourishment'] < 0:
+        if user_plant_data['plant_nourishment'] < 0:
             return await ctx.send("You sadly pour water into the dry soil of your silently wilting plant :c")
 
         # Set up our output text
         gained_exp_string = f"**{gained_experience}**" if gained_experience == original_gained_experience else f"~~{original_gained_experience}~~ **{gained_experience}**"
         output_lines = []
-        if plant_data.get_nourishment_display_level(plant_data['plant_nourishment']) > plant_data.get_nourishment_display_level(plant_data['plant_nourishment'] - 1):
+        if plant_data.get_nourishment_display_level(user_plant_data['plant_nourishment']) > plant_data.get_nourishment_display_level(user_plant_data['plant_nourishment'] - 1):
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~")
         else:
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~")
