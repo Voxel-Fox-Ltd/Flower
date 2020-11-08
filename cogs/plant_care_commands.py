@@ -150,7 +150,7 @@ class PlantCareCommands(utils.Cog):
                 multipliers.append((1.1, f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg."))
 
             # See if we want to give them the plant longevity bonus
-            if plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
+            if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
                 multipliers.append((1.1, "Your plant has been alive for longer than a week;"))
 
             # Add the actual multiplier values
