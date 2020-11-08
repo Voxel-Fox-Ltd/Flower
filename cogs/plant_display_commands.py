@@ -207,6 +207,7 @@ class PlantDisplayCommands(utils.Cog):
         image_data = self.image_to_bytes(self.get_plant_image(**display_data))
         file = discord.File(image_data, filename="plant.png")
         embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        ctx._set_footer(embed)
         await ctx.send(embed=embed, file=file)
 
     @utils.command(hidden=True, aliases=['showall'])
@@ -237,6 +238,7 @@ class PlantDisplayCommands(utils.Cog):
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
         embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        ctx._set_footer(embed)
         await ctx.send(embed=embed, file=file)
 
 

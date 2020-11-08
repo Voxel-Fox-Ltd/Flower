@@ -31,6 +31,7 @@ class PlantInfoCommands(utils.Cog):
             with utils.Embed(use_random_colour=True) as embed:
                 plants = sorted(self.bot.plants.values(), key=lambda x: (x.plant_level, x.name))
                 embed.description = '\n'.join([f"**{i.display_name.capitalize()}** - level {i.plant_level}" for i in plants])
+                ctx._set_footer(embed)
             return await ctx.send(embed=embed)
 
         # See if the given name is valid
@@ -62,6 +63,7 @@ class PlantInfoCommands(utils.Cog):
             embed.title = plant.display_name.capitalize()
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.png")
+            ctx._set_footer(embed)
         display_cog = self.bot.get_cog("PlantDisplayCommands")
         plant_image_bytes = display_cog.image_to_bytes(display_cog.get_plant_image(plant.name, 0, 21, "clay", random.randint(0, 360)))
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.png"))

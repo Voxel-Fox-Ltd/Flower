@@ -19,6 +19,7 @@ class UserCommands(utils.Cog):
 
         # Start our embed
         embed = utils.Embed(use_random_colour=True, description="")
+        ctx._set_footer(embed)
 
         # Format exp into a string
         if user_rows:
@@ -65,6 +66,7 @@ class UserCommands(utils.Cog):
 
         # Add the plant information
         embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}>'s plants")
+        ctx._set_footer(embed)
         for i in plant_names:
             if i[2] >= 0:
                 embed.add_field(i[0], f"{i[1].replace('_', ' ')}, nourishment level {i[2]}/{self.bot.plants[i[1]].max_nourishment_level}")

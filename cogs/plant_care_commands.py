@@ -197,13 +197,10 @@ class PlantCareCommands(utils.Cog):
 
             # Add "please vote for Flower" footer
             counter = 0
-            while counter < 100:
-                embed.set_footer("")
-                while 'vote' not in embed.footer.text.lower():
-                    ctx._set_footer(embed)
-                    counter += 1
-                    if counter >= 100:
-                        break
+            embed.set_footer("")
+            while counter < 100 and 'vote' not in embed.footer.text.lower():
+                ctx._set_footer(embed)
+                counter += 1
 
             # Clear the text we would otherwise output
             output_lines.clear()
