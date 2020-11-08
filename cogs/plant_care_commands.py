@@ -324,7 +324,7 @@ class PlantCareCommands(utils.Cog):
                 for row in plants_being_traded:
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
-                        last_water_time, original_owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+                        last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, $7, TIMEZONE('UTC', NOW()))""",
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
                         row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['original_owner_id'] or row['user_id']
                     )

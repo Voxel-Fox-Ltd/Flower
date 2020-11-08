@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS plant_levels(
     plant_nourishment INTEGER,
     last_water_time TIMESTAMP,
     original_owner_id BIGINT,
+    plant_adoption_time TIMESTAMP,
     PRIMARY KEY (user_id, plant_name)
 );
 
