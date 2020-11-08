@@ -142,6 +142,7 @@ class PlantShopCommands(utils.Cog):
             plant_limit = 1
         available_item_count = 0  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
+        ctx._set_footer(embed)
 
         # See what we wanna get to doing
         embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**, and you're using {len(plant_level_rows)} of your {plant_limit} available plant pots.\n"

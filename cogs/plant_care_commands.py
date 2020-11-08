@@ -151,7 +151,7 @@ class PlantCareCommands(utils.Cog):
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
-                multipliers.append((1.1, "Your plant has been alive for longer than a week;"))
+                multipliers.append((1.2, "Your plant has been alive for longer than a week."))
 
             # Add the actual multiplier values
             for multiplier, _ in multipliers:
