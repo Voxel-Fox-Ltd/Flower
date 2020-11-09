@@ -432,9 +432,9 @@ class PlantCareCommands(utils.Cog):
             await db.start_transaction()
             await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
             await db(
-                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=(TIMEZONE('UTC', NOW()) - $3),
+                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
                 plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                ctx.author.id, plant_name, timedelta(**self.PLANT_WATER_COOLDOWN)
+                ctx.author.id, plant_name, dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN)
             )
             await db.commit_transaction()
 
