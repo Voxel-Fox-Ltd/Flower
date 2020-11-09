@@ -129,6 +129,7 @@ class PlantCareCommands(utils.Cog):
         original_gained_experience = 0
         multipliers = []  # List[Tuple[float, "reason"]]
         additional_text = []  # List[str]
+        voted_on_topgg = False
 
         # And now let's water the damn thing
         if user_plant_data['plant_nourishment'] > 0:
@@ -148,6 +149,7 @@ class PlantCareCommands(utils.Cog):
             # See if we want to give them the voter bonus
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and await self.get_user_voted(ctx.author.id):
                 multipliers.append((1.1, f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg."))
+                voted_on_topgg = True
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
@@ -198,7 +200,8 @@ class PlantCareCommands(utils.Cog):
             # Add "please vote for Flower" footer
             counter = 0
             embed.set_footer("")
-            while counter < 100 and 'vote' not in embed.footer.text.lower():
+            check = lambda text: 'vote' in text if voted_on_topgg else 'vote' not in text  # Force to "vote for flower" if they haven't voted, else anything but
+            while counter < 100 and check(embed.footer.text.lower()):
                 ctx._set_footer(embed)
                 counter += 1
 
@@ -305,7 +308,10 @@ class PlantCareCommands(utils.Cog):
         # Get their plant images
         plant_display_utils = self.bot.get_cog("PlantDisplayCommands")
         image_data = []
-        plants_being_traded = [alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]], alive_plants[user.id][trade_plant_index[user.id]]]
+        plants_being_traded = [
+            alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]],
+            alive_plants[user.id][trade_plant_index[user.id]]
+        ]
         for plant_row in plants_being_traded:
             display_data = plant_display_utils.get_display_data(plant_row)
             image_data.append(plant_display_utils.get_plant_image(**display_data))
@@ -426,9 +432,9 @@ class PlantCareCommands(utils.Cog):
             await db.start_transaction()
             await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
             await db(
-                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=TIMEZONE('UTC', NOW()) - INTERVAL '15 MINUTES', plant_adoption_time=TIMEZONE('UTC', NOW())
-                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                ctx.author.id, plant_name
+                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=TIMEZONE('UTC', NOW()) - $3,
+                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                ctx.author.id, plant_name, timedelta(**self.PLANT_WATER_COOLDOWN)
             )
             await db.commit_transaction()
 
