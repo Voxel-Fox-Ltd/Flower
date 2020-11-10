@@ -7,12 +7,6 @@ import voxelbotutils as utils
 
 class PlantCareCommands(utils.Cog):
 
-    PLANT_DEATH_TIMEOUT = {
-        'days': 3,
-    }
-    PLANT_WATER_COOLDOWN = {
-        'minutes': 15,
-    }
     TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot.user.id}/check"
 
     def __init__(self, bot):
@@ -57,7 +51,7 @@ class PlantCareCommands(utils.Cog):
             await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
                 plant_nourishment > 0 AND last_water_time + $2 < $1""",
-                dt.utcnow(), timedelta(**self.PLANT_DEATH_TIMEOUT),
+                dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
             )
 
     @staticmethod
@@ -97,9 +91,9 @@ class PlantCareCommands(utils.Cog):
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
         # See if they're allowed to water things
-        if plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN) > dt.utcnow() and ctx.author.id not in self.bot.owner_ids:
+        if plant_level_row[0]['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow() and ctx.author.id not in self.bot.owner_ids:
             await db.disconnect()
-            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.PLANT_WATER_COOLDOWN)) - dt.utcnow()).total_seconds())
+            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))) - dt.utcnow()).total_seconds())
             return await ctx.send(f"You need to wait another {timeout.clean_spaced} to be able water your {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
         last_water_time = plant_level_row[0]['last_water_time']
 
@@ -137,7 +131,7 @@ class PlantCareCommands(utils.Cog):
             original_gained_experience = gained_experience
 
             # See if we want to give them a 30 second water-time bonus
-            if dt.utcnow() - last_water_time - timedelta(**self.PLANT_WATER_COOLDOWN) <= timedelta(seconds=30):
+            if dt.utcnow() - last_water_time - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) <= timedelta(seconds=30):
                 multipliers.append((1.5, "You watered within 30 seconds of your plant's cooldown resetting."))
 
             # See if we want to give the new owner bonus
@@ -291,7 +285,7 @@ class PlantCareCommands(utils.Cog):
             await db(
                 """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
                 plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                ctx.author.id, plant_name, dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN)
+                ctx.author.id, plant_name, dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
             )
             await db.commit_transaction()
 

@@ -43,19 +43,21 @@ class PlantShopCommands(utils.Cog):
 
         # Add the items
         self.bot.items = {
-            'revival_token': localutils.ItemType(item_name='revival_token', item_price=300),
+            'revival_token': localutils.ItemType(
+                item_name='revival_token',
+                item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300)
+            ),
         }
 
         # Reset the artist dict
         self.bot.get_cog("InformationCommands")._artist_info = None
 
-    @classmethod
-    def get_points_for_plant_pot(cls, current_limit:str):
+    def get_points_for_plant_pot(self, current_limit:str):
         """
         Get the amount of points needed to get the next level of pot.
         """
 
-        return int(cls.PLANT_POT_PRICE * (3 ** (current_limit - 1)))
+        return int(self.bot.config.get('plants', {}).get('plant_pot_base_price', 10) * (3 ** (current_limit - 1)))
 
     async def get_available_plants(self, user_id:int) -> dict:
         """
@@ -171,7 +173,7 @@ class PlantShopCommands(utils.Cog):
 
         # Add items to the embed
         item_text = []
-        if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.HARD_PLANT_CAP:
+        if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
             item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`")
             available_item_count += 1
         else:
@@ -199,7 +201,7 @@ class PlantShopCommands(utils.Cog):
 
         # See if they want a plant pot
         if given_response == "pot":
-            if plant_limit >= self.HARD_PLANT_CAP:
+            if plant_limit >= self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
                 return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
             if user_experience >= self.get_points_for_plant_pot(plant_limit):
                 async with self.bot.database() as db:
@@ -418,7 +420,7 @@ class PlantShopCommands(utils.Cog):
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
                         last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, $7, TIMEZONE('UTC', NOW()))""",
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
-                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['original_owner_id'] or row['user_id']
+                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})), row['original_owner_id'] or row['user_id']
                     )
                 await db.commit_transaction()
         except Exception:
