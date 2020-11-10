@@ -7,7 +7,7 @@ import colorsys
 import voxelbotutils as utils
 
 
-class PlantDisplayCommands(utils.Cog):
+class PlantDisplayUtils(utils.Cog):
 
     rgb_to_hsv = np.vectorize(colorsys.rgb_to_hsv)
     hsv_to_rgb = np.vectorize(colorsys.hsv_to_rgb)
@@ -172,5 +172,5 @@ class PlantDisplayCommands(utils.Cog):
 
 
 def setup(bot:utils.Bot):
-    x = PlantDisplayCommands(bot)
+    x = PlantDisplayUtils(bot)
     bot.add_cog(x)
