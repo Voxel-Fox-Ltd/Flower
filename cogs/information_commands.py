@@ -6,7 +6,7 @@ from discord.ext import commands
 import voxelbotutils as utils
 
 
-class PlantInfoCommands(utils.Cog):
+class InformationCommands(utils.Cog):
 
     def __init__(self, bot:utils.Bot):
         super().__init__(bot)
@@ -70,5 +70,5 @@ class PlantInfoCommands(utils.Cog):
 
 
 def setup(bot:utils.Bot):
-    x = PlantInfoCommands(bot)
+    x = InformationCommands(bot)
     bot.add_cog(x)

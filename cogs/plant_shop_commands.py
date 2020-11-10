@@ -47,7 +47,7 @@ class PlantShopCommands(utils.Cog):
         }
 
         # Reset the artist dict
-        self.bot.get_cog("PlantInfoCommands")._artist_info = None
+        self.bot.get_cog("InformationCommands")._artist_info = None
 
     @classmethod
     def get_points_for_plant_pot(cls, current_limit:str):
@@ -120,7 +120,7 @@ class PlantShopCommands(utils.Cog):
         self.bot.plants = {i['name']: localutils.PlantType(**i) for i in available_plants}
 
         # Reset the artist dict
-        self.bot.get_cog("PlantInfoCommands")._artist_info = None
+        self.bot.get_cog("InformationCommands")._artist_info = None
 
         # And done
         return await ctx.send("Reloaded.")
