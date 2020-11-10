@@ -64,8 +64,8 @@ class PlantInfoCommands(utils.Cog):
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.png")
             ctx._set_footer(embed)
-        display_cog = self.bot.get_cog("PlantDisplayCommands")
-        plant_image_bytes = display_cog.image_to_bytes(display_cog.get_plant_image(plant.name, 0, 21, "clay", random.randint(0, 360)))
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        plant_image_bytes = display_utils.image_to_bytes(display_utils.get_plant_image(plant.name, 0, 21, "clay", random.randint(0, 360)))
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.png"))
 
 

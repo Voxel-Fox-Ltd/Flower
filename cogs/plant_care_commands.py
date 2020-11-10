@@ -306,17 +306,17 @@ class PlantCareCommands(utils.Cog):
                 break
 
         # Get their plant images
-        plant_display_utils = self.bot.get_cog("PlantDisplayCommands")
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
         image_data = []
         plants_being_traded = [
             alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]],
             alive_plants[user.id][trade_plant_index[user.id]]
         ]
         for plant_row in plants_being_traded:
-            display_data = plant_display_utils.get_display_data(plant_row)
-            image_data.append(plant_display_utils.get_plant_image(**display_data))
-        compiled_image = plant_display_utils.compile_plant_images(*image_data)
-        handle = plant_display_utils.image_to_bytes(compiled_image)
+            display_data = display_utils.get_display_data(plant_row)
+            image_data.append(display_utils.get_plant_image(**display_data))
+        compiled_image = display_utils.compile_plant_images(*image_data)
+        handle = display_utils.image_to_bytes(compiled_image)
         file = discord.File(handle, filename="plant_trade.png")
 
         # Ask if they wanna go ahead with it
