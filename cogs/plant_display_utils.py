@@ -26,14 +26,18 @@ class PlantDisplayCommands(utils.Cog):
 
     @classmethod
     def shift_image_hue(cls, image:Image, hue:int) -> Image:
-        """Shift the hue of an image by a given amount"""
+        """
+        Shift the hue of an image by a given amount.
+        """
 
         image_array = np.array(np.asarray(image).astype('float'))
         return Image.fromarray(cls._shift_hue(image_array, hue).astype('uint8'), 'RGBA')
 
     @staticmethod
     def crop_image_to_content(image:Image) -> Image:
-        """Crop out any "wasted" transparent data from an image"""
+        """
+        Crop out any "wasted" transparent data from an image.
+        """
 
         image_data = np.asarray(image)
         image_data_bw = image_data.max(axis=2)
@@ -51,7 +55,9 @@ class PlantDisplayCommands(utils.Cog):
         return image_to_send
 
     def get_plant_image(self, plant_type:str, plant_variant:int, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
-        """Get a BytesIO object containing the binary data of a given plant/pot item"""
+        """
+        Get a BytesIO object containing the binary data of a given plant/pot item.
+        """
 
         # See if the plant is dead or not
         plant_is_dead = False
@@ -116,7 +122,9 @@ class PlantDisplayCommands(utils.Cog):
 
     @classmethod
     def compile_plant_images(cls, *plants, add_flipping:bool=True):
-        """Add together some plant images"""
+        """
+        Add together some plant images.
+        """
 
         # Work out our numbers
         max_height = max([i.size[1] for i in plants])
@@ -138,7 +146,9 @@ class PlantDisplayCommands(utils.Cog):
 
     @staticmethod
     def get_display_data(plant_row, user_id:int=None) -> dict:
-        """Get the display data of a given plant and return it as a dict"""
+        """
+        Get the display data of a given plant and return it as a dict.
+        """
 
         plant_type = None
         plant_variant = None

@@ -8,7 +8,9 @@ class UserCommands(utils.Cog):
     @utils.command(aliases=['experience', 'exp', 'points', 'inv'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx:utils.Context, user:utils.converters.UserID=None):
-        """Show you the inventory of a user"""
+        """
+        Show you the inventory of a user.
+        """
 
         # Get user info
         user = discord.Object(user) if user else ctx.author
@@ -51,7 +53,9 @@ class UserCommands(utils.Cog):
     @utils.command(aliases=['list'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def plants(self, ctx:utils.Context, user:utils.converters.UserID=None):
-        """Shows you all the plants that a given user has"""
+        """
+        Shows you all the plants that a given user has.
+        """
 
         # Grab the plant data
         user = discord.Object(user) if user else ctx.author
@@ -79,7 +83,9 @@ class UserCommands(utils.Cog):
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
     async def giveitem(self, ctx:utils.Context, user:discord.Member, *, item_type:str):
-        """Send an item to another member"""
+        """
+        Send an item to another member.
+        """
 
         async with self.bot.database() as db:
 

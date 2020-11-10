@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 import os
 import glob
 import json
@@ -51,12 +51,16 @@ class PlantShopCommands(utils.Cog):
 
     @classmethod
     def get_points_for_plant_pot(cls, current_limit:str):
-        """Get the amount of points needed to get the next level of pot"""
+        """
+        Get the amount of points needed to get the next level of pot.
+        """
 
         return int(cls.PLANT_POT_PRICE * (3 ** (current_limit - 1)))
 
     async def get_available_plants(self, user_id:int) -> dict:
-        """Get the available plants for a given user at each given level"""
+        """
+        Get the available plants for a given user at each given level.
+        """
 
         async with self.bot.database() as db:
 
@@ -101,7 +105,9 @@ class PlantShopCommands(utils.Cog):
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def reloadplants(self, ctx:utils.Context):
-        """Shows you the available plants"""
+        """
+        Shows you the available plants.
+        """
 
         # Load up all the plants
         plant_directories = glob.glob("images/plants/[!_]*/")
@@ -128,7 +134,9 @@ class PlantShopCommands(utils.Cog):
     @utils.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx:utils.Context):
-        """Shows you the available plants"""
+        """
+        Shows you the available plants.
+        """
 
         # Get the experience
         async with self.bot.database() as db:

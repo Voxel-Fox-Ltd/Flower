@@ -10,7 +10,9 @@ class PlantDisplayCommands(utils.Cog):
     @utils.command(aliases=['showplant', 'show', 'display'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
-        """Shows you your plant status"""
+        """
+        Shows you your plant status.
+        """
 
         # Get data from database
         user = discord.Object(user) if user else ctx.author
@@ -58,7 +60,9 @@ class PlantDisplayCommands(utils.Cog):
     @utils.command(hidden=True, aliases=['showall'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def displayall(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID]):
-        """Show you all of your plants"""
+        """
+        Show you all of your plants.
+        """
 
         # Get data from database
         user = discord.Object(user) if user else ctx.author

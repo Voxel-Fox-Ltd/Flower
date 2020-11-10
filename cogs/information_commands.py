@@ -24,7 +24,9 @@ class InformationCommands(utils.Cog):
     @utils.command(aliases=['describe', 'info', 'information'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def herbiary(self, ctx:utils.Context, *, plant_name:str=None):
-        """Get the information for a given plant"""
+        """
+        Get the information for a given plant.
+        """
 
         # See if a name was given
         if plant_name is None:
@@ -72,7 +74,9 @@ class InformationCommands(utils.Cog):
     @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     async def suggest(self, ctx:utils.Context, *, suggestion:str):
-        """Send a suggestion for Flower to the bot developer"""
+        """
+        Send a suggestion for Flower to the bot developer.
+        """
 
         async with self.bot.database() as db:
             rows = await db("SELECT * FROM blacklisted_suggestion_users WHERE user_id=$1", ctx.author.id)

@@ -1,5 +1,3 @@
-import asyncio
-import collections
 from datetime import datetime as dt, timedelta
 
 import discord
@@ -214,7 +212,9 @@ class PlantCareCommands(utils.Cog):
     @utils.command(aliases=['delete'])
     @commands.bot_has_permissions(send_messages=True)
     async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
-        """Deletes your plant from the database"""
+        """
+        Deletes your plant from the database.
+        """
 
         async with self.bot.database() as db:
             data = await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *", ctx.author.id, plant_name)
@@ -265,7 +265,9 @@ class PlantCareCommands(utils.Cog):
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx:utils.Context, *, plant_name:str):
-        """Use one of your revival tokens to be able to revive your plant"""
+        """
+        Use one of your revival tokens to be able to revive your plant.
+        """
 
         async with self.bot.database() as db:
 
