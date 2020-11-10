@@ -73,22 +73,30 @@ class InformationCommands(utils.Cog):
     @utils.command()
     @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
+    @utils.checks.is_config_set('command_data', 'suggestion_channel_id')
     async def suggest(self, ctx:utils.Context, *, suggestion:str):
         """
         Send a suggestion for Flower to the bot developer.
         """
 
+        # Make sure they can send in suggestions
         async with self.bot.database() as db:
             rows = await db("SELECT * FROM blacklisted_suggestion_users WHERE user_id=$1", ctx.author.id)
         if rows:
             return await ctx.send("You've been blacklisted from sending in suggestions.")
-        if len(suggestion) == 0:
+
+        # See if they said something valid
+        if ctx.message.attachments:
             return await ctx.send("I can't send images as suggestions :<")
-        if len(suggestion) > 1000:
-            return await ctx.send("That's a bit long - the maximum length of your suggestion should be 1000 characters.")
-        for owner_id in self.bot.owner_ids:
-            user = self.bot.get_user(owner_id) or await self.bot.fetch_user(owner_id)
-            await user.send(f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}")
+
+        # Send it to the channel
+        text = f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}"
+        try:
+            await self.bot.http.send_message(self.bot.config['command_data']['suggestion_channel_id'], text)
+        except discord.HTTPException:
+            return await ctx.send("I couldn't send in your suggestion!")
+
+        # Tell them it's done
         return await ctx.send("Sent in your suggestion!")
 
     @utils.command()
@@ -104,7 +112,9 @@ class InformationCommands(utils.Cog):
             "Flower takes a lot of art, being a bot entirely about watching things grow. Unfortunately, I'm awful at art. Anything you can help out "
             "with would be amazing, if you had some kind of artistic talent yourself. If you [go here](https://github.com/Voxel-Fox-Ltd/Flower/blob/botutils-rewrite/images/pots/clay/full.png) "
             "you can get an empty pot image you can use as a base. Every plant in Flower has a minimum of 6 distinct growth stages "
-            "(which you can [see here](https://github.com/Voxel-Fox-Ltd/Flower/tree/botutils-rewrite/images/plants/blue_daisy/alive) if you need an example).\n"
+            "(which you can [see here](https://github.com/Voxel-Fox-Ltd/Flower/tree/botutils-rewrite/images/plants/blue_daisy/alive) if you need an example). "
+            "If this is the kind of thing you're interested in, I suggest you join [the support server](https://discord.gg/vfl) to ask for more information, or "
+            "[email Kae](mailto://callum@voxelfox.co.uk) - the bot's developer."
             "\n"
             "**Programming**\n"
             "If you're any good at programming, you can help out on [the bot's Github](https://github.com/Voxel-Fox-Ltd/Flower)! Ideas are discussed on "
