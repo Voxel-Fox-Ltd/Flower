@@ -190,6 +190,8 @@ class PlantShopCommands(utils.Cog):
         if available_item_count == 0:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
             return await ctx.send(embed=embed)
+        else:
+            embed.description += "\n**Say the name of the item you want to purchase, or type `cancel` to exit the shop with nothing.**\n"
 
         # Wait for them to respond
         await ctx.send(embed=embed)
@@ -198,6 +200,14 @@ class PlantShopCommands(utils.Cog):
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
         given_response = plant_type_message.content.lower().replace(' ', '_')
+
+        # See if they want to cancel
+        if given_response == "cancel":
+            try:
+                await plant_type_message.add_reaction("\N{OK HAND SIGN}")
+            except discord.HTTPException:
+                pass
+            return
 
         # See if they want a plant pot
         if given_response == "pot":
