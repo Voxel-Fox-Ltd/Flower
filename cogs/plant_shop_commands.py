@@ -272,6 +272,151 @@ class PlantShopCommands(utils.Cog):
             )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
 
+    @utils.command(aliases=['trade'])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
+    @commands.guild_only()
+    async def tradeplant(self, ctx, user:discord.Member):
+        """
+        Trade a plant with a given user.
+        """
+
+        # Make sure they're not trading with the bot
+        if user.id == self.bot.user.id:
+            return await ctx.invoke(self.bot.get_command("shop"))
+        elif user.bot:
+            return await ctx.send("Bots don't have any plants, actually.")
+        elif ctx.author.id == user.id:
+            return await ctx.send(":/")
+
+        # Get their alive plants _now_, even if we have to do it later again
+        async with self.bot.database() as db:
+            rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
+        alive_plants = collections.defaultdict(list)
+        for row in rows:
+            alive_plants[row['user_id']].append(row)
+
+        # Make sure they both have some plants before we ask them about trades
+        if not alive_plants[ctx.author.id]:
+            return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
+        elif not alive_plants[user.id]:
+            return await ctx.send(f"{user.mention} doesn't have any alive plants to trade, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+
+        # See if they want to trade
+        m = await ctx.send(f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?")
+        await m.add_reaction("\N{THUMBS UP SIGN}")
+        await m.add_reaction("\N{THUMBS DOWN SIGN}")
+        try:
+            check = lambda r, u: r.message.id == m.id and u.id == user.id and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
+            r, _ = await self.bot.wait_for("reaction_add", check=check, timeout=120)
+        except asyncio.TimeoutError:
+            return await ctx.send(f"{user.mention} didn't respond to your trade request in time, {ctx.author.mention}", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+        if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
+            return await ctx.send(f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+
+        # Get their alive plants _again_
+        async with self.bot.database() as db:
+            rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
+        alive_plants = collections.defaultdict(list)
+        for row in rows:
+            alive_plants[row['user_id']].append(row)
+
+        # Make sure they both still have plants that are alive
+        if not alive_plants[ctx.author.id]:
+            return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
+        elif not alive_plants[user.id]:
+            return await ctx.send(f"You don't have any alive plants to trade, {user.mention}!")
+
+        # Format an embed
+        embed = utils.Embed(use_random_colour=True)
+        embed.add_field(
+            f"{ctx.author.name}",
+            "\n".join([f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})" for row in alive_plants[ctx.author.id]]),
+            inline=True,
+        )
+        embed.add_field(
+            f"{user.name}",
+            "\n".join([f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})" for row in alive_plants[user.id]]),
+            inline=True,
+        )
+
+        # Ask what they want to trade
+        await ctx.send(f"What's the name of the plant that you'd like to trade, {ctx.author.mention} {user.mention}?", embed=embed)
+        trade_plant_index = {ctx.author.id: None, user.id: None}
+        while True:
+            def check(m):
+                allowed_ids = set()
+                for uid, ind in trade_plant_index.items():
+                    if ind is None:
+                        allowed_ids.add(uid)
+                return m.author.id in allowed_ids and m.content  # and m.content.isdigit()
+            try:
+                index_message = await self.bot.wait_for("message", check=check, timeout=30)
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+
+            # Make sure their given index was invalid
+            try:
+                valid_row = [i for i in alive_plants[index_message.author.id] if i['plant_name'].lower() == index_message.content.lower()][0]
+            except IndexError:
+                continue
+            trade_plant_index[index_message.author.id] = alive_plants[index_message.author.id].index(valid_row)
+            await index_message.add_reaction("\N{THUMBS UP SIGN}")
+
+            # See if we can exit now
+            if None not in trade_plant_index.values():
+                break
+
+        # Get their plant images
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        image_data = []
+        plants_being_traded = [
+            alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]],
+            alive_plants[user.id][trade_plant_index[user.id]]
+        ]
+        for plant_row in plants_being_traded:
+            display_data = display_utils.get_display_data(plant_row)
+            image_data.append(display_utils.get_plant_image(**display_data))
+        compiled_image = display_utils.compile_plant_images(*image_data)
+        handle = display_utils.image_to_bytes(compiled_image)
+        file = discord.File(handle, filename="plant_trade.png")
+
+        # Ask if they wanna go ahead with it
+        embed = utils.Embed(use_random_colour=True).set_image("attachment://plant_trade.png")
+        m = await ctx.send("Do you both want to go ahead with this trade?", embed=embed, file=file)
+        await m.add_reaction("\N{THUMBS UP SIGN}")
+        await m.add_reaction("\N{THUMBS DOWN SIGN}")
+        said_yes = set()
+        while True:
+            try:
+                check = lambda r, u: r.message.id == m.id and u.id in [ctx.author.id, user.id] and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
+                r, u = await self.bot.wait_for("reaction_add", check=check, timeout=30)
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+            if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
+                return await ctx.send(f"{u.mention} doesn't want to go ahead with the trade :<")
+            said_yes.add(u.id)
+            if len(said_yes) == 2:
+                break
+
+        # Alright sick let's trade
+        try:
+            async with self.bot.database() as db:
+                await db.start_transaction()
+                for row in plants_being_traded:
+                    v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
+                    assert v is not None
+                for row in plants_being_traded:
+                    await db(
+                        """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
+                        last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, $7, TIMEZONE('UTC', NOW()))""",
+                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
+                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.PLANT_WATER_COOLDOWN), row['original_owner_id'] or row['user_id']
+                    )
+                await db.commit_transaction()
+        except Exception:
+            return await ctx.send("I couldn't trade your plants! That probably means that one of you already _has_ a plant with the given name in your plant list.")
+        await ctx.send("Traded your plants!")
+
 
 def setup(bot):
     x = PlantShopCommands(bot)

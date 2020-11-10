@@ -68,6 +68,25 @@ class InformationCommands(utils.Cog):
         plant_image_bytes = display_utils.image_to_bytes(display_utils.get_plant_image(plant.name, 0, 21, "clay", random.randint(0, 360)))
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.png"))
 
+    @utils.command()
+    @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
+    async def suggest(self, ctx:utils.Context, *, suggestion:str):
+        """Send a suggestion for Flower to the bot developer"""
+
+        async with self.bot.database() as db:
+            rows = await db("SELECT * FROM blacklisted_suggestion_users WHERE user_id=$1", ctx.author.id)
+        if rows:
+            return await ctx.send("You've been blacklisted from sending in suggestions.")
+        if len(suggestion) == 0:
+            return await ctx.send("I can't send images as suggestions :<")
+        if len(suggestion) > 1000:
+            return await ctx.send("That's a bit long - the maximum length of your suggestion should be 1000 characters.")
+        for owner_id in self.bot.owner_ids:
+            user = self.bot.get_user(owner_id) or await self.bot.fetch_user(owner_id)
+            await user.send(f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}")
+        return await ctx.send("Sent in your suggestion!")
+
 
 def setup(bot:utils.Bot):
     x = InformationCommands(bot)
