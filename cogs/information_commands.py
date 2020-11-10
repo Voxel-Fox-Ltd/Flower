@@ -90,7 +90,7 @@ class InformationCommands(utils.Cog):
             return await ctx.send("I can't send images as suggestions :<")
 
         # Send it to the channel
-        text = f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}"
+        text = f"`G{ctx.guild.id if ctx.guild else 'DMs'}||C{ctx.channel.id}||U{ctx.author.id}`||{ctx.author.mention}||{suggestion}"
         try:
             await self.bot.http.send_message(self.bot.config['command_data']['suggestion_channel_id'], text)
         except discord.HTTPException:
