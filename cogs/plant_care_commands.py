@@ -197,7 +197,7 @@ class PlantCareCommands(utils.Cog):
 
             # Add "please vote for Flower" footer
             counter = 0
-            embed.set_footer("")
+            ctx._set_footer(embed)
             check = lambda text: 'vote' in text if voted_on_topgg else False  # Return True to change again - force to "vote for flower" if they haven't voted, else anything but
             while counter < 100 and check(embed.footer.text.lower()):
                 ctx._set_footer(embed)
