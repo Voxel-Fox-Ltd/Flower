@@ -99,7 +99,7 @@ class InformationCommands(utils.Cog):
         """
 
         VOLUNTEER_INFORMATION = (
-            "Want to help out with Flower, and watch it grow? Heck yeah! There's a couple ways you can help out:\n\n"
+            "Want to help out with Flower, and watch it grow? Heck yeah! There's a few ways you can help out:\n\n"
             "**Art**\n"
             "Flower takes a lot of art, being a bot entirely about watching things grow. Unfortunately, I'm awful at art. Anything you can help out "
             "with would be amazing, if you had some kind of artistic talent yourself. If you [go here](https://github.com/Voxel-Fox-Ltd/Flower/blob/botutils-rewrite/images/pots/clay/full.png) "
@@ -116,7 +116,7 @@ class InformationCommands(utils.Cog):
             "help out with art, programming, or anything else: it would be _absolutely amazing_ if you could give your experiences, gripes, and suggestions for "
             "Flower via the `{ctx.clean_prefix}suggest` command. That way I know where to change things, what to do to add new stuff, etcetc. If you want to "
             "discuss in more detail, I'm always around on [the support server](https://discord.gg/vfl)."
-        )
+        ).format(ctx=ctx)
         embed = utils.Embed(
             use_random_colour=True,
             description=VOLUNTEER_INFORMATION,
