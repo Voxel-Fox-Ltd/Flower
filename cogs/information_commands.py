@@ -91,6 +91,44 @@ class InformationCommands(utils.Cog):
             await user.send(f"Suggestion via `G{ctx.guild.id if ctx.guild else 'DMs'}/C{ctx.channel.id}/U{ctx.author.id}` - {ctx.author.mention}: {suggestion}")
         return await ctx.send("Sent in your suggestion!")
 
+    @utils.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def volunteer(self, ctx:utils.Context):
+        """
+        Get the information for volunteering.
+        """
+
+        VOLUNTEER_INFORMATION = (
+            "Want to help out with Flower, and watch it grow? Heck yeah! There's a couple ways you can help out:\n\n"
+            "**Art**\n"
+            "Flower takes a lot of art, being a bot entirely about watching things grow. Unfortunately, I'm awful at art. Anything you can help out "
+            "with would be amazing, if you had some kind of artistic talent yourself. If you [go here](https://github.com/Voxel-Fox-Ltd/Flower/blob/botutils-rewrite/images/pots/clay/full.png) "
+            "you can get an empty pot image you can use as a base. Every plant in Flower has a minimum of 6 distinct growth stages "
+            "(which you can [see here](https://github.com/Voxel-Fox-Ltd/Flower/tree/botutils-rewrite/images/plants/blue_daisy/alive) if you need an example).\n"
+            "\n"
+            "**Programming**\n"
+            "If you're any good at programming, you can help out on [the bot's Github](https://github.com/Voxel-Fox-Ltd/Flower)! Ideas are discussed on "
+            "[the support server](https://discord.gg/vfl) if you want to do that, but otherwise you can PR fixes, add issues, etc from there as you would "
+            "with any other git repository.\n"
+            "\n"
+            "**Ideas**\n"
+            "Flower is in constant need of feedback from the people who like to use it, and that's where you can shine. Even if you don't want to "
+            "help out with art, programming, or anything else: it would be _absolutely amazing_ if you could give your experiences, gripes, and suggestions for "
+            "Flower via the `{ctx.clean_prefix}suggest` command. That way I know where to change things, what to do to add new stuff, etcetc. If you want to "
+            "discuss in more detail, I'm always around on [the support server](https://discord.gg/vfl)."
+        )
+        embed = utils.Embed(
+            use_random_colour=True,
+            description=VOLUNTEER_INFORMATION,
+        )
+        ctx._set_footer(embed)
+        try:
+            await ctx.author.send(embed=embed)
+        except discord.HTTPException:
+            return await ctx.send("I wasn't able to send you a DM :<")
+        if ctx.guild is not None:
+            return await ctx.send("Sent you a DM!")
+
 
 def setup(bot:utils.Bot):
     x = InformationCommands(bot)
