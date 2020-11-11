@@ -90,20 +90,20 @@ if args.shardcount is not None and not (args.min is not None and args.max is not
 # Set up intents
 intents = discord.Intents(
     guilds=True,  # guild/channel join/remove/update
-    members=True,  # member join/remove/update
-    bans=True,  # member ban/unban
-    emojis=True,  # emoji update
-    integrations=True,  # integrations update
-    webhooks=True,  # webhook update
-    invites=True,  # invite create/delete
-    voice_states=True,  # voice state update
-    presences=True,  # member/user update for games/activities
+    members=False,  # member join/remove/update
+    bans=False,  # member ban/unban
+    emojis=False,  # emoji update
+    integrations=False,  # integrations update
+    webhooks=False,  # webhook update
+    invites=False,  # invite create/delete
+    voice_states=False,  # voice state update
+    presences=False,  # member/user update for games/activities
     guild_messages=True,  # message create/update/delete
     dm_messages=True,  # message create/update/delete
     guild_reactions=True,  # reaction add/remove/clear
     dm_reactions=True,  # reaction add/remove/clear
-    guild_typing=True,  # on typing
-    dm_typing=True,  # on typing
+    guild_typing=False,  # on typing
+    dm_typing=False,  # on typing
 )
 
 # Okay cool make the bot object

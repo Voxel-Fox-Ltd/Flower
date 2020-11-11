@@ -8,6 +8,7 @@ import os
 import json
 from datetime import datetime as dt
 from urllib.parse import urlencode
+import string
 
 import aiohttp
 import discord
@@ -18,18 +19,34 @@ from cogs.utils.custom_context import CustomContext
 from cogs.utils.database import DatabaseConnection
 from cogs.utils.redis import RedisConnection
 from cogs.utils.plant_type import PlantType
+from cogs.utils.item_type import ItemType
 
 
 def get_prefix(bot, message:discord.Message):
     """Gives the prefix for the bot - override this to make guild-specific prefixes"""
 
+    # Default prefix for DMs
     if message.guild is None:
         prefix = bot.config['default_prefix']
+
+    # Custom prefix or default prefix
     else:
         prefix = bot.guild_settings[message.guild.id]['prefix'] or bot.config['default_prefix']
+
+    # Fuck iOS devices
     if prefix in ["'", "‘"]:
         prefix = ["'", "‘"]
+
+    # Listify it
     prefix = [prefix] if isinstance(prefix, str) else prefix
+
+    # Make it slightly more case insensitive
+    prefix.extend([i.title() for i in prefix])
+
+    # Add spaces for words
+    prefix.extend([f"{i.strip()} " for i in prefix if not any([o in prefix for o in string.punctuation])])
+
+    # And we're FINALLY done
     return commands.when_mentioned_or(*prefix)(bot, message)
 
 
@@ -62,6 +79,7 @@ class CustomBot(commands.AutoShardedBot):
 
         # Store the plants
         self.plants = {}
+        self.items = {}
 
         # Aiohttp session
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -96,6 +114,13 @@ class CustomBot(commands.AutoShardedBot):
         # Get database connection
         db = await self.database.get_connection()
 
+        # Get default guild settings
+        default_guild_settings = await db("SELECT * FROM guild_settings WHERE guild_id=0")
+        if not default_guild_settings:
+            default_guild_settings = await db("INSERT INTO guild_settings (guild_id) VALUES (0) RETURNING *")
+        for i, o in default_guild_settings[0].items():
+            self.DEFAULT_GUILD_SETTINGS.setdefault(i, o)
+
         # Get guild settings
         data = await self.get_all_table_data(db, "guild_settings")
         for row in data:
@@ -122,6 +147,11 @@ class CustomBot(commands.AutoShardedBot):
 
         # Dictionary it up
         self.plants = {i['name']: PlantType(**i) for i in available_plants}
+
+        # Dictionary it up
+        self.items = {
+            "revival_token": ItemType(item_name="revival_token", item_price=300),
+        }
 
         # Wait for the bot to cache users before continuing
         self.logger.debug("Waiting until ready before completing startup method.")

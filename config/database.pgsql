@@ -34,9 +34,30 @@ CREATE TABLE channel_list(
 CREATE TABLE plant_levels(
     user_id BIGINT,
     plant_name VARCHAR(50),
-    plant_type VARCHAR(10),
+    plant_type VARCHAR(20),
     plant_variant INTEGER DEFAULT 0,
     plant_nourishment INTEGER,
     last_water_time TIMESTAMP,
     PRIMARY KEY (user_id, plant_name)
+);
+
+
+CREATE TABLE user_inventory(
+    user_id BIGINT,
+    item_name VARCHAR(50),
+    amount INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, item_name)
+);
+
+
+CREATE TABLE user_available_plants(
+    user_id BIGINT PRIMARY KEY,
+    last_shop_timestamp TIMESTAMP NOT NULL,
+    plant_level_0 VARCHAR(20),
+    plant_level_1 VARCHAR(20),
+    plant_level_2 VARCHAR(20),
+    plant_level_3 VARCHAR(20),
+    plant_level_4 VARCHAR(20),
+    plant_level_5 VARCHAR(20),
+    plant_level_6 VARCHAR(20)
 );

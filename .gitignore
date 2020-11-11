@@ -5,3 +5,8 @@ _*
 *.code-*
 .vscode
 __pycache__
+
+images/plants/*/
+!images/plants/blue_daisy/
+images/pots/*/
+!images/pots/clay/
