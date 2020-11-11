@@ -78,8 +78,8 @@ class UserCommands(utils.Cog):
             plant_type_display = plant_type.replace('_', ' ').capitalize()
             if plant_nourishment >= 0:
                 text = (
-                    f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}. "
-                    f"If not watered, {plant_name} will die *{humanize.naturaltime(last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})))}*."
+                    f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}.\n"
+                    f"If not watered, {plant_name} will die in *{humanize.naturaldelta(last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})))}*."
                 )
             else:
                 text = f"{plant_type_display}, dead :c"
