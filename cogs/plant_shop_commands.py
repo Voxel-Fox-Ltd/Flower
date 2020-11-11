@@ -48,8 +48,9 @@ class PlantShopCommands(utils.Cog):
                     available_plants[level] = random.choice(plants)
                     
                     # Make sure users don't get the same plant twice
-                    while available_plants[level] == current_plants[level]:
-                        available_plants[level] = random.choice(plants)
+                    if plant_rows:
+                        while available_plants[level] == current_plants[level]:
+                            available_plants[level] = random.choice(plants)
                         
                 await db(
                     """INSERT INTO user_available_plants
