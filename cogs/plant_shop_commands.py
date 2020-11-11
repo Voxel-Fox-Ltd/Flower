@@ -68,6 +68,10 @@ class PlantShopCommands(utils.Cog):
 
             # Check what plants they have available
             plant_shop_rows = await db("SELECT * FROM user_available_plants WHERE user_id=$1", user_id)
+                
+            # Create a list of the user's current plants
+            if plant_shop_rows:
+                current_plants = [plant_shop_rows[0][f'plant_level_{i}' for i in range(0, 7)]]]
 
             # If they don't have any available plants, generate new ones for the shop
             if not plant_shop_rows or plant_shop_rows[0]['last_shop_timestamp'].month != dt.utcnow().month:
@@ -79,6 +83,10 @@ class PlantShopCommands(utils.Cog):
                 available_plants = {}
                 for level, plants in possible_available_plants.items():
                     available_plants[level] = random.choice(plants)
+                    # Make sure users don't get the same plant twice
+                    while available_plants[level] == current_plants[level]:
+                        available_plants[level] = random.choice(plants)
+                        
                 await db(
                     """INSERT INTO user_available_plants
                     (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
@@ -155,17 +163,17 @@ class PlantShopCommands(utils.Cog):
         ctx._set_footer(embed)
 
         # See what we wanna get to doing
-        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {plant_limit:,} available plant pots.\n"
+        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**, and you're using {len(plant_level_rows)} of your {plant_limit} available plant pots.\n"
         available_plants = await self.get_available_plants(ctx.author.id)
 
         # Add plants to the embed
         plant_text = []
         for plant in sorted(available_plants.values()):
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`")
+                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience} exp`")
                 available_item_count += 1
             else:
-                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`~~")
+                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience} exp`~~")
         now = dt.utcnow()
         remaining_time = utils.TimeValue((dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now).total_seconds())
         plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
@@ -174,16 +182,16 @@ class PlantShopCommands(utils.Cog):
         # Add items to the embed
         item_text = []
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
-            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`")
+            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`")
             available_item_count += 1
         else:
-            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`~~")
+            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`~~")
         for item in self.bot.items.values():
             if user_experience >= item.price:
-                item_text.append(f"{item.display_name.capitalize()} - `{item.price:,} exp`")
+                item_text.append(f"{item.display_name.capitalize()} - `{item.price} exp`")
                 available_item_count += 1
             else:
-                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price:,} exp`~~")
+                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price} exp`~~")
         embed.add_field("Available Items", '\n'.join(item_text), inline=True)
 
         # See if we should cancel
