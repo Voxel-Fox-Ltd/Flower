@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-import humanize
+import arrow
 import discord
 from discord.ext import commands
 import voxelbotutils as utils
@@ -76,10 +76,13 @@ class UserCommands(utils.Cog):
         ctx._set_footer(embed)
         for plant_name, plant_type, plant_nourishment, last_water_time in plant_data:
             plant_type_display = plant_type.replace('_', ' ').capitalize()
+            # plant_name_display = re.sub(r"([\_*`])", r"\\\1", plant_name)
+            plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
+            plant_death_humanize_time = arrow.get(plant_death_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
             if plant_nourishment >= 0:
                 text = (
                     f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}.\n"
-                    f"If not watered, {plant_name} will die in *{humanize.naturaldelta(last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})))}*."
+                    f"If not watered, this plant will die in *{plant_death_humanize_time}*."
                 )
             else:
                 text = f"{plant_type_display}, dead :c"
