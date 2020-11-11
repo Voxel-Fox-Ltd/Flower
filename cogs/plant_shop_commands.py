@@ -155,17 +155,17 @@ class PlantShopCommands(utils.Cog):
         ctx._set_footer(embed)
 
         # See what we wanna get to doing
-        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience} exp**, and you're using {len(plant_level_rows)} of your {plant_limit} available plant pots.\n"
+        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {plant_limit:,} available plant pots.\n"
         available_plants = await self.get_available_plants(ctx.author.id)
 
         # Add plants to the embed
         plant_text = []
         for plant in sorted(available_plants.values()):
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience} exp`")
+                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`")
                 available_item_count += 1
             else:
-                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience} exp`~~")
+                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`~~")
         now = dt.utcnow()
         remaining_time = utils.TimeValue((dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now).total_seconds())
         plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
@@ -174,16 +174,16 @@ class PlantShopCommands(utils.Cog):
         # Add items to the embed
         item_text = []
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
-            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`")
+            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`")
             available_item_count += 1
         else:
-            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit)} exp`~~")
+            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`~~")
         for item in self.bot.items.values():
             if user_experience >= item.price:
-                item_text.append(f"{item.display_name.capitalize()} - `{item.price} exp`")
+                item_text.append(f"{item.display_name.capitalize()} - `{item.price:,} exp`")
                 available_item_count += 1
             else:
-                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price} exp`~~")
+                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price:,} exp`~~")
         embed.add_field("Available Items", '\n'.join(item_text), inline=True)
 
         # See if we should cancel
