@@ -34,7 +34,9 @@ class PlantShopCommands(utils.Cog):
 
             # Create a list of the user's current plants
             if plant_shop_rows:
-                current_plants = [plant_shop_rows[0][f'plant_level_{i}' for i in range(0, 7)]]]
+                current_plants = []
+                for i in range(0, 7):
+                    current_plants.append(plant_shop_rows[0][f'plant_level_{i}'])
             
             # If they don't have any available plants, generate new ones for the shop
             if not plant_shop_rows or plant_shop_rows[0]['last_shop_timestamp'].month != dt.utcnow().month:
