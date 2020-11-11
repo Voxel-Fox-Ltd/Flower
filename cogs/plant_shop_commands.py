@@ -32,6 +32,10 @@ class PlantShopCommands(utils.Cog):
             # Check what plants they have available
             plant_shop_rows = await db("SELECT * FROM user_available_plants WHERE user_id=$1", user_id)
 
+            # Create a list of the user's current plants
+            if plant_shop_rows:
+                current_plants = [plant_shop_rows[0][f'plant_level_{i}' for i in range(0, 7)]]]
+            
             # If they don't have any available plants, generate new ones for the shop
             if not plant_shop_rows or plant_shop_rows[0]['last_shop_timestamp'].month != dt.utcnow().month:
                 possible_available_plants = collections.defaultdict(list)
@@ -42,6 +46,11 @@ class PlantShopCommands(utils.Cog):
                 available_plants = {}
                 for level, plants in possible_available_plants.items():
                     available_plants[level] = random.choice(plants)
+                    
+                    # Make sure users don't get the same plant twice
+                    while available_plants[level] == current_plants[level]:
+                        available_plants[level] = random.choice(plants)
+                        
                 await db(
                     """INSERT INTO user_available_plants
                     (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
