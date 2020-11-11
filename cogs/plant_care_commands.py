@@ -58,20 +58,10 @@ class PlantCareCommands(utils.Cog):
     def validate_name(name:str):
         """
         Validates the name of a plant
-        Input is the name, output is a (bool, Optional[str]) tuple - the boolean is whether their given name is valid, and the
-        string is their plant's name. More often than not that'll be the same as the input, but quote marks are stripped from the
-        name before being given as an output.
+        Input is the name, output is their validated plant name.
         """
 
-        name_is_valid = True
-        name = name.strip('"“”\'')
-        if '\n' in name:
-            name_is_valid = False
-        elif len(name) <= 0:
-            name_is_valid = False
-        elif len(name) > 50:
-            name_is_valid = False
-        return name_is_valid, name
+        return name.strip('"“”\'').replace('\n', ' ').strip()
 
     @utils.command(aliases=['water'], cooldown_after_parsing=True)
     @commands.bot_has_permissions(send_messages=True)
@@ -224,7 +214,7 @@ class PlantCareCommands(utils.Cog):
         """
 
         # Make sure some names were provided
-        _, after = self.validate_name(after)
+        after = self.validate_name(after)
         if not after:
             raise utils.MissingRequiredArgumentString("after")
         if len(before) > 50 or len(before) == 0:
