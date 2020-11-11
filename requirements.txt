@@ -3,6 +3,7 @@ discord.py
 toml
 
 asyncpg
+humanize
 
 pillow
 numpy

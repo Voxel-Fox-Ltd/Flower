@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+import humanize
 import discord
 from discord.ext import commands
 import voxelbotutils as utils
@@ -63,19 +66,24 @@ class UserCommands(utils.Cog):
             user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
 
         # See if they have anything available
-        plant_names = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment']) for i in user_rows])
-        if not plant_names:
+        plant_data = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time']) for i in user_rows])
+        if not plant_data:
             embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}> has no plants :c")
             return await ctx.send(embed=embed)
 
         # Add the plant information
         embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}>'s plants")
         ctx._set_footer(embed)
-        for i in plant_names:
-            if i[2] >= 0:
-                embed.add_field(i[0], f"{i[1].replace('_', ' ')}, nourishment level {i[2]}/{self.bot.plants[i[1]].max_nourishment_level}")
+        for plant_name, plant_type, plant_nourishment, last_water_time in plant_data:
+            plant_type_display = plant_type.replace('_', ' ').capitalize()
+            if plant_nourishment >= 0:
+                text = (
+                    f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}. "
+                    f"If not watered, {plant_name} will die *{humanize.naturaltime(last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})))}*."
+                )
             else:
-                embed.add_field(i[0], f"{i[1].replace('_', ' ')}, dead :c")
+                text = f"{plant_type_display}, dead :c"
+            embed.add_field(plant_name, text)
 
         # Return to user
         return await ctx.send(embed=embed)
