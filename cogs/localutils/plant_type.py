@@ -8,50 +8,50 @@ class PlantType(object):
         0: {
             "cost": 0,
             "experience_gain": {
-                "maximum": 5,
-                "minimum": 3,
+                "maximum": 50,
+                "minimum": 30,
             },
         },
         1: {
-            "cost": 50,
+            "cost": 500,
             "experience_gain": {
-                "maximum": 8,
-                "minimum": 3,
+                "maximum": 80,
+                "minimum": 30,
             },
         },
         2: {
-            "cost": 172,
+            "cost": 1_720,
             "experience_gain": {
-                "maximum": 12,
-                "minimum": 5,
+                "maximum": 120,
+                "minimum": 50,
             },
         },
         3: {
-            "cost": 372,
+            "cost": 3_720,
             "experience_gain": {
-                "maximum": 15,
-                "minimum": 8,
+                "maximum": 150,
+                "minimum": 80,
             },
         },
         4: {
-            "cost": 503,
+            "cost": 5_030,
             "experience_gain": {
-                "maximum": 23,
-                "minimum": 15,
+                "maximum": 230,
+                "minimum": 150,
             },
         },
         5: {
-            "cost": 950,
+            "cost": 9_500,
             "experience_gain": {
-                "maximum": 25,
-                "minimum": 15,
+                "maximum": 250,
+                "minimum": 150,
             },
         },
         6: {
-            "cost": 1250,
+            "cost": 12_500,
             "experience_gain": {
-                "maximum": 30,
-                "minimum": 16,
+                "maximum": 300,
+                "minimum": 160,
             },
         },
     }

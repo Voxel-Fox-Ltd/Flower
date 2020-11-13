@@ -7,8 +7,8 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
 # Data for the plant bot
 [plants]
     hard_plant_cap = 10  # The maximum amount of plant pots that a user can buy
-    plant_pot_base_price = 50  # The base value before we get into the price curve
-    revival_token_price = 300  # The price of revival tokens
+    plant_pot_base_price = 500  # The base value before we get into the price curve
+    revival_token_price = 3_000  # The price of revival tokens
     [plants.death_timeout]  # The death timeout - this gets passed directly into a timedelta
         days = 3
     [plants.water_cooldown]  # The water command cooldown - this gets passed directly into a timedelta

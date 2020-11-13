@@ -15,10 +15,6 @@ from cogs import localutils
 
 class PlantShopCommands(utils.Cog):
 
-    HARD_PLANT_CAP = 10
-    PLANT_POT_PRICE = 50
-    REVIVAL_TOKEN_PRICE = 300
-
     def __init__(self, bot:utils.Bot):
         super().__init__(bot)
 
