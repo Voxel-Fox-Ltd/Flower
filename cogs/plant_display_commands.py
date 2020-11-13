@@ -74,6 +74,7 @@ class PlantDisplayCommands(utils.Cog):
 
         # Filter into variables
         display_utils = self.bot.get_cog("PlantDisplayUtils")
+        plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:
             if plant_row:

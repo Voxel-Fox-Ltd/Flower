@@ -16,6 +16,10 @@ class PlantDisplayUtils(utils.Cog):
         super().__init__(bot)
         self._available_plants = None
 
+    @staticmethod
+    def sort_plant_rows(rows):
+        return sorted(rows, key=lambda i: (i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time']))
+
     @classmethod
     def _shift_hue(cls, image_array, hue_value:float):
         r, g, b, a = np.rollaxis(image_array, axis=-1)
