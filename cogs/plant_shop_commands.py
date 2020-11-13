@@ -13,6 +13,14 @@ import voxelbotutils as utils
 from cogs import localutils
 
 
+def strikethrough(text:str) -> str:
+    """
+    Returns a string wrapped in a strikethrough
+    """
+
+    return f"~~{text}~~"
+
+
 class PlantShopCommands(utils.Cog):
 
     def __init__(self, bot:utils.Bot):
@@ -137,7 +145,7 @@ class PlantShopCommands(utils.Cog):
         Shows you the available plants.
         """
 
-        # Get the experience
+        # Get data from the user
         async with self.bot.database() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", ctx.author.id)
             plant_level_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", ctx.author.id)
@@ -147,43 +155,62 @@ class PlantShopCommands(utils.Cog):
         else:
             user_experience = 0
             plant_limit = 1
+
+        # Set up our initial items
         available_item_count = 0  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
         ctx._set_footer(embed)
 
         # See what we wanna get to doing
-        embed.description += f"What would you like to spend your experience to buy, {ctx.author.mention}? You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {plant_limit:,} available plant pots.\n"
+        embed.description += (
+            f"What would you like to spend your experience to buy, {ctx.author.mention}? "
+            f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {plant_limit:,} available plant pots.\n"
+        )
         available_plants = await self.get_available_plants(ctx.author.id)
 
         # Add plants to the embed
         plant_text = []
         for plant in sorted(available_plants.values()):
+            modifier = lambda x: x
+            text = f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`"
             if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
-                plant_text.append(f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`")
                 available_item_count += 1
             else:
-                plant_text.append(f"~~{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`~~")
+                modifier = strikethrough
+            plant_text.append(modifier(text))
+
+        # Say when the plants will change
         now = dt.utcnow()
         remaining_time = utils.TimeValue((dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now).total_seconds())
         plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
         embed.add_field("Available Plants", '\n'.join(plant_text), inline=True)
 
-        # Add items to the embed
+        # Set up items to be added to the embed
         item_text = []
+
+        # Add pots
+        modifier = lambda x: x
+        text = f"Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`"
         if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
-            item_text.append(f"Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`")
             available_item_count += 1
         else:
-            item_text.append(f"~~Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`~~")
+            modifier = strikethrough
+        item_text.append(modifier(text))
+
+        # Add variable items
         for item in self.bot.items.values():
+            modifier = lambda x: x
+            text = f"{item.display_name.capitalize()} - `{item.price:,} exp`"
             if user_experience >= item.price:
-                item_text.append(f"{item.display_name.capitalize()} - `{item.price:,} exp`")
                 available_item_count += 1
             else:
-                item_text.append(f"~~{item.display_name.capitalize()} - `{item.price:,} exp`~~")
+                modifier = strikethrough
+            item_text.append(modifier(text))
+
+        # Add all our items to the embed
         embed.add_field("Available Items", '\n'.join(item_text), inline=True)
 
-        # See if we should cancel
+        # Cancel if they don't have anything available
         if available_item_count == 0:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
             return await ctx.send(embed=embed)
