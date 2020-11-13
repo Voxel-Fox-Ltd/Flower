@@ -67,7 +67,7 @@ class PlantDisplayCommands(utils.Cog):
         # Get data from database
         user = discord.Object(user) if user else ctx.author
         async with self.bot.database() as db:
-            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
+            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
             if not plant_rows:
                 return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
         await ctx.trigger_typing()

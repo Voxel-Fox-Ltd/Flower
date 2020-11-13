@@ -57,7 +57,8 @@ class PlantShopCommands(utils.Cog):
         Get the amount of points needed to get the next level of pot.
         """
 
-        return int(self.bot.config.get('plants', {}).get('plant_pot_base_price', 10) * (3 ** (current_limit - 1)))
+        pot_base_price = self.bot.config.get('plants', {}).get('plant_pot_base_price', 50)
+        return int(pot_base_price * (3 ** (current_limit - 1)))
 
     async def get_available_plants(self, user_id:int) -> dict:
         """

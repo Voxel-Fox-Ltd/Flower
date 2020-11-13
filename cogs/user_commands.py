@@ -63,7 +63,7 @@ class UserCommands(utils.Cog):
         # Grab the plant data
         user = discord.Object(user) if user else ctx.author
         async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
+            user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
 
         # See if they have anything available
         plant_data = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time']) for i in user_rows])
