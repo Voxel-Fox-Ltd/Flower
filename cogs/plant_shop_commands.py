@@ -157,7 +157,7 @@ class PlantShopCommands(utils.Cog):
             user_experience = 0
             plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
-        buy_plant_cooldown_delta = utils.TimeDelta(timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})).total_seconds())
+        buy_plant_cooldown_delta = utils.TimeValue(timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})).total_seconds())
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + buy_plant_cooldown_delta
 
         # Set up our initial items
