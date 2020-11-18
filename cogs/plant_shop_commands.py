@@ -152,9 +152,13 @@ class PlantShopCommands(utils.Cog):
         if user_rows:
             user_experience = user_rows[0]['user_experience']
             plant_limit = user_rows[0]['plant_limit']
+            last_plant_shop_time = user_rows[0]['last_plant_shop_time'] or dt(2000, 1, 1)
         else:
             user_experience = 0
             plant_limit = 1
+            last_plant_shop_time = dt(2000, 1, 1)
+        buy_plant_cooldown_delta = utils.TimeDelta(timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})).total_seconds())
+        can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + buy_plant_cooldown_delta
 
         # Set up our initial items
         available_item_count = 0  # Used to make sure we can continue the command
@@ -168,12 +172,16 @@ class PlantShopCommands(utils.Cog):
         )
         available_plants = await self.get_available_plants(ctx.author.id)
 
+        # Add "can't purchase new plant" to the embed
+        if can_purchase_new_plants is False:
+            embed.description += f"You can only purchase a new plant once every **{buy_plant_cooldown_delta.clean}**.\n"
+
         # Add plants to the embed
         plant_text = []
         for plant in sorted(available_plants.values()):
             modifier = lambda x: x
             text = f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`"
-            if plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
+            if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 available_item_count += 1
             else:
                 modifier = strikethrough
@@ -274,6 +282,8 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+        if not can_purchase_new_plants:
+            return await ctx.send(f"You can't purchase new plants for another **{buy_plant_cooldown_delta.clean}**.")
         if plant_type not in available_plants.values():
             return await ctx.send(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
@@ -449,10 +459,10 @@ class PlantShopCommands(utils.Cog):
                     assert v is not None
                 for row in plants_being_traded:
                     await db(
-                        """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_variant, plant_nourishment,
-                        last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, $7, TIMEZONE('UTC', NOW()))""",
-                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_variant'],
-                        row['plant_nourishment'], dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})), row['original_owner_id'] or row['user_id']
+                        """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
+                        last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()))""",
+                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_nourishment'],
+                        dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})), row['original_owner_id'] or row['user_id']
                     )
                 await db.commit_transaction()
         except Exception:
