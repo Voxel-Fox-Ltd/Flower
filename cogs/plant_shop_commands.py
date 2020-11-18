@@ -304,7 +304,7 @@ class PlantShopCommands(utils.Cog):
             else:
                 break
 
-        # Save that to database
+        # Save the enw plant to database
         async with self.bot.database() as db:
             plant_name_exists = await db(
                 "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
@@ -319,7 +319,7 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1),
             )
             await db(
-                "UPDATE user_settings SET user_experience=user_settings.user_experience-$2 WHERE user_id=$1",
+                "UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1",
                 ctx.author.id, plant_type.required_experience,
             )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
