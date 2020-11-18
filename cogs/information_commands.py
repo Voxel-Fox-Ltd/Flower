@@ -32,7 +32,14 @@ class InformationCommands(utils.Cog):
         if plant_name is None:
             with utils.Embed(use_random_colour=True) as embed:
                 plants = sorted(self.bot.plants.values(), key=lambda x: (x.plant_level, x.name))
-                embed.description = '\n'.join([f"**{i.display_name.capitalize()}** - level {i.plant_level}" for i in plants])
+                embed.description = ""
+                for index, plant in enumerate(plants):
+                    embed.description += f"**{plant.display_name.capitalize()}** - level {plant.plant_level}\n"
+                    try:
+                        if plants[index + 1].plant_level > plant.plant_level:
+                            embed.description += "\n"
+                    except IndexError:
+                        pass
                 ctx._set_footer(embed)
             return await ctx.send(embed=embed)
 
