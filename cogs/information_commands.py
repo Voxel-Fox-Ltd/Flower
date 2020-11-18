@@ -33,7 +33,7 @@ class InformationCommands(utils.Cog):
         if plant_name is None:
             plant_dict = collections.defaultdict(list)
             for plant in self.bot.plants.values():
-                plant_dict[plant.plant_level].append(plant.name)
+                plant_dict[plant.plant_level].append(plant.display_name.capitalize())
             embed_fields = []
             embed = utils.Embed(use_random_colour=True)
             for plant_level, plants in plant_dict.items():
