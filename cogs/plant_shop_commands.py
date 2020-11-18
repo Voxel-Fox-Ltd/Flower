@@ -157,8 +157,12 @@ class PlantShopCommands(utils.Cog):
             user_experience = 0
             plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
-        buy_plant_cooldown_delta = utils.TimeValue(timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})).total_seconds())
-        can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + buy_plant_cooldown_delta.delta
+        can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        buy_plant_cooldown_delta = None
+        if can_purchase_new_plants is False:
+            buy_plant_cooldown_delta = utils.TimeValue(
+                ((last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))) - dt.utcnow()).total_seconds()
+            )
 
         # Set up our initial items
         available_item_count = 0  # Used to make sure we can continue the command
@@ -174,7 +178,7 @@ class PlantShopCommands(utils.Cog):
 
         # Add "can't purchase new plant" to the embed
         if can_purchase_new_plants is False:
-            embed.description += f"\nYou can only purchase a new plant once every **{buy_plant_cooldown_delta.clean}**.\n"
+            embed.description += f"\nYou can't purchase new plants for another **{buy_plant_cooldown_delta.clean}**.\n"
 
         # Add plants to the embed
         plant_text = []
