@@ -44,13 +44,11 @@ class InformationCommands(utils.Cog):
 
         # Work out our artist info to be displayed
         description_list = []
-        artist_info = self.artist_info[plant.artist].copy()
+        artist_info = self.artist_info.get(plant.artist, {}).copy()
         discord_id = artist_info.pop('discord', None)
+        description_list.append(f"**Artist `{plant.artist}`**")
         if discord_id:
-            description_list.append(f"**Artist `{plant.artist}`**")
             description_list.append(f"Discord: <@{discord_id}> (`{discord_id}`)")
-        else:
-            description_list.append(f"**Artist `{plant.artist}`**")
         for i, o in sorted(artist_info.items()):
             description_list.append(f"{i.capitalize()}: [Link]({o})")
         description_list.append("")
