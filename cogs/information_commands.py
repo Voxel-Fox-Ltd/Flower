@@ -34,10 +34,13 @@ class InformationCommands(utils.Cog):
             plant_dict = collections.defaultdict(list)
             for plant in self.bot.plants.values():
                 plant_dict[plant.plant_level].append(plant.name)
+            embed_fields = []
             embed = utils.Embed(use_random_colour=True)
             for plant_level, plants in plant_dict.items():
                 plants.sort()
-                embed.add_field(f"Level {plant_level}", "\n".join(plants), inline=True)
+                embed_fields.append((f"Level {plant_level}", "\n".join(plants)))
+            for field in sorted(embed_fields):
+                embed.add_field(*field, inline=True)
             ctx._set_footer(embed)
             return await ctx.send(embed=embed)
 
