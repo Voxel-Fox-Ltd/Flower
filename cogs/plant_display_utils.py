@@ -110,7 +110,7 @@ class PlantDisplayUtils(utils.Cog):
         # Paste the bot pack that we want onto the image
         offset = (0, 0)  # The offset for the plant pot being pasted into the image
         pot_back = Image.open(f"images/pots/{pot_type}/back.png").convert("RGBA")
-        pot_back = self.shift_image_hue(image, pot_hue)
+        pot_back = self.shift_image_hue(pot_back, pot_hue)
         if plant_image:
             # Work out the offset for the pot based on the image size
             # This works with or without an underlay
