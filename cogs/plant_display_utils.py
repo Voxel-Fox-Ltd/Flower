@@ -79,7 +79,10 @@ class PlantDisplayUtils(utils.Cog):
         # Work out the
         if plant_nourishment != 0 and plant_type is not None:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
-            plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
+            if plant_nourishment > 0:
+                plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_0.png").convert("RGBA")
+            else:
+                plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
             try:
                 plant_overlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_overlay.png").convert("RGBA")
             except FileNotFoundError:
