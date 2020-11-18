@@ -1,3 +1,4 @@
+import collections
 import json
 import random
 
@@ -30,17 +31,14 @@ class InformationCommands(utils.Cog):
 
         # See if a name was given
         if plant_name is None:
-            with utils.Embed(use_random_colour=True) as embed:
-                plants = sorted(self.bot.plants.values(), key=lambda x: (x.plant_level, x.name))
-                embed.description = ""
-                for index, plant in enumerate(plants):
-                    embed.description += f"**{plant.display_name.capitalize()}** - level {plant.plant_level}\n"
-                    try:
-                        if plants[index + 1].plant_level > plant.plant_level:
-                            embed.description += "\n"
-                    except IndexError:
-                        pass
-                ctx._set_footer(embed)
+            plant_dict = collections.defaultdict(list)
+            for plant in self.bot.plants.values():
+                plant_dict[plant.plant_level].append(plant.name)
+            embed = utils.Embed(use_random_colour=True)
+            for plant_level, plants in plant_dict.items():
+                plants.sort()
+                embed.add_field(f"Level {plant_level}", "\n".join(plants), inline=True)
+            ctx._set_footer(embed)
             return await ctx.send(embed=embed)
 
         # See if the given name is valid
