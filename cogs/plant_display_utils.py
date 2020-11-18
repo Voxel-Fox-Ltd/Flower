@@ -69,35 +69,55 @@ class PlantDisplayUtils(utils.Cog):
         if plant_nourishment < 0:
             plant_is_dead = True
             plant_nourishment = -plant_nourishment
+        file_folder = {False: "alive", True: "dead"}[plant_is_dead]
 
-        # Get the plant image we need
-        plant_level = 0
+        # Set up the variables we need for later
         plant_image: Image = None
         plant_overlay_image: Image = None
+        plant_underlay_image: Image = None
+
+        # Work out the
         if plant_nourishment != 0 and plant_type is not None:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
-            if plant_is_dead:
-                plant_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}.png").convert("RGBA")
-                try:
-                    plant_overlay_image = Image.open(f"images/plants/{plant_type}/dead/{plant_level}_overlay.png").convert("RGBA")
-                except FileNotFoundError:
-                    pass
-            else:
-                plant_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}.png").convert("RGBA")
-                try:
-                    plant_overlay_image = Image.open(f"images/plants/{plant_type}/alive/{plant_level}_{plant_variant}_overlay.png").convert("RGBA")
-                except FileNotFoundError:
-                    pass
+            plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
+            try:
+                plant_overlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_overlay.png").convert("RGBA")
+            except FileNotFoundError:
+                pass
+            try:
+                plant_underlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_{plant_variant}_underlay.png").convert("RGBA")
+            except FileNotFoundError:
+                pass
+
+        """
+        Plants are drawn in the following layer order:
+            Plant underlay
+            Pot back
+            Pot soil
+            Plant image
+            Pot front
+            Plant overlay
+        """
+
+        # Start with the underlay image, if it exists
+        image = None
+        if plant_underlay_image:
+            image = plant_underlay_image
 
         # Paste the bot pack that we want onto the image
-        image = Image.open(f"images/pots/{pot_type}/back.png").convert("RGBA")
-        image = self.shift_image_hue(image, pot_hue)
         offset = (0, 0)  # The offset for the plant pot being pasted into the image
+        pot_back = Image.open(f"images/pots/{pot_type}/back.png").convert("RGBA")
+        pot_back = self.shift_image_hue(image, pot_hue)
         if plant_image:
-            offset = (int((plant_image.size[0] - image.size[0]) / 2), plant_image.size[1] - image.size[1])
-            new_image = Image.new(image.mode, plant_image.size)
-            new_image.paste(image, offset, image)
-            image = new_image
+            # Work out the offset for the pot based on the image size
+            # This works with or without an underlay
+            offset = (int((plant_image.size[0] - pot_back.size[0]) / 2), plant_image.size[1] - pot_back.size[1])
+            if image is None:
+                image = Image.new(pot_back.mode, plant_image.size)
+            image.paste(pot_back, offset, pot_back)
+        else:
+            # There was no plant image and there was no underlay
+            image = pot_back
 
         # Paste the soil that we want onto the image
         pot_soil = Image.open(f"images/pots/{pot_type}/soil.png").convert("RGBA")
