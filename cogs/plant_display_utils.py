@@ -58,7 +58,7 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send.seek(0)
         return image_to_send
 
-    def get_plant_image(self, plant_type:str, plant_variant:int, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
+    def get_plant_image(self, plant_type:str, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
         """
         Get a BytesIO object containing the binary data of a given plant/pot item.
         """
@@ -79,16 +79,13 @@ class PlantDisplayUtils(utils.Cog):
         # Work out the
         if plant_nourishment != 0 and plant_type is not None:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
-            if plant_nourishment > 0:
-                plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_0.png").convert("RGBA")
-            else:
-                plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
+            plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
             try:
                 plant_overlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_overlay.png").convert("RGBA")
             except FileNotFoundError:
                 pass
             try:
-                plant_underlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_{plant_variant}_underlay.png").convert("RGBA")
+                plant_underlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_underlay.png").convert("RGBA")
             except FileNotFoundError:
                 pass
 
@@ -178,7 +175,6 @@ class PlantDisplayUtils(utils.Cog):
         """
 
         plant_type = None
-        plant_variant = None
         plant_nourishment = 0
         pot_type = 'clay'
         pot_hue = (user_id or 0) % 360  # the "or 0" is just to avoid errors when the user ID isn't passed
@@ -186,12 +182,10 @@ class PlantDisplayUtils(utils.Cog):
         if plant_row is not None:
             plant_type = plant_row['plant_type']
             plant_nourishment = plant_row['plant_nourishment']
-            plant_variant = plant_row['plant_variant']
             pot_hue = plant_row['original_owner_id'] % 360
 
         return {
             'plant_type': plant_type,
-            'plant_variant': plant_variant,
             'plant_nourishment': plant_nourishment,
             'pot_type': pot_type,
             'pot_hue': pot_hue,
