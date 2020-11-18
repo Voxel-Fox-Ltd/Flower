@@ -174,7 +174,7 @@ class PlantShopCommands(utils.Cog):
 
         # Add "can't purchase new plant" to the embed
         if can_purchase_new_plants is False:
-            embed.description += f"You can only purchase a new plant once every **{buy_plant_cooldown_delta.clean}**.\n"
+            embed.description += f"\nYou can only purchase a new plant once every **{buy_plant_cooldown_delta.clean}**.\n"
 
         # Add plants to the embed
         plant_text = []
@@ -282,7 +282,7 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
-        if not can_purchase_new_plants:
+        if can_purchase_new_plants is False:
             return await ctx.send(f"You can't purchase new plants for another **{buy_plant_cooldown_delta.clean}**.")
         if plant_type not in available_plants.values():
             return await ctx.send(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
