@@ -76,7 +76,7 @@ class InformationCommands(utils.Cog):
         plant_image_bytes = display_utils.image_to_bytes(display_utils.get_plant_image(plant.name, 21, "clay", random.randint(0, 360)))
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.png"))
 
-    @utils.command()
+    @utils.command(enabled=False)
     @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     @utils.checks.is_config_set('command_data', 'suggestion_channel_id')
