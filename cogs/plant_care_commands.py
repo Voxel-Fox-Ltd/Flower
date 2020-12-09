@@ -63,7 +63,7 @@ class PlantCareCommands(utils.Cog):
 
         return name.strip('"“”\'').replace('\n', ' ').strip()
 
-    @utils.command(aliases=['water'], cooldown_after_parsing=True)
+    @utils.command(aliases=['water', 'w'], cooldown_after_parsing=True)
     @commands.bot_has_permissions(send_messages=True)
     async def waterplant(self, ctx:utils.Context, *, plant_name:str):
         """
