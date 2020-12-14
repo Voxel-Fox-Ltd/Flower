@@ -113,7 +113,7 @@ class UserCommands(utils.Cog):
             await db(
                 """INSERT INTO user_inventory VALUES ($1, $2, 1) ON CONFLICT (user_id, item_name) DO UPDATE SET
                 amount=user_inventory.amount+excluded.amount""",
-                user.id, item_type.replace(' ', '_')
+                user.id, item_type.replace(' ', '_').lower()
             )
             await db.commit_transaction()
 
