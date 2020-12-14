@@ -1,3 +1,4 @@
+import typing
 from datetime import timedelta
 
 import arrow
@@ -10,7 +11,7 @@ class UserCommands(utils.Cog):
 
     @utils.command(aliases=['experience', 'exp', 'points', 'inv'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def inventory(self, ctx:utils.Context, user:utils.converters.UserID=None):
+    async def inventory(self, ctx:utils.Context, user:typing.Optional[discord.User]):
         """
         Show you the inventory of a user.
         """
@@ -55,7 +56,7 @@ class UserCommands(utils.Cog):
 
     @utils.command(aliases=['list'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def plants(self, ctx:utils.Context, user:utils.converters.UserID=None):
+    async def plants(self, ctx:utils.Context, user:typing.Optional[discord.User]):
         """
         Shows you all the plants that a given user has.
         """

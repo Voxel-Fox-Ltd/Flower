@@ -9,7 +9,7 @@ class PlantDisplayCommands(utils.Cog):
 
     @utils.command(aliases=['showplant', 'show', 'display'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayplant(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID], *, plant_name:str):
+    async def displayplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str):
         """
         Shows you your plant status.
         """
@@ -59,7 +59,7 @@ class PlantDisplayCommands(utils.Cog):
 
     @utils.command(hidden=True, aliases=['showall'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayall(self, ctx:utils.Context, user:typing.Optional[utils.converters.UserID]):
+    async def displayall(self, ctx:utils.Context, user:typing.Optional[discord.User]):
         """
         Show you all of your plants.
         """
