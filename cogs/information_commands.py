@@ -98,7 +98,7 @@ class InformationCommands(utils.Cog):
         # Send it to the channel
         text = f"`G{ctx.guild.id if ctx.guild else 'DMs'}`\\|\\|`C{ctx.channel.id}`\\|\\|`U{ctx.author.id}`\\|\\|{ctx.author.mention}\\|\\|{suggestion}"
         try:
-            await self.bot.http.send_message(self.bot.config['command_data']['suggestion_channel_id'], text)
+            await self.bot.http.send_message(self.bot.config['command_data']['suggestion_channel_id'], text, allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, users=[ctx.author,]))
         except discord.HTTPException:
             return await ctx.send("I couldn't send in your suggestion!")
 
