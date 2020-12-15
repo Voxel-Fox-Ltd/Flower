@@ -462,11 +462,12 @@ class PlantShopCommands(utils.Cog):
                     v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
                     assert v is not None
                 for row in plants_being_traded:
+                    is_watered = row['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow() 
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
                         last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()))""",
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_nourishment'],
-                        dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})), row['original_owner_id'] or row['user_id']
+                        row['last_water_time'] if is_watered else dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})), row['original_owner_id'] or row['user_id']
                     )
                 await db.commit_transaction()
         except Exception:
