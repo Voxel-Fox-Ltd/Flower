@@ -16,7 +16,7 @@ class PlantDisplayCommands(utils.Cog):
 
         # Make sure they gave a plant name
         if plant_name is None:
-            return await ctx.invoke(self.bot.get_command("plants"))
+            return await ctx.invoke(self.bot.get_command("plants"), user)
 
         # Get data from database
         user = discord.Object(user) if user else ctx.author
