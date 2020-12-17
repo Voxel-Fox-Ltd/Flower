@@ -19,7 +19,7 @@ class PlantDisplayCommands(utils.Cog):
             return await ctx.invoke(self.bot.get_command("plants"), user)
 
         # Get data from database
-        user = discord.Object(user) if user else ctx.author
+        user = user or ctx.author
         async with self.bot.database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user.id, plant_name)
             if not plant_rows:
@@ -69,7 +69,7 @@ class PlantDisplayCommands(utils.Cog):
         """
 
         # Get data from database
-        user = discord.Object(user) if user else ctx.author
+        user = user or ctx.author
         async with self.bot.database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
             if not plant_rows:

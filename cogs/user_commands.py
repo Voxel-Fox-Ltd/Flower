@@ -17,7 +17,7 @@ class UserCommands(utils.Cog):
         """
 
         # Get user info
-        user = discord.Object(user) if user else ctx.author
+        user = user or ctx.author
         async with self.bot.database() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
@@ -62,7 +62,7 @@ class UserCommands(utils.Cog):
         """
 
         # Grab the plant data
-        user = discord.Object(user) if user else ctx.author
+        user = user or ctx.author
         async with self.bot.database() as db:
             user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
 
