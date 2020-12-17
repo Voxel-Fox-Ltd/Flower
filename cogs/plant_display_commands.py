@@ -9,10 +9,14 @@ class PlantDisplayCommands(utils.Cog):
 
     @utils.command(aliases=['showplant', 'show', 'display'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str):
+    async def displayplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str=None):
         """
         Shows you your plant status.
         """
+
+        # Make sure they gave a plant name
+        if plant_name is None:
+            return await ctx.invoke(self.bot.get_command("plants"))
 
         # Get data from database
         user = discord.Object(user) if user else ctx.author
