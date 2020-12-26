@@ -96,7 +96,7 @@ class UserCommands(utils.Cog):
         # Return to user
         v = await ctx.send(embed=embed)
         try:
-            await self.bot.add_delete_button(v, wait=False)
+            await self.bot.add_delete_button(v, (ctx.author, user,), wait=False)
         except discord.HTTPException:
             pass
 
