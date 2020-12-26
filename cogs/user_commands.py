@@ -94,7 +94,11 @@ class UserCommands(utils.Cog):
             embed.add_field(plant_name, text, inline=False)
 
         # Return to user
-        return await ctx.send(embed=embed)
+        v = await ctx.send(embed=embed)
+        try:
+            await self.bot.add_delete_button(v, wait=False)
+        except discord.HTTPException:
+            pass
 
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
