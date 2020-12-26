@@ -80,6 +80,7 @@ class UserCommands(utils.Cog):
             plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
             plant_death_humanize_time = arrow.get(plant_death_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
             plant_life_humanize_time = arrow.get(plant_adoption_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
+            plant_life_humanize_time = plant_life_humanize_time.replace("0 days ", "").replace("0 hours and ", "")
             if plant_nourishment == 0:
                 text = f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}."
             elif plant_nourishment > 0:
