@@ -67,7 +67,7 @@ class UserCommands(utils.Cog):
             user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
 
         # See if they have anything available
-        plant_data = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time']) for i in user_rows])
+        plant_data = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time'], i['plant_adoption_time']) for i in user_rows])
         if not plant_data:
             embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}> has no plants :c")
             return await ctx.send(embed=embed)
@@ -75,17 +75,18 @@ class UserCommands(utils.Cog):
         # Add the plant information
         embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}>'s plants")
         ctx._set_footer(embed)
-        for plant_name, plant_type, plant_nourishment, last_water_time in plant_data:
+        for plant_name, plant_type, plant_nourishment, last_water_time, plant_adoption_time in plant_data:
             plant_type_display = plant_type.replace('_', ' ').capitalize()
-            # plant_name_display = re.sub(r"([\_*`])", r"\\\1", plant_name)
             plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
             plant_death_humanize_time = arrow.get(plant_death_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
+            plant_life_humanize_time = arrow.get(plant_adoption_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
             if plant_nourishment == 0:
                 text = f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}."
             elif plant_nourishment > 0:
                 text = (
-                    f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}.\n"
-                    f"If not watered, this plant will die in *{plant_death_humanize_time}*."
+                    f"**{plant_type_display}**, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}.\n"
+                    f"If not watered, this plant will die in **{plant_death_humanize_time}**.\n"
+                    f"This plant has been alive for **{plant_life_humanize_time}**.\n"
                 )
             else:
                 text = f"{plant_type_display}, dead :c"
