@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user_settings(
     plant_limit SMALLINT DEFAULT 1,
     pot_type VARCHAR(50),
     user_experience INTEGER,
-    last_new_plant_time TIMESTAMP
+    last_plant_shop_time TIMESTAMP
 );
 
 
