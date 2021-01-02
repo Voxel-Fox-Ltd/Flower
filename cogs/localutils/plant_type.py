@@ -56,7 +56,7 @@ class PlantType(object):
         },
     }
 
-    def __init__(self, name:str, plant_level:int, available_variants:dict, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool, artist:str):
+    def __init__(self, name:str, plant_level:int, nourishment_display_levels:dict, soil_hue:int, visible:bool, available:bool, artist:str, available_variants:dict=None):
         self.name = name
         self.plant_level = plant_level
         self.required_experience = self.PLANT_LEVEL_MAPPING[self.plant_level]["cost"]
@@ -99,7 +99,8 @@ class PlantType(object):
     def get_available_variants(self, stage:int) -> int:
         """Tells you how many variants are available for a given growth stage"""
 
-        return self.available_variants[str(stage)]
+        return 1
+        # return self.available_variants[str(stage)]
 
     def get_nourishment_display_level(self, nourishment:int) -> int:
         """Get the display level for a given amount of nourishment"""

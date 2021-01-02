@@ -1,5 +1,5 @@
 {
-    "plant_level": 0,
+    "plant_level": 2,
     "nourishment_display_levels": {
         "1": 1,
         "2": 2,
@@ -11,5 +11,5 @@
     "soil_hue": 0,
     "visible": true,
     "available": true,
-    "artist": "AzunaPixels"
+    "artist": "GoddessErica"
 }
