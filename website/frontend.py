@@ -20,7 +20,7 @@ async def index(request:Request):
 
 
 @routes.get("/flowers")
-@template("index.j2")
+@template("flowers.j2")
 @webutils.requires_login()
 @webutils.add_discord_arguments()
 async def flowers(request:Request):
@@ -30,7 +30,8 @@ async def flowers(request:Request):
 
     session = await aiohttp_session.get_session(request)
     async with request.app['database']() as db:
-        rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", session['user_id'])
+        # user_rows = await db("SELECT  FROM user_settings WHERE user_id=$1", session['user_id'])
+        plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", session['user_id'])
     return {
-        'plants': [dict(i) for i in rows]
+        'plants': [dict(i) for i in plant_rows]
     }
