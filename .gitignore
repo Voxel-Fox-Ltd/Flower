@@ -1,6 +1,6 @@
 __pycache__/
 config/config.toml
-
+config/website.toml
 
 images/plants/*/*/*.png
 !images/plants/blue_daisy/

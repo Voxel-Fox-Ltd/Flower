@@ -1,0 +1,13 @@
+{% extends "main.j2" %}
+
+{%- block content -%}
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            {%- for plant in plants -%}
+                <div class="column">{{ plant.name }}</div>
+            {%- endfor -%}
+        </div>
+    </div>
+</section>
+{%- endblock content -%}

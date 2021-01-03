@@ -19,6 +19,10 @@ class Analytics(utils.Cog):
             for row in rows:
                 stats.gauge(f"discord.stats.plant_count.{'alive' if row['alive'] else 'dead'}", value=row['count'])
 
+    @flower_count_poster_loop.before_loop
+    async def before_flower_count_poster_loop(self):
+        await self.bot.wait_until_ready()
+
 
 def setup(bot:utils.Bot):
     x = Analytics(bot)

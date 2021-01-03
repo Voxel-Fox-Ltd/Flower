@@ -1,4 +1,4 @@
-voxelbotutils
+voxelbotutils[web]
 discord.py
 toml
 

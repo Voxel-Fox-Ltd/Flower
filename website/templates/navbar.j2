@@ -1,0 +1,36 @@
+{% extends "base.j2" %}
+
+{%- block navbar -%}
+<nav class="navbar" role="navigation" aria-label="main navigation">
+
+    <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+            <img src="https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=1024" id="navbarBrandImage">
+        </a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+    <div id="navbarMenu" class="navbar-menu">
+        <div class="navbar-start">
+            <a class="navbar-item" href="/">Home</a>
+            <a class="navbar-item" href="/flowers">Flowers</a>
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="buttons">
+                    {%- if session.logged_in -%}
+                        <a class="button is-light" href="/logout">Log Out</a>
+                        <img src="{{ session.user_info.avatar_url }}" id="navbarBrandImage">
+                    {%- else -%}
+                        <a class="button is-light" href="/login">Log In</a>
+                    {%- endif -%}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+{%- endblock navbar -%}

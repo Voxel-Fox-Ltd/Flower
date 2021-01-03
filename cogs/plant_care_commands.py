@@ -54,6 +54,10 @@ class PlantCareCommands(utils.Cog):
                 dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
             )
 
+    @plant_death_timeout_loop.before_loop
+    async def before_plant_death_timeout_loop(self):
+        await self.bot.wait_until_ready()
+
     @staticmethod
     def validate_name(name:str):
         """
