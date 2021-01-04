@@ -13,7 +13,8 @@
                 <p class="subtitle">{{ user.plant_limit }}</p>
             </div>
         </div>
-        <div class="columns" style="align-items: flex-end;">
+        <hr />
+        <div class="columns is-multiline" style="align-items: flex-end;">
             {%- for plant in plants -%}
                 <div class="column is-3">
                     <div class="columns" style="align-items: flex-end;">
@@ -22,9 +23,19 @@
                         </div>
                         <div class="column">
                             <h1 class="title">{{ plant.plant_name }}</h1>
-                            <p class="subtitle">{{ plant.plant_type.capitalize().replace("_", " ") }}</p>
+                            <p class="subtitle" style="margin-bottom: 0;">{{ plant.plant_type.capitalize().replace("_", " ") }}</p>
+                            {%- if plant.plant_nourishment > 0 -%}
+                                <p>Plant nourishment: {{ plant.plant_nourishment }}</p>
+                            {%- else -%}
+                                <p>Plant is dead :(</p>
+                            {%- endif -%}
                         </div>
                     </div>
+                    {%- if plant.plant_nourishment >= 0-%}
+                        <progress class="progress is-success" value="{{ plant.plant_nourishment / 21 }}" max="1"></progress>
+                    {%- else -%}
+                        <progress class="progress" value="{{ -plant.plant_nourishment / 21 }}" max="1"></progress>
+                    {%- endif -%}
                 </div>
             {%- endfor -%}
         </div>

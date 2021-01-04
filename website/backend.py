@@ -1,8 +1,6 @@
 from aiohttp.web import HTTPFound, Request, RouteTableDef
 from voxelbotutils import web as webutils
 import aiohttp_session
-import discord
-from aiohttp_jinja2 import template
 
 
 routes = RouteTableDef()
