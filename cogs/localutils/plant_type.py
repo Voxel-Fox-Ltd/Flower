@@ -67,7 +67,7 @@ class PlantType(object):
         self.visible = visible
         self.available = available
         self.artist = artist
-        self.max_nourishment_level = max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
+        self.max_nourishment_level = 21  # max([int(i) for i in self.nourishment_display_levels.keys()]) + 1
 
     def __str__(self):
         return f"<Plant {self.name} - level {self.plant_level}>"
