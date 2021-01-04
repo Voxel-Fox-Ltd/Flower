@@ -1,4 +1,7 @@
-from aiohttp.web import HTTPFound, Request, RouteTableDef
+import base64
+from datetime import datetime as dt
+
+from aiohttp.web import HTTPFound, Request, RouteTableDef, json_response
 from voxelbotutils import web as webutils
 import aiohttp_session
 import discord
@@ -30,8 +33,19 @@ async def flowers(request:Request):
 
     session = await aiohttp_session.get_session(request)
     async with request.app['database']() as db:
-        # user_rows = await db("SELECT  FROM user_settings WHERE user_id=$1", session['user_id'])
+        user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [session['user_id'], 0])
         plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", session['user_id'])
+    plants = [dict(i) for i in plant_rows]
+
+    display_utils = request.app['bots']['bot'].get_cog("PlantDisplayUtils")
+    for data in plants:
+        plant_display_dict = display_utils.get_display_data(data, user_id=session['user_id'])
+        display_data = display_utils.get_plant_image(**plant_display_dict)
+        cropped_display_data = display_utils.crop_image_to_content(display_data)
+        image_bytes = display_utils.image_to_bytes(cropped_display_data)
+        data['image_data'] = base64.b64encode(image_bytes.read()).decode()
+
     return {
-        'plants': [dict(i) for i in plant_rows]
+        'user': dict(user_rows[0]),
+        'plants': plants,
     }
