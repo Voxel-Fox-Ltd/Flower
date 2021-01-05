@@ -1,0 +1,22 @@
+{% extends "main.j2" %}
+
+{%- block content -%}
+<section class="section">
+    <div class="container">
+        <div class="columns is-multiline" style="align-items: flex-end;">
+            {%- for plant in plants -%}
+                <div class="column is-3">
+                    <div class="columns" style="align-items: flex-end;">
+                        <div class="column is-narrow" style="padding: 0;">
+                            <img src="data:image/png;base64,{{ plant.image_data }}" style="width: 5em;">
+                        </div>
+                        <div class="column">
+                            <h1 class="title">{{ plant.plant_type.capitalize().replace("_", " ") }}</h1>
+                        </div>
+                    </div>
+                </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</section>
+{%- endblock content -%}

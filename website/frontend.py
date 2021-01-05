@@ -1,5 +1,6 @@
 import base64
 from datetime import datetime as dt
+import random
 
 from aiohttp.web import HTTPFound, Request, RouteTableDef, json_response
 from voxelbotutils import web as webutils
@@ -57,4 +58,27 @@ async def flowers(request:Request):
     return {
         'user': dict(user_rows[0]),
         'plants': plants,
+    }
+
+
+@routes.get("/herbiary")
+@template("herbiary.j2")
+@webutils.add_discord_arguments()
+async def herbiary(request:Request):
+    """
+    Show the user the entire plant list.
+    """
+
+    output = request.app['bots']['bot'].plants.copy()
+    display_utils = request.app['bots']['bot'].get_cog("PlantDisplayUtils")
+    for plant in output.values():
+        plant_data = {'plant_type': plant.name, 'plant_nourishment': plant.max_nourishment_level, 'original_owner_id': random.randint(0, 359)}
+        plant_display_dict = display_utils.get_display_data(plant_data)
+        display_data = display_utils.get_plant_image(**plant_display_dict)
+        cropped_display_data = display_utils.crop_image_to_content(display_data)
+        image_bytes = display_utils.image_to_bytes(cropped_display_data)
+        plant['image_data'] = base64.b64encode(image_bytes.read()).decode()
+
+    return {
+        'plants': output,
     }
