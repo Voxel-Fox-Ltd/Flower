@@ -1,11 +1,9 @@
 import base64
-from datetime import datetime as dt
 import random
 
-from aiohttp.web import HTTPFound, Request, RouteTableDef, json_response
+from aiohttp.web import Request, RouteTableDef
 from voxelbotutils import web as webutils
 import aiohttp_session
-import discord
 from aiohttp_jinja2 import template
 
 
@@ -63,6 +61,8 @@ async def flowers(request:Request):
 
 generated_herbiary = None
 generated_herbiary_lifetime = 0
+
+
 @routes.get("/herbiary")
 @template("herbiary.j2")
 @webutils.add_discord_arguments()
@@ -73,6 +73,7 @@ async def herbiary(request:Request):
 
     global generated_herbiary
     global generated_herbiary_lifetime
+
     if generated_herbiary is None or generated_herbiary_lifetime >= 10:
         output = list(request.app['bots']['bot'].plants.copy().values())
         display_utils = request.app['bots']['bot'].get_cog("PlantDisplayUtils")

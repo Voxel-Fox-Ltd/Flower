@@ -1,11 +1,7 @@
 import base64
 from datetime import datetime as dt
 
-from aiohttp.web import HTTPFound, Request, RouteTableDef, json_response
-from voxelbotutils import web as webutils
-import aiohttp_session
-import discord
-from aiohttp_jinja2 import template
+from aiohttp.web import Request, RouteTableDef, json_response
 
 
 routes = RouteTableDef()

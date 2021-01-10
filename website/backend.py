@@ -1,4 +1,4 @@
-from aiohttp.web import HTTPFound, Request, RouteTableDef
+from aiohttp.web import HTTPFound, Request, RouteTableDef, Response, json_response
 from voxelbotutils import web as webutils
 import aiohttp_session
 
@@ -35,3 +35,20 @@ async def logout(request:Request):
     session = await aiohttp_session.get_session(request)
     session.invalidate()
     return HTTPFound(location='/')
+
+
+@routes.post('/water_plant')
+async def water_plant(request:Request):
+    """
+    Water a plant for the user.
+    """
+
+    session = await aiohttp_session.get_session(request)
+    if session.get("logged_in", False) is False:
+        return Response(status=401)
+    post_data = await request.json()
+    care_utils = request.app['bots']['bot'].get_cog("PlantCareCommands")
+    item = await care_utils.water_plant_backend(session['user_id'], post_data['plant_name'])
+    if not item['success']:
+        return json_response(item, status=400)
+    return json_response(item, status=200)
