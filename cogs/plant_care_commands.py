@@ -216,7 +216,7 @@ class PlantCareCommands(utils.Cog):
         """
 
         # Let's run all the bullshit
-        item = self.water_plant_backend(ctx.author.id, plant_name)
+        item = await self.water_plant_backend(ctx.author.id, plant_name)
         if item['success'] is False:
             return await ctx.send(item['text'])
         output_lines = item['text'].split("\n")
