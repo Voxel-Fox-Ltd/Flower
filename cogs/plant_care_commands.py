@@ -161,7 +161,7 @@ class PlantCareCommands(utils.Cog):
 
             # See if we want to give them the voter bonus
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and await self.get_user_voted(user_id):
-                multipliers.append({"multiplier": 1.1, "text": f"You [voted for the bot](https://top.gg/bot/{self.bot.user.id}/vote) on Top.gg."})
+                multipliers.append({"multiplier": 1.1, "text": f"You [voted for the bot](https://top.gg/bot/{self.bot.config['oauth']['client_id']}/vote) on Top.gg."})
                 voted_on_topgg = True
 
             # See if we want to give them the plant longevity bonus
