@@ -23,13 +23,11 @@ async function water_plant(object) {
 
     // See if it was correct
     if (response.success) {
-        console.log("Changing to new attrbites");
+        document.getElementById("experience").innerHTML = Math.max(parseInt(document.getElementById("experience").innerHTML), response.new_user_experience);
         progressBar.setAttribute("value", response.new_nourishment_level / 21);
         nourishmentNode.innerHTML = response.new_nourishment_level;
-        console.log("Changed");
     }
     else {
         progressBar.setAttribute("value", currentProgressBarValue);
     }
-
 }

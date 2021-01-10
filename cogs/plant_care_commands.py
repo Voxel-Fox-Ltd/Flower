@@ -69,12 +69,13 @@ class PlantCareCommands(utils.Cog):
         return name.strip('"“”\'').replace('\n', ' ').strip()
 
     @staticmethod
-    def get_water_plant_dict(text:str, success:bool=False, gained_experience:int=0, new_nourishment_level:int=0, voted_on_topgg:bool=False, multipliers:list=None):
+    def get_water_plant_dict(text:str, success:bool=False, gained_experience:int=0, new_nourishment_level:int=0, new_user_experience:int=0, voted_on_topgg:bool=False, multipliers:list=None):
         return {
             "text": text,
             "success": success,
             "gained_experience": gained_experience,
             "new_nourishment_level": new_nourishment_level,
+            "new_user_experience": new_user_experience,
             "voted_on_topgg": voted_on_topgg,
             "multipliers": multipliers or list(),
         }
@@ -89,6 +90,7 @@ class PlantCareCommands(utils.Cog):
                 "success": bool,
                 "new_nourishment_level": int,
                 "voted_on_topgg": bool,
+                "new_user_experience": int,
                 "multipliers": [
                     {
                         "multiplier": float,
@@ -172,9 +174,9 @@ class PlantCareCommands(utils.Cog):
 
             # Update db
             gained_experience = int(gained_experience)
-            await db(
+            user_experience_row = await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                DO UPDATE SET user_experience=user_settings.user_experience+$2""",
+                DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
                 user_id, gained_experience,
             )
 
@@ -201,6 +203,7 @@ class PlantCareCommands(utils.Cog):
             success=True,
             gained_experience=gained_experience,
             new_nourishment_level=plant_level_row[0]['plant_nourishment'],
+            new_user_experience=user_experience_row[0]['user_experience'],
             voted_on_topgg=voted_on_topgg,
             multipliers=multipliers,
         )
