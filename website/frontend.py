@@ -18,7 +18,9 @@ async def index(request:Request):
     Handle the index page for the website.
     """
 
-    return {}
+    bot = request.app['bots']['bot']
+    invite_link = bot.get_invite_link(**{i: True for i in bot.config['command_data']['invite_command_permissions']})
+    return {'invite_link': invite_link}
 
 
 @routes.get("/flowers")
