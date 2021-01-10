@@ -36,6 +36,8 @@ async def flowers(request:Request):
     try:
         user_id = request.query.get('user_id', session['user_id'])
         user_id = int(user_id)
+        if user_id != session['user_id'] and session['user_id'] not in request.app['bots']['bot'].config['owner_ids']:
+            raise ValueError()
     except ValueError:
         user_id = session['user_id']
 
