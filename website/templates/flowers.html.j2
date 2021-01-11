@@ -4,18 +4,18 @@
 <section>
     <div class="container">
         <div class="columns">
-            <div class="column is-narrow">
+            <div class="column is-3">
                 <h1 class="title">User Experience</h1>
                 <p id="experience" class="subtitle">{{ user.user_experience }}</p>
             </div>
-            <div class="column is-narrow">
+            <div class="column is-3">
                 <h1 class="title">Pot Count</h1>
                 <p class="subtitle">{{ user.plant_limit }}</p>
             </div>
-            <div class="column is-narrow">
+            <div class="column is-3">
                 <h1 class="title">Inventory</h1>
-                {%- for item in inventory -%}
-                    <p>{{ item.amount }} {{ item.item_name }}</p>
+                {%- for item_name, amount in inventory.items() -%}
+                    <p class="subtitle">{{ amount }}x {{ item_name }}</p>
                 {%- endfor -%}
             </div>
         </div>

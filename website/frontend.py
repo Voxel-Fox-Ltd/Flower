@@ -45,7 +45,7 @@ async def flowers(request:Request):
     async with request.app['database']() as db:
         user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
         plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name ASC", user_id)
-        user_inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND amount > 0 ORDER BY item_name ASC", user_id)
+        user_inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 ORDER BY item_name ASC", user_id)
     plants = [dict(i) for i in plant_rows]
 
     # Generate the base64 image data for each of the plants
