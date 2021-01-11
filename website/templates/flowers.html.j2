@@ -12,6 +12,12 @@
                 <h1 class="title">Pot Count</h1>
                 <p class="subtitle">{{ user.plant_limit }}</p>
             </div>
+            <div class="column is-narrow">
+                <h1 class="title">Inventory</h1>
+                {%- for item in inventory -%}
+                    <p>{{ item.amount }} {{ item.item_name }}</p>
+                {%- endfor -%}
+            </div>
         </div>
         <hr />
         <div class="columns is-multiline" style="align-items: flex-end;">
