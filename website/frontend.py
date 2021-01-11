@@ -8,6 +8,8 @@ from aiohttp_jinja2 import template
 
 
 routes = RouteTableDef()
+generated_herbiary = None
+generated_herbiary_lifetime = 0
 
 
 @routes.get("/")
@@ -66,10 +68,6 @@ async def flowers(request:Request):
     }
 
 
-generated_herbiary = None
-generated_herbiary_lifetime = 0
-
-
 @routes.get("/herbiary")
 @template("herbiary.j2")
 @webutils.add_discord_arguments()
@@ -98,3 +96,14 @@ async def herbiary(request:Request):
     return {
         'plants': generated_herbiary,
     }
+
+
+@routes.get("/commands")
+@template("commands.j2")
+@webutils.add_discord_arguments()
+async def commands(request:Request):
+    """
+    Show the command list.
+    """
+
+    return {}
