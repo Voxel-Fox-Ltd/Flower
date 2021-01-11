@@ -20,7 +20,10 @@ async def index(request:Request):
 
     bot = request.app['bots']['bot']
     invite_link = bot.get_invite_link(**{i: True for i in bot.config['command_data']['invite_command_permissions']})
-    return {'invite_link': invite_link}
+    return {
+        'invite_link': invite_link,
+        'vote_link': f"https://top.gg/bot/{request.app['config']['oauth']['client_id']}",
+    }
 
 
 @routes.get("/flowers")
