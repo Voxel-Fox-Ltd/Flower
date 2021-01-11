@@ -13,7 +13,7 @@ generated_herbiary_lifetime = 0
 
 
 @routes.get("/")
-@template("index.j2")
+@template("index.html.j2")
 @webutils.add_discord_arguments()
 async def index(request:Request):
     """
@@ -29,7 +29,7 @@ async def index(request:Request):
 
 
 @routes.get("/flowers")
-@template("flowers.j2")
+@template("flowers.html.j2")
 @webutils.requires_login()
 @webutils.add_discord_arguments()
 async def flowers(request:Request):
@@ -69,7 +69,7 @@ async def flowers(request:Request):
 
 
 @routes.get("/herbiary")
-@template("herbiary.j2")
+@template("herbiary.html.j2")
 @webutils.add_discord_arguments()
 async def herbiary(request:Request):
     """
@@ -99,7 +99,7 @@ async def herbiary(request:Request):
 
 
 @routes.get("/commands")
-@template("commands.j2")
+@template("commands.html.j2")
 @webutils.add_discord_arguments()
 async def commands(request:Request):
     """

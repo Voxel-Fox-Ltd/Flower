@@ -21,13 +21,17 @@ async function water_plant(object) {
     let response = await data.json()
     console.log(`Received response ${JSON.stringify(response)}`);
 
-    // See if it was correct
-    if (response.success) {
-        document.getElementById("experience").innerHTML = Math.max(parseInt(document.getElementById("experience").innerHTML), response.new_user_experience);
-        progressBar.setAttribute("value", response.new_nourishment_level / 21);
-        nourishmentNode.innerHTML = response.new_nourishment_level;
-    }
-    else {
+    // Set the progress bar back to what it was if nothing has changed
+    if (!response.success) {
         progressBar.setAttribute("value", currentProgressBarValue);
+        return;
     }
+
+    // Update the progress bar
+    document.getElementById("experience").innerHTML = Math.max(parseInt(document.getElementById("experience").innerHTML), response.new_user_experience);
+    progressBar.setAttribute("value", response.new_nourishment_level / 21);
+    nourishmentNode.innerHTML = response.new_nourishment_level;
+
+    // Update the flower image
+    // TODO
 }
