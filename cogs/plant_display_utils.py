@@ -187,7 +187,7 @@ class PlantDisplayUtils(utils.Cog):
         if plant_row is not None:
             plant_type = plant_row['plant_type']
             plant_nourishment = plant_row['plant_nourishment']
-            pot_hue = plant_row['original_owner_id']
+            pot_hue = plant_row['plant_pot_hue'] or pot_hue
 
         return {
             'plant_type': plant_type,
