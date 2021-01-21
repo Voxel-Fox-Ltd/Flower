@@ -22,7 +22,7 @@ class InformationCommands(utils.Cog):
         self._artist_info = data
         return data
 
-    @utils.command(aliases=['describe', 'info', 'information'])
+    @utils.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def herbiary(self, ctx:utils.Context, *, plant_name:str=None):
         """
