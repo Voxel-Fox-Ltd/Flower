@@ -77,7 +77,7 @@ class UserCommands(utils.Cog):
         for plant_name, plant_type, plant_nourishment, last_water_time, plant_adoption_time in plant_data:
             plant_type_display = plant_type.replace('_', ' ').capitalize()
             plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
-            plant_death_humanize_time = utils.TimeValue((dt.utcnow() - plant_death_time).total_seconds()).clean_full
+            plant_death_humanize_time = utils.TimeValue((plant_death_time - dt.utcnow()).total_seconds()).clean_full
             plant_life_humanize_time = utils.TimeValue((dt.utcnow() - plant_adoption_time).total_seconds()).clean_full
             if plant_nourishment == 0:
                 text = f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}."
