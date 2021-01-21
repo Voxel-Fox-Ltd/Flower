@@ -329,7 +329,7 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
             await db(
                 """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue)
-                VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $1 % 360) ON CONFLICT (user_id, plant_name) DO UPDATE
+                VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), ($1 % 360)) ON CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
                 ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1),
             )
