@@ -1,7 +1,6 @@
 import typing
-from datetime import timedelta
+from datetime import datetime as dt, timedelta
 
-import arrow
 import discord
 from discord.ext import commands
 import voxelbotutils as utils
@@ -78,9 +77,8 @@ class UserCommands(utils.Cog):
         for plant_name, plant_type, plant_nourishment, last_water_time, plant_adoption_time in plant_data:
             plant_type_display = plant_type.replace('_', ' ').capitalize()
             plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
-            plant_death_humanize_time = arrow.get(plant_death_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
-            plant_life_humanize_time = arrow.get(plant_adoption_time).humanize(granularity=["day", "hour", "minute"], only_distance=True)
-            plant_life_humanize_time = plant_life_humanize_time.replace("0 days ", "").replace("0 hours and ", "")
+            plant_death_humanize_time = utils.TimeValue((dt.utcnow() - plant_death_time).total_seconds()).clean_full
+            plant_life_humanize_time = utils.TimeValue((dt.utcnow() - plant_adoption_time).total_seconds()).clean_full
             if plant_nourishment == 0:
                 text = f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}."
             elif plant_nourishment > 0:
