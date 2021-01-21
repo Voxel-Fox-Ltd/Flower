@@ -230,11 +230,22 @@ class PlantShopCommands(utils.Cog):
             embed.description += "\n**Say the name of the item you want to purchase, or type `cancel` to exit the shop with nothing.**\n"
 
         # Wait for them to respond
-        await ctx.send(embed=embed)
+        shop_menu_message = await ctx.send(embed=embed)
         try:
-            plant_type_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
+            done, pending = asyncio.wait([
+                self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content),
+                self.bot.wait_for("raw_message_delete", check=lambda m: m.id == shop_menu_message.id),
+            ], timeout=120, return_when=asyncio.FIRST_COMPLETED)
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
+
+        # See how they responded
+        for future in pending:
+            future.cancel()
+        done = done.pop().result()
+        if isinstance(done, discord.RawMessageDeleteEvent):
+            return
+        plant_type_message = done
         given_response = plant_type_message.content.lower().replace(' ', '_')
 
         # See if they want to cancel
@@ -462,7 +473,7 @@ class PlantShopCommands(utils.Cog):
                     v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
                     assert v is not None
                 for row in plants_being_traded:
-                    is_watered = row['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow() 
+                    is_watered = row['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow()
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
                         last_water_time, original_owner_id, plant_adoption_time) VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()))""",
