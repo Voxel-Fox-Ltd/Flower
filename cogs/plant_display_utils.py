@@ -165,29 +165,34 @@ class PlantDisplayUtils(utils.Cog):
             width_offset += image.size[0]
 
         # And Discord it up
-        # image = self.crop_image_to_content(new_image.resize((new_image.size[0] * 5, new_image.size[1] * 5,), Image.NEAREST))
         return cls.crop_image_to_content(new_image)
 
     @staticmethod
     def get_display_data(plant_row, user_id:int=None) -> dict:
         """
         Get the display data of a given plant and return it as a dict.
+
+        Args:
+            plant_row (dict): The row from the database continaing the data for the plant.
+            user_id (int, optional): An optional user ID for the display data, which gives the default colour for the plant pot.
+
+        Returns:
+            dict: A formatted dictionary of all the things that are necessary to display a plant.
         """
 
         plant_type = None
         plant_nourishment = 0
-        pot_type = 'clay'
-        pot_hue = (user_id or 0) % 360  # the "or 0" is just to avoid errors when the user ID isn't passed
+        pot_hue = (user_id or 0) % 360  # A default plant pot colour based on the user ID
 
         if plant_row is not None:
             plant_type = plant_row['plant_type']
             plant_nourishment = plant_row['plant_nourishment']
-            pot_hue = plant_row['original_owner_id'] % 360
+            pot_hue = plant_row['original_owner_id']
 
         return {
             'plant_type': plant_type,
             'plant_nourishment': plant_nourishment,
-            'pot_type': pot_type,
+            'pot_type': 'clay',
             'pot_hue': pot_hue,
         }
 

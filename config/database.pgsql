@@ -35,10 +35,11 @@ CREATE TABLE IF NOT EXISTS plant_levels(
     user_id BIGINT,
     plant_name VARCHAR(50),
     plant_type VARCHAR(20),
-    plant_variant INTEGER DEFAULT 0,
-    plant_nourishment INTEGER,
+    plant_variant SMALLINT DEFAULT 0,
+    plant_nourishment SMALLINT,
     last_water_time TIMESTAMP,
     original_owner_id BIGINT,
+    plant_pot_hue SMALLINT,
     plant_adoption_time TIMESTAMP,
     PRIMARY KEY (user_id, plant_name)
 );
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS plant_levels(
 CREATE TABLE IF NOT EXISTS user_inventory(
     user_id BIGINT,
     item_name VARCHAR(50),
-    amount INTEGER DEFAULT 0,
+    amount SMALLINT DEFAULT 0,
     PRIMARY KEY (user_id, item_name)
 );
 
