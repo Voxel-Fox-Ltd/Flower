@@ -232,7 +232,7 @@ class PlantShopCommands(utils.Cog):
         # Wait for them to respond
         shop_menu_message = await ctx.send(embed=embed)
         try:
-            done, pending = asyncio.wait([
+            done, pending = await asyncio.wait([
                 self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content),
                 self.bot.wait_for("raw_message_delete", check=lambda m: m.id == shop_menu_message.id),
             ], timeout=120, return_when=asyncio.FIRST_COMPLETED)
