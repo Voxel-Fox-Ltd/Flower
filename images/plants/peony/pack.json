@@ -2,12 +2,12 @@
     "plant_level": 4,
     "nourishment_display_levels": {
         "1": 1,
-        "2": 2,
-        "5": 3,
+        "3": 2,
+        "6": 3,
         "9": 4,
         "12": 5,
-        "17": 6,
-        "20": 7
+        "15": 6,
+        "18": 7
     },
     "soil_hue": 0,
     "visible": true,
