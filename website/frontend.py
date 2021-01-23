@@ -125,7 +125,7 @@ async def herbiary(request:Request):
         output = list(request.app['bots']['bot'].plants.copy().values())
         display_utils = request.app['bots']['bot'].get_cog("PlantDisplayUtils")
         for plant in output:
-            plant_data = {'plant_type': plant.name, 'plant_nourishment': plant.max_nourishment_level, 'original_owner_id': random.randint(0, 359)}
+            plant_data = {'plant_type': plant.name, 'plant_nourishment': plant.max_nourishment_level, 'plant_pot_hue': random.randint(0, 359)}
             plant_display_dict = display_utils.get_display_data(plant_data)
             display_data = display_utils.get_plant_image(**plant_display_dict)
             cropped_display_data = display_utils.crop_image_to_content(display_data)
