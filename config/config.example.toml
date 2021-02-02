@@ -54,6 +54,7 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
 
 # Data that's copied directly over to a command
 [command_data]
+    website_link = ""
     guild_invite = ""  # A link to be used on !support
     github_link = ""  # A link to be used on !git
     donate_link = ""  # A link to be used on !donate
