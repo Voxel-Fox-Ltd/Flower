@@ -111,7 +111,7 @@ class PlantShopCommands(utils.Cog):
         return available_plants
 
     @utils.command()
-    @commands.is_owner()
+    @utils.checks.is_bot_support()
     @commands.bot_has_permissions(send_messages=True)
     async def reloadplants(self, ctx:utils.Context):
         """
@@ -139,6 +139,19 @@ class PlantShopCommands(utils.Cog):
 
         # And done
         return await ctx.send("Reloaded.")
+
+    @utils.command()
+    @utils.checks.is_bot_support()
+    @commands.bot_has_permissions(send_messages=True)
+    async def forceshoprefresh(self, ctx:utils.Context, user_id:utils.converters.UserID=None):
+        """
+        Forces a shop refresh for the given user.
+        """
+
+        user_id = user_id or ctx.author.id
+        async with self.bot.database() as db:
+            await db("UPDATE user_available_plants SET last_shop_timestamp='2000-01-01' WHERE user_id=$1", user_id)
+        return await ctx.send("Refreshed user's shop.")
 
     @utils.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
