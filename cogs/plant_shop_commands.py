@@ -158,6 +158,7 @@ class PlantShopCommands(utils.Cog):
             plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
         buy_plant_cooldown_delta = None
         if can_purchase_new_plants is False:
             buy_plant_cooldown_delta = utils.TimeValue(
