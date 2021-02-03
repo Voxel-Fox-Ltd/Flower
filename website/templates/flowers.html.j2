@@ -49,7 +49,11 @@
                             {%- endif -%}
 
                             {# Add water button #}
-                            <button class="button is-primary is-light" {% if plant.plant_nourishment >= 0 %}onclick="waterPlant(this);"{% else %}disabled{% endif %}>Water</button>
+                            {% if plant.plant_nourishment >= 0 %}
+                                <button class="button is-primary is-light" onclick="waterPlant(this);">Water</button>
+                            {% else %}
+                                <button class="button is-link is-light" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this);"{% else %}disabled{% endif %}>Revive</button>
+                            {% endif %}
 
                             {# Add delete button #}
                             <button class="button is-danger is-light" onclick="unhideModal(this);">Delete</button>
