@@ -3,6 +3,8 @@
 {%- block content -%}
 <section>
     <div class="container">
+
+        {# Add the user data #}
         <div class="columns">
             <div class="column is-3">
                 <h1 class="title">User Experience</h1>
@@ -20,35 +22,50 @@
             </div>
         </div>
         <hr />
+
+        {# Add the plants #}
         <div class="columns is-multiline" style="align-items: flex-end;">
+
+            {# Go through and add each plant to the mix #}
             {%- for plant in plants -%}
                 <div class="column is-3 plant">
                     <div class="columns" style="align-items: flex-end;">
+
+                        {# Plant image #}
                         <div class="column is-narrow" style="padding: 0;">
                             <img src="data:image/png;base64,{{ plant.image_data }}" style="width: 5em;">
                         </div>
+
+                        {# Plant data #}
                         <div class="column">
                             <h1 class="title">{{ plant.plant_name }}</h1>
                             <p class="subtitle" style="margin-bottom: 0;">{{ plant.plant_type.capitalize().replace("_", " ") }}</p>
+
+                            {# Add nourishment if it's still alive #}
                             {%- if plant.plant_nourishment >= 0 -%}
                                 <p>Plant nourishment: <span class="nourishment">{{ plant.plant_nourishment }}</span></p>
                             {%- else -%}
                                 <p>Plant is dead :(</p>
                             {%- endif -%}
-                            {%- if plant.plant_nourishment >= 0-%}
-                                <button class="button is-primary is-light" onclick="water_plant(this);">Water Plant</button>
-                            {%- endif -%}
+                            <button class="button is-primary is-light" {% if plant.plant_nourishment >= 0 %}onclick="water_plant(this);"{% else %}disabled{% endif %}>Water</button>
+                            <button class="button is-danger is-light" onclick="delete_plant(this);">Delete</button>
                         </div>
                     </div>
+
+                    {# Add the progress bar if the plant is still alive #}
                     {%- if plant.plant_nourishment >= 0-%}
                         <progress class="progress is-success" value="{{ plant.plant_nourishment / 21 }}" max="1"></progress>
                     {%- else -%}
                         <progress class="progress" value="{{ -plant.plant_nourishment / 21 }}" max="1"></progress>
                     {%- endif -%}
+
                 </div>
             {%- endfor -%}
         </div>
+
+        {# The script needed to send the post requests to the website #}
         <script type="text/javascript" src="{{ static('water.js') }}"></script>
+
     </div>
 </section>
 {%- endblock content -%}
