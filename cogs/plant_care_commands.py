@@ -252,6 +252,18 @@ class PlantCareCommands(utils.Cog):
         # Send message
         return await ctx.send("\n".join(output_lines), embed=embed)
 
+    async def delete_plant_backend(self, user_id:int, plant_name:str) -> dict:
+        """
+        The backend function for deleting a plant from the database. Either returns the deleted
+        plant's data, or None.
+        """
+
+        async with self.bot.database() as db:
+            data = await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *", user_id, plant_name)
+        if not data:
+            return None
+        return data[0]
+
     @utils.command(aliases=['delete'])
     @commands.bot_has_permissions(send_messages=True)
     async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
@@ -259,11 +271,10 @@ class PlantCareCommands(utils.Cog):
         Deletes your plant from the database.
         """
 
-        async with self.bot.database() as db:
-            data = await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *", ctx.author.id, plant_name)
+        data = await self.delete_plant_backend(ctx.author.id, plant_name)
         if not data:
             return await ctx.send(f"You have no plant names **{plant_name}**!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-        return await ctx.send(f"Done - you've deleted your {data[0]['plant_type'].replace('_', ' ')}.")
+        return await ctx.send(f"Done - you've deleted your {data['plant_type'].replace('_', ' ')}.")
 
     @utils.command(aliases=['rename'])
     @commands.bot_has_permissions(send_messages=True)

@@ -12,14 +12,14 @@ async function waterPlant(object) {
 
     // Perform our API request
     let jsonData = JSON.stringify({plant_name: plantName});
-    console.log(`Sending data ${jsonData}`);
+    console.log(`Sending data to /water_plant: ${jsonData}`);
     let data = await fetch("/water_plant", {
         method: "POST",
         body: jsonData,
         headers: {"Content-Type": "application/json"}
     })
     let response = await data.json()
-    console.log(`Received response ${JSON.stringify(response)}`);
+    console.log(`Received response from /water_plant: ${JSON.stringify(response)}`);
 
     // Set the progress bar back to what it was if nothing has changed
     if (!response.success) {
@@ -37,6 +37,32 @@ async function waterPlant(object) {
 }
 
 
+async function deletePlant(object) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
+
+    // Get the relevant information
+    let plantName = object.getElementsByClassName("title")[0].textContent;
+
+    // Perform our API request
+    let jsonData = JSON.stringify({plant_name: plantName});
+    console.log(`Sending data to /delete_plant: ${jsonData}`);
+    let data = await fetch("/delete_plant", {
+        method: "POST",
+        body: jsonData,
+        headers: {"Content-Type": "application/json"}
+    })
+    let response = await data.json()
+    console.log(`Received response from /delete_plant: ${JSON.stringify(response)}`);
+    return response.success;
+}
+
+
+async function deletePlantDom(object) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    object.remove();
+}
+
+
 async function unhideModal(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     let modal = object.getElementsByClassName("modal")[0];
@@ -45,6 +71,7 @@ async function unhideModal(object) {
 
 
 async function hideModal(object) {
-    while(!object.classList.contains("modal")) object = object.parentNode;
-    object.classList.remove("is-active");
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    let modal = object.getElementsByClassName("modal")[0];
+    modal.classList.remove("is-active");
 }

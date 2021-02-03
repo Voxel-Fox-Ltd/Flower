@@ -60,7 +60,7 @@
                                 <div class="modal-content">
                                     <h1 class="title">Are you sure you want to delete your plant?</h1>
                                     <h2 class="subtitle">You won't see {{ plant.plant_name }} again :c</h2>
-                                    <button class="button is-danger is-light" onclick="deletePlant(this).then(() => location.reload());">Delete</button>
+                                    <button class="button is-danger is-light" onclick="deletePlant(this).then(() => deletePlantDom(this));">Delete</button>
                                     <button class="button is-primary is-light" onclick="hideModal(this);">Cancel</button>
                                 </div>
                                 <button class="modal-close is-large" onclick="hideModal(this);" aria-label="close"></button>
