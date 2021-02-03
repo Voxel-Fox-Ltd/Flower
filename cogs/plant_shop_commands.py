@@ -74,8 +74,15 @@ class PlantShopCommands(utils.Cog):
             # Check what plants they have available
             plant_shop_rows = await db("SELECT * FROM user_available_plants WHERE user_id=$1", user_id)
 
+            # See if we have to generate some new plants
+            generate_new = True
+            if plant_shop_rows:
+                now = dt.utcnow()
+                last_shop = plant_shop_rows[0]['last_shop_timestamp']
+                generate_new = (last_shop.year, last_shop.month) != (now.year, now.month)
+
             # If they don't have any available plants, generate new ones for the shop
-            if not plant_shop_rows or plant_shop_rows[0]['last_shop_timestamp'].month != dt.utcnow().month:
+            if generate_new:
                 possible_available_plants = collections.defaultdict(list)
                 for item in self.bot.plants.values():
                     if item.available is False:
