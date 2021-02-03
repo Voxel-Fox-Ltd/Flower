@@ -57,21 +57,33 @@ async function deletePlant(object) {
 }
 
 
+async function revivePlant(object) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    alert("Currently non-functional - please run the revive command from Discord.");
+}
+
+
 async function deletePlantDom(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     object.remove();
 }
 
 
-async function unhideModal(object) {
+async function unhideDeleteModal(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     let modal = object.getElementsByClassName("modal")[0];
     modal.classList.add("is-active");
+    let deleteButton = object.getElementsByClassName("delete-button")[0];
+    setTimeout(function() {
+        deleteButton.disabled = false;
+    }, 1_000);
 }
 
 
-async function hideModal(object) {
+async function hideDeleteModal(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     let modal = object.getElementsByClassName("modal")[0];
     modal.classList.remove("is-active");
+    let deleteButton = object.getElementsByClassName("delete-button")[0];
+    deleteButton.disabled = true;
 }

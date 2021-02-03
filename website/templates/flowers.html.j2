@@ -52,11 +52,11 @@
                             {% if plant.plant_nourishment >= 0 %}
                                 <button class="button is-primary is-light" onclick="waterPlant(this);">Water</button>
                             {% else %}
-                                <button class="button is-link is-light" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this);"{% else %}disabled{% endif %}>Revive</button>
+                                <button class="button is-link is-light" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then(() => location.reload());"{% else %}disabled{% endif %}>Revive</button>
                             {% endif %}
 
                             {# Add delete button #}
-                            <button class="button is-danger is-light" onclick="unhideModal(this);">Delete</button>
+                            <button class="button is-danger is-light" onclick="unhideDeleteModal(this);">Delete</button>
 
                             {# Delete "are you sure" modal #}
                             <div class="modal" style="text-align: center;" data-plant-name="{{ plant.plant_name }}">
@@ -64,10 +64,10 @@
                                 <div class="modal-content">
                                     <h1 class="title">Are you sure you want to delete your plant?</h1>
                                     <h2 class="subtitle">You won't see {{ plant.plant_name }} again :c</h2>
-                                    <button class="button is-danger is-light" onclick="deletePlant(this).then(() => deletePlantDom(this));">Delete</button>
-                                    <button class="button is-primary is-light" onclick="hideModal(this);">Cancel</button>
+                                    <button class="button is-danger is-light delete-button" onclick="deletePlant(this).then(() => deletePlantDom(this));" disabled>Delete</button>
+                                    <button class="button is-primary is-light" onclick="hideDeleteModal(this);">Cancel</button>
                                 </div>
-                                <button class="modal-close is-large" onclick="hideModal(this);" aria-label="close"></button>
+                                <button class="modal-close is-large" onclick="hideDeleteModal(this);" aria-label="close"></button>
                             </div>
 
                         </div>
