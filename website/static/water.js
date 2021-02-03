@@ -1,5 +1,5 @@
-async function water_plant(object) {
-    object = object.parentNode.parentNode.parentNode;
+async function waterPlant(object) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
 
     // Get the relevant information
     let plantName = object.getElementsByClassName("title")[0].textContent;
@@ -34,4 +34,17 @@ async function water_plant(object) {
 
     // Update the flower image
     // TODO
+}
+
+
+async function unhideModal(object) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    let modal = object.getElementsByClassName("modal")[0];
+    modal.classList.add("is-active");
+}
+
+
+async function hideModal(object) {
+    while(!object.classList.contains("modal")) object = object.parentNode;
+    object.classList.remove("is-active");
 }
