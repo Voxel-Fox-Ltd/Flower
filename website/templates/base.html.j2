@@ -10,7 +10,7 @@
     <meta name="twitter:card" content="summary" />
     <meta property="og:title" content="{{ self.title() }}" />
     <meta property="og:description" content="{%- block ogdescription -%}Care for virtual plants right in your Discord server!{%- endblock ogdescription -%}" />
-    <meta property="og:image" content="https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=1024" />
+    <meta property="og:image" content="https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=512" />
     <script data-ad-client="ca-pub-5971485568613064" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-0P1FY0JX1V"></script>
     <script>
@@ -25,7 +25,7 @@
 <nav class="navbar" role="navigation" aria-label="main navigation" style="margin-bottom: 15px;">
     <div class="navbar-brand">
         <a class="navbar-item" href="/">
-            <img src="https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=1024" id="navbarBrandImage">
+            <img src="https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=128" id="navbarBrandImage">
         </a>
         <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
             <span aria-hidden="true"></span>
@@ -45,7 +45,7 @@
                 <div class="buttons">
                     {%- if session.logged_in -%}
                         <a class="button is-light" href="/logout">Log Out</a>
-                        <img src="{{ session.user_info.avatar_url }}" id="navbarBrandImage">
+                        <img src="{{ session.user_info.avatar_url }}?size=128" id="navbarBrandImage">
                     {%- else -%}
                         <a class="button is-light" href="/login">Log In</a>
                     {%- endif -%}
