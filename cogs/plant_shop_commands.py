@@ -379,7 +379,11 @@ class PlantShopCommands(utils.Cog):
             check = lambda r, u: r.message.id == m.id and u.id == user.id and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
             r, _ = await self.bot.wait_for("reaction_add", check=check, timeout=120)
         except asyncio.TimeoutError:
-            return await ctx.send(f"{user.mention} didn't respond to your trade request in time, {ctx.author.mention}", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+            try:
+                await ctx.send(f"{user.mention} didn't respond to your trade request in time, {ctx.author.mention}", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+            except discord.HTTPException:
+                pass
+            return
         if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
             return await ctx.send(f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
 
@@ -422,7 +426,11 @@ class PlantShopCommands(utils.Cog):
             try:
                 index_message = await self.bot.wait_for("message", check=check, timeout=30)
             except asyncio.TimeoutError:
-                return await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                try:
+                    await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                except discord.HTTPException:
+                    pass
+                return
 
             # Make sure their given index was invalid
             try:
@@ -461,7 +469,11 @@ class PlantShopCommands(utils.Cog):
                 check = lambda r, u: r.message.id == m.id and u.id in [ctx.author.id, user.id] and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
                 r, u = await self.bot.wait_for("reaction_add", check=check, timeout=30)
             except asyncio.TimeoutError:
-                return await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                try:
+                    await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                except discord.HTTPException:
+                    pass
+                return
             if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
                 return await ctx.send(f"{u.mention} doesn't want to go ahead with the trade :<")
             said_yes.add(u.id)
