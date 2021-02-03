@@ -80,6 +80,8 @@ class PlantShopCommands(utils.Cog):
                 for item in self.bot.plants.values():
                     if item.available is False:
                         continue
+                    if plant_shop_rows and plant_shop_rows[0][f"plant_level_{item.plant_level}"] == item.name:
+                        continue
                     possible_available_plants[item.plant_level].append(item)
                 available_plants = {}
                 for level, plants in possible_available_plants.items():
