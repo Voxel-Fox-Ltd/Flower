@@ -50,13 +50,13 @@
 
                             {# Add water button #}
                             {% if plant.plant_nourishment >= 0 %}
-                                <button class="button is-primary is-light" onclick="waterPlant(this);">Water</button>
+                                <button class="button is-primary is-light water-button" onclick="waterPlant(this);">Water</button>
                             {% else %}
-                                <button class="button is-link is-light" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then(() => location.reload());"{% else %}disabled{% endif %}>Revive</button>
+                                <button class="button is-link is-light revive-button" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then(() => location.reload());"{% else %}disabled{% endif %}>Revive</button>
                             {% endif %}
 
                             {# Add delete button #}
-                            <button class="button is-danger is-light" onclick="unhideDeleteModal(this);">Delete</button>
+                            <button class="button is-danger is-light base-delete-button" onclick="unhideDeleteModal(this);">Delete</button>
 
                             {# Delete "are you sure" modal #}
                             <div class="modal" style="text-align: center;" data-plant-name="{{ plant.plant_name }}">

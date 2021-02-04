@@ -59,7 +59,26 @@ async function deletePlant(object) {
 
 async function revivePlant(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
-    alert("Currently non-functional - please run the revive command from Discord.");
+
+    // Disable the other buttons on the page
+    for(let i of document.getElementsByClassName("water-button")) i.disabled = true;
+    for(let i of document.getElementsByClassName("base-delete-button")) i.disabled = true;
+    for(let i of document.getElementsByClassName("revive-button")) i.disabled = true;
+
+    // Get the relevant information
+    let plantName = object.getElementsByClassName("title")[0].textContent;
+
+    // Perform our API request
+    let jsonData = JSON.stringify({plant_name: plantName});
+    console.log(`Sending data to /revive_plant: ${jsonData}`);
+    let data = await fetch("/revive_plant", {
+        method: "POST",
+        body: jsonData,
+        headers: {"Content-Type": "application/json"}
+    })
+    let response = await data.json()
+    console.log(`Received response from /revive_plant: ${JSON.stringify(response)}`);
+    return response.success;
 }
 
 

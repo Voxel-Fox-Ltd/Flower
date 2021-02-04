@@ -69,3 +69,20 @@ async def delete_plant(request:Request):
     if not item:
         return json_response({"success": False}, status=400)
     return json_response({"success": True}, status=200)
+
+
+@routes.post('/revive_plant')
+async def revive_plant(request:Request):
+    """
+    Revive a plant for the user.
+    """
+
+    session = await aiohttp_session.get_session(request)
+    if session.get("logged_in", False) is False:
+        return Response(status=401)
+    post_data = await request.json()
+    care_utils = request.app['bots']['bot'].get_cog("PlantCareCommands")
+    response, success = await care_utils.revive_plant_backend(session['user_id'], post_data['plant_name'])
+    if not success:
+        return json_response({"success": success}, status=400)
+    return json_response({"success": success}, status=200)

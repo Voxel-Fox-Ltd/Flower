@@ -316,6 +316,41 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
         await ctx.send("Done!~")
 
+    async def revive_plant_backend(self, user_id:int, plant_name:str):
+        """
+        The backend for reviving a plant.
+        Returns a response string and whether or not the revive succeeded, as a tuple.
+        """
+
+        async with self.bot.database() as db:
+
+            # See if they have enough revival tokens
+            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='revival_token'", user_id)
+            if not inventory_rows or inventory_rows[0]['amount'] < 1:
+                return f"You don't have any revival tokens, <@{user_id}>! :c", False
+
+            # See if the plant they specified exists
+            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user_id, plant_name)
+            if not plant_rows:
+                return f"You have no plants named **{plant_name}**.", False
+
+            # See if the plant they specified is dead
+            if plant_rows[0]['plant_nourishment'] >= 0:
+                return f"Your **{plant_rows[0]['plant_name']}** plant isn't dead!", False
+
+            # Revive the plant and remove a token
+            await db.start_transaction()
+            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", user_id)
+            await db(
+                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
+                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+            )
+            await db.commit_transaction()
+
+        # And now we done
+        return f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D", True
+
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx:utils.Context, *, plant_name:str):
@@ -323,34 +358,8 @@ class PlantCareCommands(utils.Cog):
         Use one of your revival tokens to be able to revive your plant.
         """
 
-        async with self.bot.database() as db:
-
-            # See if they have enough revival tokens
-            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
-            if not inventory_rows or inventory_rows[0]['amount'] < 1:
-                return await ctx.send(f"You don't have any revival tokens, {ctx.author.mention}! :c")
-
-            # See if the plant they specified exists
-            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, plant_name)
-            if not plant_rows:
-                return await ctx.send(f"You have no plants named **{plant_name}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-
-            # See if the plant they specified is dead
-            if plant_rows[0]['plant_nourishment'] >= 0:
-                return await ctx.send(f"Your **{plant_rows[0]['plant_name']}** plant isn't dead!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
-
-            # Revive the plant and remove a token
-            await db.start_transaction()
-            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", ctx.author.id)
-            await db(
-                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
-                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                ctx.author.id, plant_name, dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
-            )
-            await db.commit_transaction()
-
-        # And now we done
-        return await ctx.send(f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
+        response, success = await self.revive_plant_backend(ctx.author.id, plant_name)
+        return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
 
 def setup(bot:utils.Bot):
