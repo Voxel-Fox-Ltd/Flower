@@ -167,7 +167,7 @@ class PlantShopCommands(utils.Cog):
         Shows you the available plants.
         """
 
-        # Get data from the user
+        # Get data from the user and set up our variables to be used later
         async with self.bot.database() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", ctx.author.id)
             plant_level_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", ctx.author.id)
@@ -175,10 +175,12 @@ class PlantShopCommands(utils.Cog):
             user_experience = user_rows[0]['user_experience']
             plant_limit = user_rows[0]['plant_limit']
             last_plant_shop_time = user_rows[0]['last_plant_shop_time'] or dt(2000, 1, 1)
+            plant_pot_hue = user_rows[0]['plant_pot_hue'] or ctx.author.id % 360
         else:
             user_experience = 0
             plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
+            plant_pot_hue = ctx.author.id % 360
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
         buy_plant_cooldown_delta = None
@@ -355,9 +357,9 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
             await db(
                 """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue)
-                VALUES ($1::BIGINT, $2, $3, 0, $4, $1::BIGINT, TIMEZONE('UTC', NOW()), CAST($1::BIGINT % 360 AS SMALLINT)) ON CONFLICT (user_id, plant_name) DO UPDATE
+                VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $5) ON CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
-                ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1),
+                ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
             )
             await db(
                 "UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1",
