@@ -33,7 +33,7 @@
 
                         {# Plant image #}
                         <div class="column is-narrow" style="padding: 0;">
-                            <img src="data:image/png;base64,{{ plant.image_data }}" style="width: 5em;">
+                            <img class="plant-image" src="data:image/png;base64,{{ plant.image_data }}">
                         </div>
 
                         {# Plant data #}
@@ -57,6 +57,8 @@
 
                             {# Add delete button #}
                             <button class="button is-danger is-light base-delete-button" onclick="unhideDeleteModal(this);">Delete</button>
+
+                            {# <input type="range" id="colour" name="colour" min="-360" max="360" value="{{ plant.plant_pot_hue }}" onchange="changePlantColour(this);" /> #}
 
                             {# Delete "are you sure" modal #}
                             <div class="modal" style="text-align: center;" data-plant-name="{{ plant.plant_name }}">

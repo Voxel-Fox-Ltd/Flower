@@ -82,6 +82,14 @@ async function revivePlant(object) {
 }
 
 
+async function changePlantColour(object) {
+    let rangeObject = object;
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    let plantImage = object.getElementsByClassName("plant-image")[0];
+    plantImage.style.setProperty("filter", `hue-rotate(${rangeObject.value}deg)`);
+}
+
+
 async function deletePlantDom(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     object.remove();
