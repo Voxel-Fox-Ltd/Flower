@@ -4,6 +4,8 @@ import discord
 from discord.ext import commands, tasks
 import voxelbotutils as utils
 
+from cogs import localutils
+
 
 class PlantCareCommands(utils.Cog):
 
@@ -58,15 +60,6 @@ class PlantCareCommands(utils.Cog):
     @plant_death_timeout_loop.before_loop
     async def before_plant_death_timeout_loop(self):
         await self.bot.wait_until_ready()
-
-    @staticmethod
-    def validate_name(name:str):
-        """
-        Validates the name of a plant
-        Input is the name, output is their validated plant name.
-        """
-
-        return name.strip('"“”\'').replace('\n', ' ').strip()
 
     @staticmethod
     def get_water_plant_dict(text:str, success:bool=False, gained_experience:int=0, new_nourishment_level:int=0, new_user_experience:int=0, voted_on_topgg:bool=False, multipliers:list=None):
@@ -284,16 +277,11 @@ class PlantCareCommands(utils.Cog):
         """
 
         # Make sure some names were provided
-        after = self.validate_name(after)
+        after = localutils.PlantType.validate_name(after)
         if not after:
             raise utils.MissingRequiredArgumentString("after")
-        if len(before) > 50 or len(before) == 0:
-            return await ctx.send(f"You have no plants with the name **{before}**.", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
         if len(after) > 50 or len(after) == 0:
-            await ctx.send("That name is too long! Please give another one instead!")
-            return
-        if '\n' in after:
-            await ctx.send("You can't have names with multiple lines in them! Please give another one instead!")
+            return await ctx.send("That name is too long! Please give another one instead!")
 
         # See about changing the name
         async with self.bot.database() as db:

@@ -1,4 +1,5 @@
 import random
+import re
 
 
 class PlantType(object):
@@ -110,3 +111,18 @@ class PlantType(object):
         if str(nourishment) in self.nourishment_display_levels:
             return self.nourishment_display_levels[str(nourishment)]
         return self.get_nourishment_display_level(nourishment - 1)
+
+    @staticmethod
+    def validate_name(name:str):
+        """
+        Validates the name of a plant
+        Input is the name, output is their validated plant name.
+        """
+
+        name = name.strip('"“”\'').replace('\n', ' ').strip()
+        while "  " in name:
+            name = name.replace("  ", " ")
+        name = re.sub(r"<@[&!]?(\d+?)>", lambda m: m.group(1), name)
+        name = re.sub(r"<#(\d+?)>", lambda m: m.group(1), name)
+        name = re.sub(r"<(?:a)?:(.+?):(\d+?)>", lambda m: m.group(1), name)
+        return name
