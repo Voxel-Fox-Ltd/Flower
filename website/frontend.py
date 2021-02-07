@@ -149,3 +149,14 @@ async def commands(request:Request):
     """
 
     return {}
+
+
+@routes.get("/hue")
+@template("hue.html.j2")
+@webutils.add_discord_arguments()
+async def hue(request:Request):
+    """
+    Show the command list.
+    """
+
+    return {}

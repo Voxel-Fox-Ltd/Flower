@@ -49,8 +49,14 @@ class PlantShopCommands(utils.Cog):
         self.bot.items = {
             'revival_token': localutils.ItemType(
                 item_name='revival_token',
-                item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300)
+                item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300),
+                usage="{ctx.clean_prefix}revive <plant_name>",
             ),
+            # 'colour_token': localutils.ItemType(
+            #     item_name='colour_token',
+            #     item_price=self.bot.config.get('plants', {}).get('colour_token_price', 50_000),
+            #     usage="{ctx.clean_prefix}recolour <plant_name>",
+            # ),
         }
 
         # Reset the artist dict
@@ -189,7 +195,7 @@ class PlantShopCommands(utils.Cog):
                 ((last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))) - dt.utcnow()).total_seconds()
             )
 
-        # Set up our initial items
+        # Set up our initial embed
         available_item_count = 0  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
         ctx._set_footer(embed)
@@ -316,7 +322,7 @@ class PlantShopCommands(utils.Cog):
                         ctx.author.id, item_type.name
                     )
                     await db.commit_transaction()
-                return await ctx.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}!")
+                return await ctx.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
             else:
                 return await ctx.send(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
 
