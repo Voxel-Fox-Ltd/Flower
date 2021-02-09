@@ -114,3 +114,8 @@ async function hideDeleteModal(object) {
     let deleteButton = object.getElementsByClassName("delete-button")[0];
     deleteButton.disabled = true;
 }
+
+
+async function buyPlant(object) {
+    alert("This currently is non-functional.");
+}
