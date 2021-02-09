@@ -14,9 +14,11 @@ class PlantCareCommands(utils.Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.plant_death_timeout_loop.start()
+        self.plant_water_reminder_loop.start()
 
     def cog_unload(self):
         self.plant_death_timeout_loop.cancel()
+        self.plant_water_reminder_loop.cancel()
 
     async def get_user_voted(self, user_id:int) -> bool:
         """
@@ -47,7 +49,7 @@ class PlantCareCommands(utils.Cog):
     @tasks.loop(minutes=1)
     async def plant_death_timeout_loop(self):
         """
-        Loop to see if we should kill off any plants that may have been timed out
+        Loop to see if we should kill off any plants that may have been timed out.
         """
 
         async with self.bot.database() as db:
@@ -57,8 +59,38 @@ class PlantCareCommands(utils.Cog):
                 dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
             )
 
+    @tasks.loop(minutes=1)
+    async def plant_water_reminder_loop(self):
+        """
+        Loop to see when we should tell users about their plants needing another water.
+        """
+
+        water_plant_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        async with self.bot.database() as db:
+            user_id_rows = await db(
+                """SELECT DISTINCT user_id FROM plant_levels WHERE last_water_time < TIMEZONE('UTC', NOW()) - $1 AND notification_sent=FALSE""",
+                water_plant_cooldown + timedelta(days=1),
+            )
+            await db(
+                """UPDATE plant_levels SET notification_sent=TRUE WHERE last_water_time < TIMEZONE('UTC', NOW()) - $1 AND notification_sent=FALSE""",
+                water_plant_cooldown,
+            )
+        for row in user_id_rows:
+            uid = row['user_id']
+            if uid not in self.bot.owner_ids:
+                continue
+            try:
+                user = self.bot.get_user(uid) or await self.bot.fetch_user(uid)
+                await user.send("One or more of your plants needs watering!")
+            except discord.HTTPException:
+                pass
+
     @plant_death_timeout_loop.before_loop
     async def before_plant_death_timeout_loop(self):
+        await self.bot.wait_until_ready()
+
+    @plant_death_timeout_loop.before_loop
+    async def before_plant_water_reminder_loop(self):
         await self.bot.wait_until_ready()
 
     @staticmethod

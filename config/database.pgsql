@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS plant_levels(
     original_owner_id BIGINT,
     plant_pot_hue SMALLINT,
     plant_adoption_time TIMESTAMP,
+    notification_sent BOOLEAN DEFAULT TRUE,
     PRIMARY KEY (user_id, plant_name)
 );
 
