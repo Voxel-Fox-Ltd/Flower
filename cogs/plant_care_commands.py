@@ -66,10 +66,11 @@ class PlantCareCommands(utils.Cog):
         """
 
         water_plant_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        notification_time = timedelta(**self.bot.config.get('plants', {}).get('notification_time', {'hours': 1}))
         async with self.bot.database() as db:
             user_id_rows = await db(
                 """SELECT DISTINCT user_id FROM plant_levels WHERE last_water_time < $1 AND notification_sent=FALSE""",
-                dt.utcnow() - (water_plant_cooldown + timedelta(days=1)),
+                dt.utcnow() - (water_plant_cooldown + notification_time),
             )
             await db(
                 """UPDATE plant_levels SET notification_sent=TRUE WHERE last_water_time < $1 AND notification_sent=FALSE""",
