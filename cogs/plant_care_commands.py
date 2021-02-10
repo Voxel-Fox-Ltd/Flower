@@ -158,7 +158,7 @@ class PlantCareCommands(utils.Cog):
         else:
             plant_level_row = await db(
                 """UPDATE plant_levels
-                SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4), last_water_time=$3
+                SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4), last_water_time=$3, notification_sent=FALSE
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *""",
                 user_id, plant_name, dt.utcnow(), plant_data.max_nourishment_level,
             )
