@@ -3,7 +3,7 @@ async function waterPlant(object) {
 
     // Get the relevant information
     let plantName = object.getElementsByClassName("title")[0].textContent;
-    let progressBar = object.getElementsByClassName("progress")[0];
+    let progressBar = object.getElementsByClassName("nourishment-progress")[0];
     let nourishmentNode = object.getElementsByClassName("nourishment")[0];
 
     // Set up the progress bar
@@ -54,13 +54,25 @@ async function enablePlantWaterButton(object, sleepTime) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     let waterButton = object.getElementsByClassName("water-button")[0];
     let plantName = object.getElementsByClassName("title")[0].textContent;
+    let progressBar = object.getElementsByClassName("water-progress")[0];
+    if(sleepTime > 0) progressBar.value = 0;
     console.log(`Sleeping for ${sleepTime} seconds before enabling water button for plant ${plantName}`);
+
+    // Timeout for enabling the water button
     setTimeout(
         function() {
             waterButton.disabled = false;
         },
         sleepTime * 1_000,
     );
+
+    // Timeout for changing the progress bar
+    let endTimeMilliseconds = Date.now() + sleepTime * 1_000;
+    while(Date.now() < endTimeMilliseconds) {
+        progressBar.value = waterButton.dataset.baseDisableTime - ((endTimeMilliseconds - Date.now()) / 1_000);
+        await new Promise(r => setTimeout(r, 1_000));
+    }
+    progressBar.value = waterButton.dataset.baseDisableTime;
 }
 
 

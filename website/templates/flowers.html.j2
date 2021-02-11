@@ -88,9 +88,16 @@
 
                     {# Add the progress bar if the plant is still alive #}
                     {%- if plant.plant_nourishment >= 0 -%}
-                        <progress class="progress is-success" value="{{ plant.plant_nourishment / 21 }}" max="1"></progress>
+                        <progress class="progress nourishment-progress is-success" value="{{ plant.plant_nourishment / 21 }}" max="1"></progress>
                     {%- else -%}
-                        <progress class="progress" value="{{ -plant.plant_nourishment / 21 }}" max="1"></progress>
+                        <progress class="progress nourishment-progress" value="{{ -plant.plant_nourishment / 21 }}" max="1"></progress>
+                    {%- endif -%}
+
+                    {# Add the progress bar if the plant is still alive #}
+                    {%- if plant.plant_nourishment >= 0 -%}
+                        <progress class="progress water-progress is-info" value="{{ base_water_timeout - plant.wait_water_seconds }}" max="{{ base_water_timeout }}"></progress>
+                    {%- else -%}
+                        <progress class="progress water-progress" value="{{ base_water_timeout - plant.wait_water_seconds }}" max="{{ base_water_timeout }}"></progress>
                     {%- endif -%}
 
                 </div>
