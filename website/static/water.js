@@ -58,21 +58,14 @@ async function enablePlantWaterButton(object, sleepTime) {
     if(sleepTime > 0) progressBar.value = 0;
     console.log(`Sleeping for ${sleepTime} seconds before enabling water button for plant ${plantName}`);
 
-    // Timeout for enabling the water button
-    setTimeout(
-        function() {
-            waterButton.disabled = false;
-        },
-        sleepTime * 1_000,
-    );
-
     // Timeout for changing the progress bar
     let endTimeMilliseconds = Date.now() + sleepTime * 1_000;
     while(Date.now() < endTimeMilliseconds) {
         progressBar.value = waterButton.dataset.baseDisableTime - ((endTimeMilliseconds - Date.now()) / 1_000);
-        await new Promise(r => setTimeout(r, 1_000));
+        await new Promise(r => setTimeout(r, 5_000));
     }
     progressBar.value = waterButton.dataset.baseDisableTime;
+    waterButton.disabled = false;
 }
 
 
