@@ -1,6 +1,17 @@
 {% extends "base.html.j2" %}
 
+{# Enable the buttons for the website #}
+{%- block bodyattrs -%}onload="setupWaterButtonTimeout();"{%- endblock -%}
+
+{# The OG description tag #}
+{%- block ogdescription -%}Water your Discord plants from your browser!{%- endblock -%}
+
 {%- block content -%}
+
+{# The script needed to send the post requests to the website #}
+<script type="text/javascript" src="{{ static('water.js') }}"></script>
+
+{# And now for some actual content #}
 <section>
     <div class="container">
 
@@ -50,9 +61,9 @@
 
                             {# Add water button #}
                             {% if plant.plant_nourishment >= 0 %}
-                                <button class="button is-primary is-light water-button" onclick="waterPlant(this);">Water</button>
+                                <button class="button is-primary is-light water-button" data-base-disable-time="{{ base_water_timeout }}" data-disable-time="{{ plant.wait_water_seconds }}" onclick="waterPlant(this);" disabled>Water</button>
                             {% else %}
-                                <button class="button is-link is-light revive-button" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then(() => location.reload());"{% else %}disabled{% endif %}>Revive</button>
+                                <button class="button is-link is-light revive-button" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then((x) => if(x){location.reload()});"{% else %}disabled{% endif %}>Revive</button>
                             {% endif %}
 
                             {# Add delete button #}
@@ -60,7 +71,7 @@
 
                             {# <input type="range" id="colour" name="colour" min="-360" max="360" value="{{ plant.plant_pot_hue }}" onchange="changePlantColour(this);" /> #}
 
-                            {# Delete "are you sure" modal #}
+                            {# Delete button's "are you sure" modal #}
                             <div class="modal" style="text-align: center;" data-plant-name="{{ plant.plant_name }}">
                                 <div class="modal-background"></div>
                                 <div class="modal-content">
@@ -85,10 +96,6 @@
                 </div>
             {%- endfor -%}
         </div>
-
-        {# The script needed to send the post requests to the website #}
-        <script type="text/javascript" src="{{ static('water.js') }}"></script>
-
     </div>
 </section>
 {%- endblock content -%}

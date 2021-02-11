@@ -1,5 +1,6 @@
 import base64
 import random
+from datetime import datetime as dt, timedelta
 
 from aiohttp.web import Request, RouteTableDef
 from voxelbotutils import web as webutils
@@ -61,11 +62,22 @@ async def flowers(request:Request):
     inventory = {i['item_name'].replace('_', ' ').title(): i['amount'] for i in user_inventory_rows}
     inventory.setdefault('Revival Token'.title(), 0)
 
+    # Get the plant water timeout
+    base_water_timeout = timedelta(**request.app['bots']['bot'].config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+
+    # Sort out the water time here so we don't need to do it in j2
+    for p in plants:
+        v = ((p['last_water_time'] + base_water_timeout) - dt.utcnow()).total_seconds()
+        if v <= 0:
+            v = 0
+        p['wait_water_seconds'] = v
+
     # Return data for the page
     return {
         'user': dict(user_rows[0]),
         'plants': plants,
         'inventory': inventory,
+        'base_water_timeout': base_water_timeout.total_seconds(),
     }
 
 

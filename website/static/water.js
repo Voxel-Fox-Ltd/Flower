@@ -32,8 +32,35 @@ async function waterPlant(object) {
     progressBar.setAttribute("value", response.new_nourishment_level / 21);
     nourishmentNode.innerHTML = response.new_nourishment_level;
 
+    // Disable the water button
+    let waterButton = object.getElementsByClassName("water-button")[0];
+    waterButton.disabled = true;
+    enablePlantWaterButton(object, waterButton.dataset.baseDisableTime)
+
     // Update the flower image
     // TODO
+}
+
+
+async function setupWaterButtonTimeout() {
+    let waterButtons = document.getElementsByClassName("water-button");
+    for(let wb of waterButtons) {
+        enablePlantWaterButton(wb, wb.dataset.disableTime);
+    }
+}
+
+
+async function enablePlantWaterButton(object, sleepTime) {
+    while(!object.classList.contains("plant")) object = object.parentNode;
+    let waterButton = object.getElementsByClassName("water-button")[0];
+    let plantName = object.getElementsByClassName("title")[0].textContent;
+    console.log(`Sleeping for ${sleepTime} seconds before enabling water button for plant ${plantName}`);
+    setTimeout(
+        function() {
+            waterButton.disabled = false;
+        },
+        sleepTime * 1_000,
+    );
 }
 
 
