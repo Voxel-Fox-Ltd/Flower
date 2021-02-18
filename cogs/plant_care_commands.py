@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime as dt, timedelta
 
 import discord
@@ -171,6 +172,10 @@ class PlantCareCommands(utils.Cog):
         additional_text = []  # List[str]
         voted_on_topgg = False
 
+        # Disconnect from the database so we don't have hanging connections open while
+        # making our Top.gg web request
+        await db.disconnect()
+
         # And now let's water the damn thing
         if user_plant_data['plant_nourishment'] > 0:
 
@@ -187,7 +192,12 @@ class PlantCareCommands(utils.Cog):
                 multipliers.append({"multiplier": 1.05, "text": "You watered a plant that you got from a trade."})
 
             # See if we want to give them the voter bonus
-            if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and await self.get_user_voted(user_id):
+            user_voted_api_request = False
+            try:
+                user_voted_api_request = await asyncio.wait_for(self.get_user_voted(user_id), timeout=2.0)
+            except asyncio.TimeoutError:
+                pass
+            if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and user_voted_api_request:
                 multipliers.append({"multiplier": 1.1, "text": f"You [voted for the bot](https://top.gg/bot/{self.bot.config['oauth']['client_id']}/vote) on Top.gg."})
                 voted_on_topgg = True
 
@@ -201,14 +211,14 @@ class PlantCareCommands(utils.Cog):
 
             # Update db
             gained_experience = int(gained_experience)
-            user_experience_row = await db(
-                """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                user_id, gained_experience,
-            )
+            async with self.bot.database() as db:
+                user_experience_row = await db(
+                    """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                    DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                    user_id, gained_experience,
+                )
 
         # Send an output
-        await db.disconnect()
         if user_plant_data['plant_nourishment'] < 0:
             return self.get_water_plant_dict("You sadly pour water into the dry soil of your silently wilting plant :c")
 
