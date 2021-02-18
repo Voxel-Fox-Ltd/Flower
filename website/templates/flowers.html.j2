@@ -63,7 +63,7 @@
                             {% if plant.plant_nourishment >= 0 %}
                                 <button class="button is-primary is-light water-button" data-base-disable-time="{{ base_water_timeout }}" data-disable-time="{{ plant.wait_water_seconds }}" onclick="waterPlant(this);" disabled>Water</button>
                             {% else %}
-                                <button class="button is-link is-light revive-button" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then((x) => if(x){location.reload()});"{% else %}disabled{% endif %}>Revive</button>
+                                <button class="button is-link is-light revive-button" {% if inventory['Revival Token'] > 0 %}onclick="revivePlant(this).then((x) => {if(x){location.reload()}});"{% else %}disabled{% endif %}>Revive</button>
                             {% endif %}
 
                             {# Add delete button #}
