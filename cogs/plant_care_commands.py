@@ -14,11 +14,11 @@ class PlantCareCommands(utils.Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.plant_death_timeout_loop.start()
-        self.plant_water_reminder_loop.start()
+        # self.plant_water_reminder_loop.start()
 
     def cog_unload(self):
         self.plant_death_timeout_loop.cancel()
-        self.plant_water_reminder_loop.cancel()
+        # self.plant_water_reminder_loop.cancel()
 
     async def get_user_voted(self, user_id:int) -> bool:
         """
