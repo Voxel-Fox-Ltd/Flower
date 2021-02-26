@@ -78,7 +78,7 @@ class PlantType(object):
         Work out which stages should level up a plant display level.
         """
 
-        return {i: math.ceil((i * stages) / 20) for i in range(1, 21)}
+        return {str(i): math.ceil((i * stages) / 20) for i in range(1, 21)}
 
     def __str__(self):
         return f"<Plant {self.name} - level {self.plant_level}>"
@@ -111,7 +111,6 @@ class PlantType(object):
         """Tells you how many variants are available for a given growth stage"""
 
         return 1
-        # return self.available_variants[str(stage)]
 
     def get_nourishment_display_level(self, nourishment:int) -> int:
         """Get the display level for a given amount of nourishment"""
