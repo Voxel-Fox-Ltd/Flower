@@ -151,7 +151,7 @@ class PlantCareCommands(utils.Cog):
         if not plant_level_row:
             await db.disconnect()
             shop_note = "Run the `shop` command to plant some new seeds, or `plants` to see the list of plants you have already!"
-            return self.get_water_plant_dict(f"{they_you} don't have a plant with the name **{plant_name}**!{shop_note if owner else ''}")
+            return self.get_water_plant_dict(f"{they_you.capitalize()} don't have a plant with the name **{plant_name}**! {shop_note if owner else ''}")
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
         if owner:
