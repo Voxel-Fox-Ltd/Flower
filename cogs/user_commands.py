@@ -192,6 +192,7 @@ class UserCommands(utils.Cog):
                     u = await ctx.bot.fetch_user(key['garden_access'])
                     if uname == u.name:
                         user = u
+                        break
             if not user:
                 raise commands.UserNotFound(username)
             
