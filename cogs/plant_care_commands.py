@@ -141,9 +141,10 @@ class PlantCareCommands(utils.Cog):
         their_your = {True: "your", False: "their"}.get(owner)
 
         # See if they can water this person's plant
-        if(not owner):
+        if not owner:
             given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer)
-            return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
+            if not given_key:
+                return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
 
         # See if they have a plant available
         plant_level_row = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user_id, plant_name)

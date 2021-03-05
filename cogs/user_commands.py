@@ -147,8 +147,6 @@ class UserCommands(utils.Cog):
             
             return await ctx.send(embed=embed)
 
-
-
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
     async def givekey(self, ctx:utils.Context, user:discord.Member):
