@@ -124,6 +124,57 @@ class UserCommands(utils.Cog):
 
         # And now we done
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
+    
+    @utils.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def keys(self, ctx:utils.Context):
+        """
+        Check all users who have a key
+        """
+        # How do we want to deal with users who aren't on this server?
+        # Could create a cached 'accessor_name' that's available based on accessor's Discord tag.
+
+        await ctx.send("Not implemented")
+
+
+    @utils.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def givekey(self, ctx:utils.Context, user:discord.Member):
+        """
+        Give a key to your garden to another member.
+        """
+
+        if user.bot:
+            return await ctx.send("Bots can't help you maintain your garden.")
+        if user.id == ctx.author.id:
+            return await ctx.send("You already have a key.")
+
+        async with self.bot.database() as db:
+            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", ctx.author.id, user.id)
+            if given_key:
+                return await ctx.send(f"They already have a key!")
+            
+            await db(
+                "INSERT INTO user_garden_access (garden_owner, garden_access, last_here) VALUES ($1, $2, $3)",
+                ctx.author.id, user.id, dt(2000, 1, 1)
+            )
+            return await ctx.send(f"Gave {user.mention} a key!")
+
+    @utils.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def revokekey(self, ctx:utils.Context, user:discord.Member):
+        """
+        Revoke a member's access to your garden
+        """
+
+        if user.id == ctx.author.id:
+            await ctx.send("You can't revoke your own key.")
+
+        async with self.bot.database() as db:
+            data = await db("DELETE FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2 RETURNING *", ctx.author.id, user.id)
+        if not data:
+            return await ctx.send(f"They don't have a key!")
+        return await ctx.send(f"That's how the coo-key crumbles. {user.mention} no longer has a key to your garden.")
 
 
 def setup(bot:utils.Bot):

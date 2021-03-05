@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime as dt, timedelta
 
+import typing
+
 import discord
 from discord.ext import commands, tasks
 import voxelbotutils as utils
@@ -108,7 +110,7 @@ class PlantCareCommands(utils.Cog):
             "multipliers": multipliers or list(),
         }
 
-    async def water_plant_backend(self, user_id:int, plant_name:str):
+    async def water_plant_backend(self, user_id:int, plant_name:str, waterer:int=None):
         """
         Run the backend for the plant watering.
 
@@ -132,19 +134,38 @@ class PlantCareCommands(utils.Cog):
         # Decide on our plant type - will be ignored if there's already a plant
         db = await self.bot.database.get_connection()
 
+        # Get friend watering status
+        waterer = user_id if waterer == None else waterer
+        owner = user_id == waterer
+        they_you = {True: "you", False: "they"}.get(owner)
+        their_your = {True: "your", False: "their"}.get(owner)
+
+        # See if they can water this person's plant
+        if(not owner):
+            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer)
+            return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
+
         # See if they have a plant available
         plant_level_row = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user_id, plant_name)
         if not plant_level_row:
             await db.disconnect()
-            return self.get_water_plant_dict(f"You don't have a plant with the name **{plant_name}**! Run the `shop` command to plant some new seeds, or `plants` to see the list of plants you have already!")
+            shop_note = "Run the `shop` command to plant some new seeds, or `plants` to see the list of plants you have already!"
+            return self.get_water_plant_dict(f"{they_you} don't have a plant with the name **{plant_name}**!{shop_note if owner else ''}")
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
-        # See if they're allowed to water things
-        if plant_level_row[0]['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow() and user_id not in self.bot.owner_ids:
-            await db.disconnect()
-            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))) - dt.utcnow()).total_seconds())
-            return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able water your {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
+        if owner:
+            water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        else:
+            water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60}))
+        
         last_water_time = plant_level_row[0]['last_water_time']
+
+        # See if they're allowed to water things
+        if last_water_time + water_cooldown_period > dt.utcnow() and user_id not in self.bot.owner_ids:
+            await db.disconnect()
+            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()).total_seconds())
+            return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able water {their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
+
 
         # See if the plant should be dead
         if plant_level_row[0]['plant_nourishment'] < 0:
@@ -180,21 +201,23 @@ class PlantCareCommands(utils.Cog):
         if user_plant_data['plant_nourishment'] > 0:
 
             # Get the experience that they should have gained
-            gained_experience = plant_data.get_experience()
-            original_gained_experience = gained_experience
+            total_experience = plant_data.get_experience()
+            original_gained_experience = total_experience
+            if not owner:
+                original_gained_experience = int(original_gained_experience*.8)
 
             # See if we want to give them a 30 second water-time bonus
-            if dt.utcnow() - last_water_time - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) <= timedelta(seconds=30):
-                multipliers.append({"multiplier": 1.5, "text": "You watered within 30 seconds of your plant's cooldown resetting."})
+            if dt.utcnow() - last_water_time - water_cooldown_period <= timedelta(seconds=30):
+                multipliers.append({"multiplier": 1.5, "text": f"You watered within 30 seconds of {their_your} plant's cooldown resetting."})
 
             # See if we want to give the new owner bonus
             if plant_level_row[0]['user_id'] != plant_level_row[0]['original_owner_id']:
-                multipliers.append({"multiplier": 1.05, "text": "You watered a plant that you got from a trade."})
+                multipliers.append({"multiplier": 1.05, "text": f"You watered a plant that {they_you} got from a trade."})
 
             # See if we want to give them the voter bonus
             user_voted_api_request = False
             try:
-                user_voted_api_request = await asyncio.wait_for(self.get_user_voted(user_id), timeout=2.0)
+                user_voted_api_request = await asyncio.wait_for(self.get_user_voted(waterer), timeout=2.0)
             except asyncio.TimeoutError:
                 pass
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and user_voted_api_request:
@@ -203,30 +226,48 @@ class PlantCareCommands(utils.Cog):
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
-                multipliers.append({"multiplier": 1.2, "text": "Your plant has been alive for longer than a week."})
+                multipliers.append({"multiplier": 1.2, "text": f"{their_your} plant has been alive for longer than a week."})
+
 
             # Add the actual multiplier values
             for obj in multipliers:
-                gained_experience *= obj['multiplier']
+                total_experience *= obj['multiplier']
 
             # Update db
-            gained_experience = int(gained_experience)
+            total_experience = int(total_experience)
             async with self.bot.database() as db:
-                user_experience_row = await db(
-                    """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                    DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                    user_id, gained_experience,
-                )
+                if not owner:
+                    gained_experience = int(total_experience*.8)
+                    owner_gained_experience = int(total_experience-gained_experience)
+                    await db.start_transaction()
+                    user_experience_row = await db(
+                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                        waterer, gained_experience,
+                    )
+                    owner_experience_row = await db(
+                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                        user_id, owner_gained_experience,
+                    )
+                    await db.commit_transaction()
+                else:
+                    gained_experience = total_experience
+                    user_experience_row = await db(
+                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                        user_id, gained_experience,
+                    )
 
         # Send an output
         if user_plant_data['plant_nourishment'] < 0:
-            return self.get_water_plant_dict("You sadly pour water into the dry soil of your silently wilting plant :c")
+            return self.get_water_plant_dict(f"You sadly pour water into the dry soil of {their_your} silently wilting plant :c")
 
         # Set up our output text
         gained_exp_string = f"**{gained_experience}**" if gained_experience == original_gained_experience else f"~~{original_gained_experience}~~ **{gained_experience}**"
         output_lines = []
         if plant_data.get_nourishment_display_level(user_plant_data['plant_nourishment']) > plant_data.get_nourishment_display_level(user_plant_data['plant_nourishment'] - 1):
-            output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching your plant grow!~")
+            output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience, watching {their_your} plant grow!~")
         else:
             output_lines.append(f"You gently pour water into **{plant_level_row[0]['plant_name']}**'s soil, gaining you {gained_exp_string} experience~")
         for obj in multipliers:
@@ -247,13 +288,15 @@ class PlantCareCommands(utils.Cog):
 
     @utils.command(aliases=['water', 'w'], cooldown_after_parsing=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def waterplant(self, ctx:utils.Context, *, plant_name:str):
+    async def waterplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str):
         """
         Increase the growth level of your plant.
         """
 
+        user = user or ctx.author
+
         # Let's run all the bullshit
-        item = await self.water_plant_backend(ctx.author.id, plant_name)
+        item = await self.water_plant_backend(user.id, plant_name, ctx.author.id)
         if item['success'] is False:
             return await ctx.send(item['text'])
         output_lines = item['text'].split("\n")
@@ -392,7 +435,6 @@ class PlantCareCommands(utils.Cog):
 
         response, success = await self.revive_plant_backend(ctx.author.id, plant_name)
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
-
 
 def setup(bot:utils.Bot):
     x = PlantCareCommands(bot)
