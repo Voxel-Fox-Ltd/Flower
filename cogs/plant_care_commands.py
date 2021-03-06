@@ -136,12 +136,12 @@ class PlantCareCommands(utils.Cog):
 
         # Get friend watering status
         waterer_id = waterer_id or user_id
-        owner = user_id == waterer_id
-        they_you = {True: "you", False: "they"}.get(owner)
-        their_your = {True: "your", False: "their"}.get(owner)
+        waterer_is_owner = user_id == waterer_id
+        they_you = {True: "you", False: "they"}.get(waterer_is_owner)
+        their_your = {True: "your", False: "their"}.get(waterer_is_owner)
 
         # See if they can water this person's plant
-        if not owner:
+        if not waterer_is_owner:
             given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer_id)
             if not given_key:
                 await db.disconnect()
@@ -152,10 +152,10 @@ class PlantCareCommands(utils.Cog):
         if not plant_level_row:
             await db.disconnect()
             shop_note = "Run the `shop` command to plant some new seeds, or `plants` to see the list of plants you have already!"
-            return self.get_water_plant_dict(f"{they_you.capitalize()} don't have a plant with the name **{plant_name}**! {shop_note if owner else ''}")
+            return self.get_water_plant_dict(f"{they_you.capitalize()} don't have a plant with the name **{plant_name}**! {shop_note if waterer_is_owner else ''}")
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
-        if owner:
+        if waterer_is_owner:
             water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
         else:
             water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60}))
@@ -205,7 +205,7 @@ class PlantCareCommands(utils.Cog):
             # Get the experience that they should have gained
             total_experience = plant_data.get_experience()
             original_gained_experience = total_experience
-            if not owner:
+            if not waterer_is_owner:
                 original_gained_experience = int(original_gained_experience*.8)
 
             # See if we want to give them a 30 second water-time bonus
@@ -238,7 +238,7 @@ class PlantCareCommands(utils.Cog):
             # Update db
             total_experience = int(total_experience)
             async with self.bot.database() as db:
-                if not owner:
+                if not waterer_is_owner:
                     gained_experience = int(total_experience*.8)
                     owner_gained_experience = int(total_experience-gained_experience)
                     await db.start_transaction()
