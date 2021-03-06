@@ -110,7 +110,7 @@ class PlantCareCommands(utils.Cog):
             "multipliers": multipliers or list(),
         }
 
-    async def water_plant_backend(self, user_id:int, plant_name:str, waterer:int=None):
+    async def water_plant_backend(self, user_id:int, plant_name:str, waterer_id:int=None):
         """
         Run the backend for the plant watering.
 
@@ -135,14 +135,14 @@ class PlantCareCommands(utils.Cog):
         db = await self.bot.database.get_connection()
 
         # Get friend watering status
-        waterer = user_id if waterer == None else waterer
-        owner = user_id == waterer
+        waterer_id = waterer_id or user_id
+        owner = user_id == waterer_id
         they_you = {True: "you", False: "they"}.get(owner)
         their_your = {True: "your", False: "their"}.get(owner)
 
         # See if they can water this person's plant
         if not owner:
-            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer)
+            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer_id)
             if not given_key:
                 return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
 
@@ -218,7 +218,7 @@ class PlantCareCommands(utils.Cog):
             # See if we want to give them the voter bonus
             user_voted_api_request = False
             try:
-                user_voted_api_request = await asyncio.wait_for(self.get_user_voted(waterer), timeout=2.0)
+                user_voted_api_request = await asyncio.wait_for(self.get_user_voted(waterer_id), timeout=2.0)
             except asyncio.TimeoutError:
                 pass
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and user_voted_api_request:
@@ -244,7 +244,7 @@ class PlantCareCommands(utils.Cog):
                     user_experience_row = await db(
                         """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
                         DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                        waterer, gained_experience,
+                        waterer_id, gained_experience,
                     )
                     owner_experience_row = await db(
                         """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
