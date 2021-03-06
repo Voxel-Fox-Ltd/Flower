@@ -144,6 +144,7 @@ class PlantCareCommands(utils.Cog):
         if not owner:
             given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer_id)
             if not given_key:
+                await db.disconnect()
                 return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
 
         # See if they have a plant available
