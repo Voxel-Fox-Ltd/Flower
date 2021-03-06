@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS user_available_plants(
 
 CREATE TABLE IF NOT EXISTS user_garden_access(
     garden_access BIGINT,
-    garden_owner BIGINT
+    garden_owner BIGINT,
+    PRIMARY KEY (garden_access, garden_owner)
 );
 
 
