@@ -189,7 +189,10 @@ class UserCommands(utils.Cog):
                 uname = (username[1:] if username.startswith("@") else username).strip().split("#")[0]
                 # Try and figure out who it is
                 for key in key_owners:
-                    u = await ctx.bot.fetch_user(key['garden_access'])
+                    try:
+                        u = await ctx.bot.fetch_user(key['garden_access'])
+                    except discord.HTTPException:
+                        continue
                     if uname == u.name:
                         user = u
                         break
