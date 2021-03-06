@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 import voxelbotutils as utils
 
+from asyncpg import UniqueViolationError
 
 class UserCommands(utils.Cog):
 
@@ -160,14 +161,13 @@ class UserCommands(utils.Cog):
             return await ctx.send("You already have a key.")
 
         async with self.bot.database() as db:
-            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", ctx.author.id, user.id)
-            if given_key:
-                return await ctx.send(f"They already have a key!")
-            
-            await db(
-                "INSERT INTO user_garden_access (garden_owner, garden_access) VALUES ($1, $2)",
-                ctx.author.id, user.id
-            )
+            try:
+                await db(
+                    "INSERT INTO user_garden_access (garden_owner, garden_access) VALUES ($1, $2)",
+                    ctx.author.id, user.id
+                )
+            except UniqueViolationError:
+                return await ctx.send("They already have a key.")
             return await ctx.send(f"Gave {user.mention} a key!")
 
     @utils.command()
