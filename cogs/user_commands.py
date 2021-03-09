@@ -8,7 +8,7 @@ import voxelbotutils as utils
 
 class UserCommands(utils.Cog):
 
-    @utils.command(aliases=['experience', 'exp', 'points', 'inv'])
+    @utils.command(aliases=['experience', 'exp', 'points', 'inv', 'bal', 'balance'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx:utils.Context, user:typing.Optional[discord.User]):
         """
