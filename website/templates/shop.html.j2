@@ -8,16 +8,16 @@
         <div class="columns">
             <div class="column is-3">
                 <h1 class="title">User Experience</h1>
-                <p id="experience" class="subtitle">{{ user.user_experience }}</p>
+                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
             </div>
             <div class="column is-3">
                 <h1 class="title">Pot Count</h1>
-                <p class="subtitle">{{ user.plant_limit }}</p>
+                <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
             </div>
             <div class="column is-3">
                 <h1 class="title">Inventory</h1>
                 {%- for item_name, amount in inventory.items() -%}
-                    <p class="subtitle">{{ amount }}x {{ item_name }}</p>
+                    <p class="subtitle">{{ "{0:,}".format(amount) }}x {{ item_name }}</p>
                 {%- endfor -%}
             </div>
         </div>
@@ -34,7 +34,7 @@
                         {# Plant data #}
                         <div class="column">
                             <h1 class="title" style="margin-bottom: 5px;">{{ plant.display_name.title() }}</h1>
-                            <button class="button is-primary is-light" onclick="buyPlant(this);">Buy ({{ plant.required_experience }} exp)</button>
+                            <button class="button is-primary is-light" onclick="buyPlant(this);">Buy ({{ "{0:,}".format(plant.required_experience) }} exp)</button>
                         </div>
 
                     </div>

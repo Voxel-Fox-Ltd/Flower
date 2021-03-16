@@ -165,3 +165,45 @@ async def hue(request:Request):
     """
 
     return {}
+
+
+@routes.get("/support")
+@template("support.html.j2")
+@webutils.requires_login()
+@webutils.add_discord_arguments()
+async def support(request:Request):
+    """
+    Support the bot.
+    """
+
+    # Get the ID of the user signed in
+    session = await aiohttp_session.get_session(request)
+    user_id = session['user_id']
+
+    async with request.app['database']() as db:
+        user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
+    return {
+        'user': dict(user_rows[0]),
+    }
+
+
+@routes.get("/support_paypal")
+@template("support_paypal.html.j2")
+@webutils.requires_login()
+@webutils.add_discord_arguments()
+async def support_paypal(request:Request):
+    """
+    Support the bot with an actual buy button.
+    """
+
+    # Get the ID of the user signed in
+    session = await aiohttp_session.get_session(request)
+    user_id = session['user_id']
+
+    async with request.app['database']() as db:
+        user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
+    return {
+        'user': dict(user_rows[0]),
+        'item_quantity': int(request.query.get('quantity', 1)),
+        'item_discount': 0,
+    }
