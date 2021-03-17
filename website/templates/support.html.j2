@@ -28,7 +28,7 @@
         {# Add the checkout stuff #}
         <div class="columns is-multiline">
             <div class="column is-4 is-offset-4" style="text-align: center;">
-                <h1 class="title"><b>2,000 exp</b> for <b>£1.00 GBP</b></h1>
+                <h1 class="title"><b><span id="exp-amount" data-original="2000">2,000</span> exp</b> for <b>£<span id="money-amount" data-original="1">1.00</span> GBP</b></h1>
 
                 <form action="/support_paypal">
                     <div class="field has-addons">
@@ -36,7 +36,7 @@
                             <a class="button is-static" style="color: grey;">Exp x2,000 Quantity</a>
                         </p>
                         <p class="control">
-                            <input class="input" type="number" name="quantity" min="1" max="100" value="1" />
+                            <input class="input" type="number" name="quantity" min="1" max="100" value="1" onchange="updateDisplayText(this);" />
                         </p>
                     </div>
                     <input type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" />
@@ -44,6 +44,9 @@
 
             </div>
         </div>
+
+        {# The script needed to update the page content #}
+        <script type="text/javascript" src="{{ static('support.js') }}"></script>
 
     </div>
 </section>
