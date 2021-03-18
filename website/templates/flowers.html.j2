@@ -16,23 +16,25 @@
     <div class="container">
 
         {# Add the user data #}
-        <div class="columns">
-            <div class="column is-3">
-                <h1 class="title">User Experience</h1>
-                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
+        {% if user.logged_in %}
+            <div class="columns">
+                <div class="column is-3">
+                    <h1 class="title">User Experience</h1>
+                    <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
+                </div>
+                <div class="column is-3">
+                    <h1 class="title">Pot Count</h1>
+                    <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
+                </div>
+                <div class="column is-3">
+                    <h1 class="title">Inventory</h1>
+                    {%- for item_name, amount in inventory.items() -%}
+                        <p class="subtitle">{{ "{0:,}".format(amount) }}x {{ item_name }}</p>
+                    {%- endfor -%}
+                </div>
             </div>
-            <div class="column is-3">
-                <h1 class="title">Pot Count</h1>
-                <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
-            </div>
-            <div class="column is-3">
-                <h1 class="title">Inventory</h1>
-                {%- for item_name, amount in inventory.items() -%}
-                    <p class="subtitle">{{ "{0:,}".format(amount) }}x {{ item_name }}</p>
-                {%- endfor -%}
-            </div>
-        </div>
-        <hr />
+            <hr />
+        {% endif %}
 
         {# Add the plants #}
         <div class="columns is-multiline" style="align-items: flex-end;">

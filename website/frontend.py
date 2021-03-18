@@ -2,7 +2,7 @@ import base64
 import random
 from datetime import datetime as dt, timedelta
 
-from aiohttp.web import Request, RouteTableDef
+from aiohttp.web import Request, RouteTableDef, HTTPFound
 from voxelbotutils import web as webutils
 import aiohttp_session
 from aiohttp_jinja2 import template
@@ -167,31 +167,33 @@ async def hue(request:Request):
     return {}
 
 
-@routes.get("/support")
-@template("support.html.j2")
-@webutils.requires_login()
+@routes.get("/donate")
+@template("donate.html.j2")
 @webutils.add_discord_arguments()
-async def support(request:Request):
+async def donate(request:Request):
     """
     Support the bot.
     """
 
     # Get the ID of the user signed in
     session = await aiohttp_session.get_session(request)
-    user_id = session['user_id']
+    user_id = session.get('user_id')
 
-    async with request.app['database']() as db:
-        user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
+    if user_id:
+        async with request.app['database']() as db:
+            user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
+    else:
+        user_rows = [{}]
     return {
         'user': dict(user_rows[0]),
     }
 
 
-@routes.get("/support_paypal")
-@template("support_paypal.html.j2")
+@routes.get("/donate_confirm")
+@template("donate_confirm.html.j2")
 @webutils.requires_login()
 @webutils.add_discord_arguments()
-async def support_paypal(request:Request):
+async def donate_confirm(request:Request):
     """
     Support the bot with an actual buy button.
     """
@@ -199,6 +201,8 @@ async def support_paypal(request:Request):
     # Get the ID of the user signed in
     session = await aiohttp_session.get_session(request)
     user_id = session['user_id']
+    if int(request.query.get('quantity', 0)) <= 0:
+        return HTTPFound("/donate")
 
     async with request.app['database']() as db:
         user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])

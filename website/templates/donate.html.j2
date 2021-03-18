@@ -1,0 +1,50 @@
+{% extends "base.html.j2" %}
+
+{%- block content -%}
+<section>
+    <div class="container">
+
+        {# Add the user data #}
+        {% if session.logged_in %}
+            <div class="columns" style="text-align: center;">
+                <div class="column is-3 is-offset-3">
+                    <h1 class="title">User Experience</h1>
+                    <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
+                </div>
+                <div class="column is-3">
+                    <h1 class="title">Pot Count</h1>
+                    <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
+                </div>
+            </div>
+            <hr />
+        {% endif %}
+
+        {# Add our support schpiel #}
+        <div class="columns" style="text-align: center;">
+            <div class="column is-6 is-offset-3">
+                <p>The most effective way that you can support the development of Flower is by donating! Your money will go to hosting the bot and to adding new flowers into the shop through artist commissions. We would never ask for donations without offering something in return, so right now we're offering 20,000 Flower EXP for every £1.00 you donate. EXP can be used for purchasing flowers, pots, and various items to make your Flower experience more enjoyable! Donations are done exclusively through Paypal and are non-refundable. Thank you in advance!</p>
+            </div>
+        </div>
+        <hr />
+
+        {# Add the checkout stuff #}
+        <div class="columns is-multiline">
+            <div class="column is-4 is-offset-4" style="text-align: center;">
+                <h1 class="title"><b><span id="exp-amount" data-original="20000">X</span> exp</b> for <b>£<span id="money-amount" data-original="1">X</span></b></h1>
+
+                <form action="/donate_confirm">
+                    <div class="field">
+                        <input style="width: 100%;" id="quantity-field" type="range" name="quantity" min="1" max="20" value="1" start="1" step="1" onload="updateDisplayText(this);" oninput="updateDisplayText(this);" />
+                    </div>
+                    <input type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" />
+                </form>
+
+            </div>
+        </div>
+
+        {# The script needed to update the page content #}
+        <script type="text/javascript" src="{{ static('support.js') }}"></script>
+
+    </div>
+</section>
+{%- endblock content -%}
