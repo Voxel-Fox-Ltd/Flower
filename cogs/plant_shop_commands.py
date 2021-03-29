@@ -62,13 +62,15 @@ class PlantShopCommands(utils.Cog):
         # Reset the artist dict
         self.bot.get_cog("InformationCommands")._artist_info = None
 
-    def get_points_for_plant_pot(self, current_limit:str):
+    @staticmethod
+    def get_points_for_plant_pot(current_limit:int) -> int:
         """
         Get the amount of points needed to get the next level of pot.
         """
 
-        pot_base_price = self.bot.config.get('plants', {}).get('plant_pot_base_price', 50)
-        return int(pot_base_price * (3 ** (current_limit - 1)))
+        if current_limit < 10:
+            return 5_000 * (current_limit ** 2)
+        return (45_000 * (current_limit - 9)) + 405_000
 
     async def get_available_plants(self, user_id:int) -> dict:
         """

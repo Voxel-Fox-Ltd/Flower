@@ -30,8 +30,8 @@ class PlantType(object):
         self.nourishment_display_levels = nourishment_display_levels if nourishment_display_levels else self.calculate_display_for_stages(stages)
         self.stages = stages if stages else len(nourishment_display_levels)
         self.soil_hue = soil_hue
-        self.visible = visible
-        self.available = available
+        self.visible = visible  # If this item can appear in the herbiary
+        self.available = available  # If this item can appear in new users' shops
         self.artist = artist
 
     @staticmethod
