@@ -31,16 +31,11 @@ class InformationCommands(utils.Cog):
 
         # See if a name was given
         if plant_name is None:
-            plant_dict = collections.defaultdict(list)
+            plant_list = list()
             for plant in self.bot.plants.values():
-                plant_dict[plant.plant_level].append(plant.display_name.capitalize())
-            embed_fields = []
-            embed = utils.Embed(use_random_colour=True)
-            for plant_level, plants in plant_dict.items():
-                plants.sort()
-                embed_fields.append((f"Level {plant_level}", "\n".join(plants)))
-            for field in sorted(embed_fields):
-                embed.add_field(*field, inline=True)
+                plant_list.append(plant.display_name.capitalize())
+            plant_list.sort()
+            embed = utils.Embed(use_random_colour=True, description="\n".join(plant_list))
             ctx._set_footer(embed)
             return await ctx.send(embed=embed)
 
@@ -62,9 +57,9 @@ class InformationCommands(utils.Cog):
         description_list.append("")
 
         # Work out some other info we want displayed
-        description_list.append(f"Plant level {plant.plant_level}")
-        description_list.append(f"Costs {plant.required_experience} exp")
-        description_list.append(f"Gives between {plant.experience_gain['minimum']} and {plant.experience_gain['maximum']} exp")
+        # description_list.append(f"Plant level {plant.plant_level}")
+        # description_list.append(f"Costs {plant.required_experience} exp")
+        # description_list.append(f"Gives between {plant.experience_gain['minimum']} and {plant.experience_gain['maximum']} exp")
 
         # Embed the data
         with utils.Embed(use_random_colour=True) as embed:
