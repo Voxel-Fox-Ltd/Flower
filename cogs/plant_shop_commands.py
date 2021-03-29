@@ -89,16 +89,20 @@ class PlantShopCommands(utils.Cog):
 
             # If they don't have any available plants, generate new ones for the shop
             if generate_new:
-                possible_available_plants = collections.defaultdict(list)
+                possible_available_plants = set()
                 for item in self.bot.plants.values():
                     if item.available is False:
                         continue
-                    if plant_shop_rows and plant_shop_rows[0][f"plant_level_{item.plant_level}"] == item.name:
+                    if plant_shop_rows and item.name in plant_shop_rows[0].values():
                         continue
-                    possible_available_plants[item.plant_level].append(item)
+                    possible_available_plants.add(item)
                 available_plants = {}
-                for level, plants in possible_available_plants.items():
-                    available_plants[level] = random.choice(plants)
+                level = 0
+                while level <= 6:
+                    add = random.choice(possible_available_plants)
+                    possible_available_plants.remove(add)
+                    available_plants[level] = add
+                    level += 1
                 await db(
                     """INSERT INTO user_available_plants
                     (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
@@ -215,7 +219,7 @@ class PlantShopCommands(utils.Cog):
         plant_text = []
         for plant in sorted(available_plants.values()):
             modifier = lambda x: x
-            text = f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`"
+            text = f"{plant.display_name.capitalize()} - free"  # TODO remove this - all plants cost nothing now
             if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
                 available_item_count += 1
             else:
@@ -368,7 +372,7 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
             )
             await db(
-                "UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1",
+                """UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1""",
                 ctx.author.id, plant_type.required_experience,
             )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
