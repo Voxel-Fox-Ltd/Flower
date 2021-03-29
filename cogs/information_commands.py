@@ -115,7 +115,7 @@ class InformationCommands(utils.Cog):
             "you can get an empty pot image you can use as a base. Every plant in Flower has a minimum of 6 distinct growth stages "
             "(which you can [see here](https://github.com/Voxel-Fox-Ltd/Flower/tree/master/images/plants/blue_daisy/alive) if you need an example).\n"
             "If this is the kind of thing you're interested in, I suggest you join [the support server](https://discord.gg/vfl) to ask for more information, or "
-            "[email Kae](mailto://callum@voxelfox.co.uk) - the bot's developer.\n"
+            "[email Kae](mailto://kae@voxelfox.co.uk) - the bot's developer.\n"
             "\n"
             "**Programming**\n"
             "If you're any good at programming, you can help out on [the bot's Github](https://github.com/Voxel-Fox-Ltd/Flower)! Ideas are discussed on "
