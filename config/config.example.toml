@@ -59,7 +59,6 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
     guild_invite = ""  # A link to be used on !support
     github_link = ""  # A link to be used on !git
     donate_link = ""  # A link to be used on !donate
-    invite_command_permissions = []  # args here are passed directly to discord.Permissions. An empty list disabled the invite command
     echo_command_enabled = true  # Whether or not the invite command is enabled
     stats_command_enabled = true  # Whether or not the stats command is enabled
     vote_command_enabled = false  # Whether or not the top.gg vote command is enabled
@@ -117,7 +116,10 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
 
 # Used to generate the invite link - if not set then will use the bot's ID, which is correct more often than not
 [oauth]
-    client_id = ""
+    enabled = true
+    client_id = "731736201400418314"  #  If not set then will use the bot's ID, which is correct as of around 2017 I think
+    scope = "bot applications.commands"  # The scope that will be generated with the invite link, space seperated (applications.commands for slash)
+    permissions = [ "send_messages", "attach_files", "embed_links", ]  # args here are passed directly to discord.Permissions as True
 
 # This is where you can set up all of your analytics to be sent to GA
 [google_analytics]
