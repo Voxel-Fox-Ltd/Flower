@@ -86,3 +86,50 @@ async def revive_plant(request:Request):
     if not success:
         return json_response({"success": success}, status=400)
     return json_response({"success": success}, status=200)
+
+
+@routes.post('/webhooks/voxelfox/paypal')
+async def revive_plant(request:Request):
+    """
+    Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
+    """
+
+    # Get our data
+    data = await request.json()
+    item_name = data['item_name']
+    quantity = data['quantity']
+    user_id = data['discord_id']
+
+    # Process exp adds
+    if item_name == "Flower 2000 EXP":
+        experience = 2000 * quantity
+        if data['refunded']:
+            experience = -experience
+        async with request.app['database']() as db:
+            await db(
+                """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE SET user_experience=user_settings.user_experience+excluded.user_experience""",
+                user_id, experience,
+            )
+
+        # Send DMs
+        if experience > 0:
+            bot = request.app['bots']['bot']
+            try:
+                user = await bot.fetch_user(user_id)
+                await user.send(f"Added **{experience:,} exp** to your account!")
+            except Exception:
+                pass
+        channel_id = request.app['config']['paypal']['notification_channel_id']
+        if channel_id:
+            try:
+                channel = await bot.fetch_channel(channel_id)
+                if data['refunded']:
+                    await channel.send(f"<@{user_id}> just refunded **{item_name}** x{quantity}.")
+                else:
+                    await channel.send(f"<@{user_id}> just purchased **{item_name}** x{quantity}!")
+            except Exception:
+                pass
+
+    # And done
+    return Response(status=200)

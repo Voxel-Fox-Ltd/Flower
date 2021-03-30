@@ -14,6 +14,11 @@ oauth_scopes = [ "identify", "guilds", ]  # The scopes that should be added to t
     client_id = ""
     client_secret = ""
 
+# Used to process PayPal data
+[paypal]
+    authorization = ""
+    notification_channel_id = 0
+
 # This data is passed directly over to asyncpg.connect()
 [database]
     enabled = false
