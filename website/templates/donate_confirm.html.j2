@@ -36,9 +36,9 @@
                         <div id="paypal-button-container"></div>
                     </div>
                 </div>
-                <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=GBP" data-sdk-integration-source="button-factory"></script>
+                <script src="https://www.paypal.com/sdk/js?client-id=ATwUKuKlO50YRzDUVK544VlmwYkF1w-d7LppiOTmxuirdeEcALI9u0J_d1ahZxZzjOvetYolRFJR27SQ&currency=GBP" data-sdk-integration-source="button-factory"></script>
                 <script type="text/javascript">
-                    function initPayPalButton(itemQuantity, itemDiscount) {
+                    function initPayPalButton(itemQuantity, itemDiscount, discordUserId) {
                         paypal.Buttons({
                             style: {
                                 shape: 'rect',
@@ -49,16 +49,6 @@
                             },
                             createOrder: function(data, actions) {
                                 return actions.order.create({
-                                    items: [
-                                        {
-                                            name: "Flower 2000 EXP",
-                                            sku: 2001,
-                                            currency_code: "GBP",
-                                            unit_amount: 1.00,
-                                            category: "DIGITAL_GOODS",
-                                            quantity: itemQuantity,
-                                        },
-                                    ],
                                     purchase_units: [
                                         {
                                             description: "Flower EXP",
@@ -68,15 +58,25 @@
                                                 breakdown: {
                                                     item_total: {currency_code: "GBP", value: 1.00 * itemQuantity},
                                                     discount: {currency_code: "GBP", value: itemDiscount},
-                                                }
+                                                },
                                             },
+                                            custom_id: JSON.stringify({discord_user_id: discordUserId}),
+                                            items: [
+                                                {
+                                                    name: "Flower 2000 EXP",
+                                                    sku: "2001",
+                                                    unit_amount: {currency_code: "GBP", value: 1.00},
+                                                    category: "DIGITAL_GOODS",
+                                                    quantity: itemQuantity.toString(),
+                                                },
+                                            ],
                                         },
-                                    ]
+                                    ],
                                 });
                             },
                             onApprove: function(data, actions) {
                                 return actions.order.capture().then(function(details) {
-                                    alert('Transaction completed by ' + details.payer.name.given_name + '!');
+                                    alert('Transaction completed.');
                                 });
                             },
                             onError: function(err) {
@@ -84,7 +84,7 @@
                             }
                         }).render('#paypal-button-container');
                     }
-                    initPayPalButton({{ item_quantity }}, {{ item_discount }});
+                    initPayPalButton({{ item_quantity }}, {{ item_discount }}, "{{ user_info.id }}");
                 </script>
 
             </div>
