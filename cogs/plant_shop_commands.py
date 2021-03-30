@@ -91,13 +91,13 @@ class PlantShopCommands(utils.Cog):
 
             # If they don't have any available plants, generate new ones for the shop
             if generate_new:
-                possible_available_plants = set()
+                possible_available_plants = list()
                 for item in self.bot.plants.values():
                     if item.available is False:
                         continue
                     if plant_shop_rows and item.name in plant_shop_rows[0].values():
                         continue
-                    possible_available_plants.add(item)
+                    possible_available_plants.append(item)
                 available_plants = {}
                 level = 0
                 while level <= 6:
