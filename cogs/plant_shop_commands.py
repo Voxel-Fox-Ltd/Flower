@@ -242,7 +242,7 @@ class PlantShopCommands(utils.Cog):
         modifier = lambda x: x
         text = f"Pot - `{self.get_points_for_plant_pot(user_plant_limit):,} exp`"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
-        if user_experience >= self.get_points_for_plant_pot(plant_limit) and user_plant_limit < bot_plant_limit:
+        if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
             available_item_count += 1
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
