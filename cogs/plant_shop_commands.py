@@ -57,6 +57,11 @@ class PlantShopCommands(utils.Cog):
             #     item_price=self.bot.config.get('plants', {}).get('colour_token_price', 50_000),
             #     usage="{ctx.clean_prefix}recolour <plant_name>",
             # ),
+            'refresh_token': localutils.ItemType(
+                item_name='refresh_token',
+                item_price=self.bot.config.get('plants', {}).get('refresh_token_price', 10_000),
+                usage="{ctx.clean_prefix}refreshshop",
+            ),
         }
 
         # Reset the artist dict
@@ -159,18 +164,20 @@ class PlantShopCommands(utils.Cog):
         # And done
         return await ctx.send("Reloaded.")
 
-    @utils.command()
-    @utils.checks.is_bot_support()
+    @utils.command(ignore_extra=False)
     @commands.bot_has_permissions(send_messages=True)
-    async def forceshoprefresh(self, ctx:utils.Context, user_id:utils.converters.UserID=None):
+    async def refreshshop(self, ctx:utils.Context):
         """
-        Forces a shop refresh for the given user.
+        Refreshes your shop items.
         """
 
-        user_id = user_id or ctx.author.id
         async with self.bot.database() as db:
-            await db("UPDATE user_available_plants SET last_shop_timestamp='2000-01-01' WHERE user_id=$1", user_id)
-        return await ctx.send("Refreshed user's shop.")
+            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='refresh_token'", ctx.author.id)
+            if not inventory_rows or inventory_rows[0]['amount'] < 1:
+                return await ctx.send(f"You don't have any refresh tokens tokens, {ctx.author.mention}! :c")
+            await db("UPDATE user_available_plants SET last_shop_timestamp='2000-01-01' WHERE user_id=$1", ctx.author.id)
+            await db("UPDATE user_inventory SET amount=amount-1 WHERE user_id=$1 AND item_name='refresh_token'", ctx.author.id)
+        return await ctx.send("Refreshed your shop!")
 
     @utils.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
