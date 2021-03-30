@@ -62,13 +62,15 @@ class PlantShopCommands(utils.Cog):
         # Reset the artist dict
         self.bot.get_cog("InformationCommands")._artist_info = None
 
-    def get_points_for_plant_pot(self, current_limit:str):
+    @staticmethod
+    def get_points_for_plant_pot(current_limit:int) -> int:
         """
         Get the amount of points needed to get the next level of pot.
         """
 
-        pot_base_price = self.bot.config.get('plants', {}).get('plant_pot_base_price', 50)
-        return int(pot_base_price * (3 ** (current_limit - 1)))
+        if current_limit < 10:
+            return 5_000 * (current_limit ** 2)
+        return (45_000 * (current_limit - 9)) + 405_000
 
     async def get_available_plants(self, user_id:int) -> dict:
         """
@@ -89,16 +91,20 @@ class PlantShopCommands(utils.Cog):
 
             # If they don't have any available plants, generate new ones for the shop
             if generate_new:
-                possible_available_plants = collections.defaultdict(list)
+                possible_available_plants = list()
                 for item in self.bot.plants.values():
                     if item.available is False:
                         continue
-                    if plant_shop_rows and plant_shop_rows[0][f"plant_level_{item.plant_level}"] == item.name:
+                    if plant_shop_rows and item.name in plant_shop_rows[0].values():
                         continue
-                    possible_available_plants[item.plant_level].append(item)
+                    possible_available_plants.append(item)
                 available_plants = {}
-                for level, plants in possible_available_plants.items():
-                    available_plants[level] = random.choice(plants)
+                level = 0
+                while level <= 6:
+                    add = random.choice(possible_available_plants)
+                    possible_available_plants.remove(add)
+                    available_plants[level] = add
+                    level += 1
                 await db(
                     """INSERT INTO user_available_plants
                     (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
@@ -179,20 +185,21 @@ class PlantShopCommands(utils.Cog):
             plant_level_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", ctx.author.id)
         if user_rows:
             user_experience = user_rows[0]['user_experience']
-            plant_limit = user_rows[0]['plant_limit']
+            user_plant_limit = user_rows[0]['plant_limit']
             last_plant_shop_time = user_rows[0]['last_plant_shop_time'] or dt(2000, 1, 1)
             plant_pot_hue = user_rows[0]['plant_pot_hue'] or ctx.author.id % 360
         else:
             user_experience = 0
-            plant_limit = 1
+            user_plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
             plant_pot_hue = ctx.author.id % 360
-        can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + water_cooldown
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
-        buy_plant_cooldown_delta = None
+        buy_plant_cooldown = None
         if can_purchase_new_plants is False:
-            buy_plant_cooldown_delta = utils.TimeValue(
-                ((last_plant_shop_time + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))) - dt.utcnow()).total_seconds()
+            buy_plant_cooldown = utils.TimeValue(
+                ((last_plant_shop_time + water_cooldown) - dt.utcnow()).total_seconds()
             )
 
         # Set up our initial embed
@@ -203,20 +210,20 @@ class PlantShopCommands(utils.Cog):
         # See what we wanna get to doing
         embed.description += (
             f"What would you like to spend your experience to buy, {ctx.author.mention}? "
-            f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {plant_limit:,} available plant pots.\n"
+            f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {user_plant_limit:,} available plant pots.\n"
         )
         available_plants = await self.get_available_plants(ctx.author.id)
 
         # Add "can't purchase new plant" to the embed
         if can_purchase_new_plants is False:
-            embed.description += f"\nYou can't purchase new plants for another **{buy_plant_cooldown_delta.clean}**.\n"
+            embed.description += f"\nYou can't purchase new plants for another **{buy_plant_cooldown.clean}**.\n"
 
         # Add plants to the embed
         plant_text = []
         for plant in sorted(available_plants.values()):
             modifier = lambda x: x
-            text = f"{plant.display_name.capitalize()} - `{plant.required_experience:,} exp`"
-            if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < plant_limit:
+            text = f"{plant.display_name.capitalize()} - free"  # TODO remove this - all plants cost nothing now
+            if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < user_plant_limit:
                 available_item_count += 1
             else:
                 modifier = strikethrough
@@ -233,9 +240,12 @@ class PlantShopCommands(utils.Cog):
 
         # Add pots
         modifier = lambda x: x
-        text = f"Pot - `{self.get_points_for_plant_pot(plant_limit):,} exp`"
-        if user_experience >= self.get_points_for_plant_pot(plant_limit) and plant_limit < self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
+        text = f"Pot - `{self.get_points_for_plant_pot(user_plant_limit):,} exp`"
+        bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
+        if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
             available_item_count += 1
+        elif user_plant_limit >= bot_plant_limit:
+            text = "~~Pot~~ Maximum pots reached"
         else:
             modifier = strikethrough
         item_text.append(modifier(text))
@@ -292,14 +302,14 @@ class PlantShopCommands(utils.Cog):
 
         # See if they want a plant pot
         if given_response == "pot":
-            if plant_limit >= self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
+            if user_plant_limit >= self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
                 return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
-            if user_experience >= self.get_points_for_plant_pot(plant_limit):
+            if user_experience >= self.get_points_for_plant_pot(user_plant_limit):
                 async with self.bot.database() as db:
                     await db(
                         """INSERT INTO user_settings (user_id, plant_limit, user_experience) VALUES ($1, 2, $2) ON CONFLICT (user_id) DO UPDATE
                         SET plant_limit=user_settings.plant_limit+1, user_experience=user_settings.user_experience-excluded.user_experience""",
-                        ctx.author.id, self.get_points_for_plant_pot(plant_limit)
+                        ctx.author.id, self.get_points_for_plant_pot(user_plant_limit)
                     )
                 return await ctx.send(f"Given you another plant pot, {ctx.author.mention}!")
             else:
@@ -332,12 +342,12 @@ class PlantShopCommands(utils.Cog):
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
         if can_purchase_new_plants is False:
-            return await ctx.send(f"You can't purchase new plants for another **{buy_plant_cooldown_delta.clean}**.")
+            return await ctx.send(f"You can't purchase new plants for another **{buy_plant_cooldown.clean}**.")
         if plant_type not in available_plants.values():
             return await ctx.send(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
             return await ctx.send(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
-        if len(plant_level_rows) >= plant_limit:
+        if len(plant_level_rows) >= user_plant_limit:
             return await ctx.send(f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c")
 
         # Get a name for the plant
@@ -368,7 +378,7 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
             )
             await db(
-                "UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1",
+                """UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1""",
                 ctx.author.id, plant_type.required_experience,
             )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")

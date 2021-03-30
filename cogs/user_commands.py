@@ -105,6 +105,11 @@ class UserCommands(utils.Cog):
         Send an item to another member.
         """
 
+        if item_type.lower().strip() == "pot":
+            return await ctx.send("You can't give pots to other users.")
+        if item_type.lower().strip() in {"exp", "experience"}:
+            return await ctx.send("You can't give exp to other users.")
+
         async with self.bot.database() as db:
 
             # See if they have the item they're trying to give
