@@ -22,7 +22,7 @@ class PlantType(object):
     experience_gain = {"maximum": 300, "minimum": 150}
     max_nourishment_level = 21
 
-    __slots__ = ('name', 'available_variants', 'nourishment_display_levels', 'stages', 'soil_hue', 'visible', 'available', 'artist',)
+    __slots__ = ('name', 'available_variants', 'nourishment_display_levels', 'stages', 'soil_hue', 'visible', 'available', 'artist', 'image_data')
 
     def __init__(self, name:str, soil_hue:int, visible:bool, available:bool, artist:str, stages:int=None, plant_level:int=None, nourishment_display_levels:dict=None, available_variants:dict=None):
         self.name = name
