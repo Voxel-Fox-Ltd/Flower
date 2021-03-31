@@ -29,14 +29,14 @@
         <div class="columns is-multiline">
             <div class="column is-4 is-offset-4" style="text-align: center;">
                 <h1 class="title">Buying <b>{{ "{0:,}".format(20_000 * item_quantity) }} exp</b> for <b>£{{ "{0:,.2f}".format(1.00 * item_quantity) }} GBP</b>{% if item_discount %} (with £{{ "{0:,.2f}".format(item_discount) }} discount){% endif %}</h1>
-                <h2 class="subtitle">Click below to checkout</h2>
+                {# <h2 class="subtitle">Click below to checkout</h2> #}
 
                 <div id="smart-button-container">
                     <div style="text-align: center;">
                         <div id="paypal-button-container"></div>
                     </div>
                 </div>
-                <script src="https://www.paypal.com/sdk/js?client-id=ATwUKuKlO50YRzDUVK544VlmwYkF1w-d7LppiOTmxuirdeEcALI9u0J_d1ahZxZzjOvetYolRFJR27SQ&currency=GBP" data-sdk-integration-source="button-factory"></script>
+                <script src="https://www.paypal.com/sdk/js?client-id=ARPju1TtiSmyF65NY6NaaCdI-ALzaSTFsde9fy_8mR6wITNeKIb7US8JwnGnfKjpbs2iMFcS3DF6fP9D&currency=GBP" data-sdk-integration-source="button-factory"></script>
                 <script type="text/javascript">
                     function initPayPalButton(itemQuantity, itemDiscount, discordUserId) {
                         paypal.Buttons({
