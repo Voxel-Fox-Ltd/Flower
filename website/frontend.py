@@ -139,6 +139,7 @@ async def herbiary(request:Request):
         generated_herbiary = output
         generated_herbiary_lifetime = -1
     generated_herbiary_lifetime += 1
+    generated_herbiary.sort(key=lambda p: p.name)
 
     return {
         'plants': generated_herbiary,
