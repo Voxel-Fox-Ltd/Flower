@@ -1,21 +1,5 @@
 {
-    "plant_level": 2,
-    "nourishment_display_levels": {
-        "1": 1,
-        "2": 2,
-        "3": 3,
-        "5": 4,
-        "6": 5,
-        "8": 6,
-        "9": 7,
-        "11": 8,
-        "12": 9,
-        "13": 10,
-        "15": 11,
-        "16": 12,
-        "18": 13,
-        "19": 14
-    },
+    "stages": 14,
     "soil_hue": 0,
     "visible": true,
     "available": true,

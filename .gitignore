@@ -3,6 +3,7 @@ config/config.toml
 config/website.toml
 
 images/plants/*/*/*.png
+images/plants/_*/
 !images/plants/blue_daisy/
 images/pots/*/
 !images/pots/clay/
