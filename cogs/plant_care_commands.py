@@ -315,10 +315,45 @@ class PlantCareCommands(utils.Cog):
 
     @utils.command(aliases=['rename'])
     @commands.bot_has_permissions(send_messages=True)
-    async def renameplant(self, ctx:utils.Context, before:str, *, after:str):
+    async def renameplant(self, ctx:utils.Context, before:str="", *, after:str=""):
         """
         Gives a new name to your plant. Use "quotes" if your plant has a space in its name.
         """
+
+        # Suggest a plant to rename if they didn't give one
+        if not before:
+            async with self.bot.database() as db:
+                rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", ctx.author.id)
+            if not rows:
+                return await ctx.send("You don't have any plants that you can rename!")
+            plant_name_list = [i['plant_name'] for i in rows]
+            numbered_plant_name_list = [f"{index}. **{name}**" for index, name in enumerate(plant_name_list, start=1)]
+            joined_numbered_plant_name_list = "\n".join(numbered_plant_name_list)
+
+            # Wait for them to respond
+            await ctx.send(f"Which of your plants would you like to rename\n{joined_numbered_plant_name_list}?", allowed_mentions=discord.AllowedMentions.none())
+            try:
+                check = lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id and m.content.isdigit()
+                user_message = await self.bot.wait_for("message", check=check)
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!", ignore_error=True)
+            plant_number = int(user_message.content)
+
+            # Make sure it's valid
+            try:
+                assert plant_number >= 1
+                before = plant_name_list[plant_number - 1]
+            except (AssertionError, IndexError):
+                return await ctx.send(f"The plant number you gave wasn't valid!")
+
+            # Ask what they want to rename the plant to
+            await ctx.send("What do you want to rename it to?")
+            try:
+                check = lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+                user_message = await self.bot.wait_for("message", check=check)
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!", ignore_error=True)
+            after = user_message.content
 
         # Make sure some names were provided
         after = localutils.PlantType.validate_name(after)
