@@ -331,7 +331,7 @@ class PlantCareCommands(utils.Cog):
             joined_numbered_plant_name_list = "\n".join(numbered_plant_name_list)
 
             # Wait for them to respond
-            await ctx.send(f"Which of your plants would you like to rename\n{joined_numbered_plant_name_list}?", allowed_mentions=discord.AllowedMentions.none())
+            await ctx.send(f"Which of your plants would you like to rename?\n{joined_numbered_plant_name_list}", allowed_mentions=discord.AllowedMentions.none())
             try:
                 check = lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id and m.content.isdigit()
                 user_message = await self.bot.wait_for("message", check=check)
