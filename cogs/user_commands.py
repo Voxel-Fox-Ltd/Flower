@@ -4,8 +4,8 @@ from datetime import datetime as dt, timedelta
 import discord
 from discord.ext import commands
 import voxelbotutils as utils
-
 from asyncpg import UniqueViolationError
+
 
 class UserCommands(utils.Cog):
 
@@ -130,32 +130,37 @@ class UserCommands(utils.Cog):
 
         # And now we done
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
-    
-    @utils.command()
-    @commands.bot_has_permissions(send_messages=True,embed_links=True)
+
+    @utils.group(aliases=['key', 'access'], invoke_without_command=True)
     async def keys(self, ctx:utils.Context):
+        """
+        The parent command for keys - allowing other users to access your garden.
+        """
+
+        if ctx.invoked_subcommand is None:
+            return await ctx.send_help(ctx.command)
+
+    @keys.command(name='list', aliases=['show', 'holders'])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def key_list(self, ctx:utils.Context):
         """
         Check all users who have a key to your garden
         """
 
         async with self.bot.database() as db:
-            key_owners = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1",ctx.author.id)
+            key_owners = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1", ctx.author.id)
+        if not key_owners:
+            return await ctx.send(f"No one else has a key to your garden")
+        embed = utils.Embed(use_random_colour=True, description=f"<@{ctx.author.id}>'s allowed users ({len(key_owners)})")
+        embed_fields = []
+        for key_owner in key_owners:
+            embed_fields.append(f"<@{key_owner['garden_access']}>")
+        embed.add_field("Key Holders", '\n'.join(sorted(embed_fields)), inline=False)
+        return await ctx.send(embed=embed)
 
-            if not key_owners:
-                return await ctx.send(f"No one else has a key to your garden")
-            
-            embed = utils.Embed(use_random_colour=True,description=f"<@{ctx.author.id}>'s allowed users ({len(key_owners)})")
-            embed_fields = []
-            for key_owner in key_owners:
-                embed_fields.append(f"<@{key_owner['garden_access']}>")
-            
-            embed.add_field("Key owners:", '\n'.join(sorted(embed_fields)), inline=True)
-            
-            return await ctx.send(embed=embed)
-
-    @utils.command()
+    @keys.command(name='give', aliases=['add'])
     @commands.bot_has_permissions(send_messages=True)
-    async def givekey(self, ctx:utils.Context, user:discord.Member):
+    async def key_give(self, ctx:utils.Context, user:discord.Member):
         """
         Give a key to your garden to another member.
         """
@@ -169,45 +174,26 @@ class UserCommands(utils.Cog):
             try:
                 await db(
                     "INSERT INTO user_garden_access (garden_owner, garden_access) VALUES ($1, $2)",
-                    ctx.author.id, user.id
+                    ctx.author.id, user.id,
                 )
             except UniqueViolationError:
                 return await ctx.send("They already have a key.")
-            return await ctx.send(f"Gave {user.mention} a key!")
+        return await ctx.send(f"Gave {user.mention} a key!")
 
-    @utils.command()
+    @keys.command(name='revoke', aliases=['remove', 'take', 'delete'])
     @commands.bot_has_permissions(send_messages=True)
-    async def revokekey(self, ctx:utils.Context, user:typing.Optional[discord.Member], username:typing.Optional[str]):
+    async def key_revoke(self, ctx:utils.Context, user:utils.converters.UserID):
         """
         Revoke a member's access to your garden
         """
 
-        if user and user.id == ctx.author.id:
-            return await ctx.send("You can't revoke your own key.")
-
+        if user == ctx.author.id:
+            return await ctx.send("You can't revoke your own key :/")
         async with self.bot.database() as db:
-            if username:
-                key_owners = await db("SELECT garden_access FROM user_garden_access WHERE garden_owner=$1",ctx.author.id)
-                if not key_owners:
-                    return await ctx.send(f"They don't have a key!")
-                
-                uname = (username[1:] if username.startswith("@") else username).strip().split("#")[0]
-                # Try and figure out who it is
-                for key in key_owners:
-                    try:
-                        u = await ctx.bot.fetch_user(key['garden_access'])
-                    except discord.HTTPException:
-                        continue
-                    if uname == u.name:
-                        user = u
-                        break
-            if not user:
-                raise commands.UserNotFound(username)
-            
-            data = await db("DELETE FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2 RETURNING *", ctx.author.id, user.id)
+            data = await db("DELETE FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2 RETURNING *", ctx.author.id, user)
         if not data:
             return await ctx.send(f"They don't have a key!")
-        return await ctx.send(f"Their key crumbles. They no longer have a key to your garden.")
+        return await ctx.send(f"Their key crumbles. <@{user}> no longer has a key to your garden.", allowed_mentions=discord.AllowedMentions.none())
 
 
 def setup(bot:utils.Bot):

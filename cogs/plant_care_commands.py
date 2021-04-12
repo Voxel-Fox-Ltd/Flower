@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime as dt, timedelta
-
 import typing
 
 import discord
@@ -168,7 +167,6 @@ class PlantCareCommands(utils.Cog):
             timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()).total_seconds())
             return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able water {their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
 
-
         # See if the plant should be dead
         if plant_level_row[0]['plant_nourishment'] < 0:
             plant_level_row = await db(
@@ -205,8 +203,8 @@ class PlantCareCommands(utils.Cog):
             # Get the experience that they should have gained
             total_experience = plant_data.get_experience()
             original_gained_experience = total_experience
-            if not waterer_is_owner:
-                original_gained_experience = int(original_gained_experience*.8)
+            # if not waterer_is_owner:
+            #     original_gained_experience = int(original_gained_experience * 0.8)
 
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - water_cooldown_period <= timedelta(seconds=30):
@@ -230,7 +228,6 @@ class PlantCareCommands(utils.Cog):
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
                 multipliers.append({"multiplier": 1.2, "text": f"{their_your} plant has been alive for longer than a week."})
 
-
             # Add the actual multiplier values
             for obj in multipliers:
                 total_experience *= obj['multiplier']
@@ -239,8 +236,8 @@ class PlantCareCommands(utils.Cog):
             total_experience = int(total_experience)
             async with self.bot.database() as db:
                 if not waterer_is_owner:
-                    gained_experience = int(total_experience*.8)
-                    owner_gained_experience = int(total_experience-gained_experience)
+                    gained_experience = int(total_experience * 0.8)
+                    owner_gained_experience = int(total_experience - gained_experience)
                     await db.start_transaction()
                     user_experience_row = await db(
                         """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
