@@ -150,7 +150,7 @@ class UserCommands(utils.Cog):
         async with self.bot.database() as db:
             key_owners = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1", ctx.author.id)
         if not key_owners:
-            return await ctx.send(f"No one else has a key to your garden")
+            return await ctx.send(f"No one else has a key to your garden.")
         embed = utils.Embed(use_random_colour=True, description=f"<@{ctx.author.id}>'s allowed users ({len(key_owners)})")
         embed_fields = []
         for key_owner in key_owners:
@@ -178,7 +178,7 @@ class UserCommands(utils.Cog):
                 )
             except UniqueViolationError:
                 return await ctx.send("They already have a key.")
-        return await ctx.send(f"Gave {user.mention} a key!")
+        return await ctx.send(f"Gave {user.mention} a key to your garden! They can now water your plants for you!")
 
     @keys.command(name='revoke', aliases=['remove', 'take', 'delete'])
     @commands.bot_has_permissions(send_messages=True)
