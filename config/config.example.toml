@@ -13,6 +13,8 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
         days = 3
     [plants.water_cooldown]  # The water command cooldown - this gets passed directly into a timedelta
         minutes = 15
+    [plants.guest_water_cooldown]  # The water command cooldown for watering someone else's plant
+        minutes = 60
     [plants.notification_time]
         days = 1
 
