@@ -285,7 +285,7 @@ class PlantShopCommands(utils.Cog):
                 self.bot.wait_for("raw_message_delete", check=lambda m: m.message_id == shop_menu_message.id),
             ], timeout=120, return_when=asyncio.FIRST_COMPLETED)
         except asyncio.TimeoutError:
-            pass
+            return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
 
         # See how they responded
         for future in pending:
