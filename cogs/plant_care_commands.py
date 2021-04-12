@@ -159,7 +159,7 @@ class PlantCareCommands(utils.Cog):
             water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
         else:
             water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60}))
-        
+
         last_water_time = plant_level_row[0]['last_water_time']
 
         # See if they're allowed to water things
@@ -472,6 +472,7 @@ class PlantCareCommands(utils.Cog):
 
         response, success = await self.revive_plant_backend(ctx.author.id, plant_name)
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
+
 
 def setup(bot:utils.Bot):
     x = PlantCareCommands(bot)
