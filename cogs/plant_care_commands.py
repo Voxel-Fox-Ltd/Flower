@@ -481,6 +481,7 @@ class PlantCareCommands(utils.Cog):
         Makes one of your plants immortal.
         """
 
+        user_id = ctx.author.id
         async with self.bot.database() as db:
 
             # See if they have enough revival tokens
