@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS plant_levels(
     plant_pot_hue SMALLINT,
     plant_adoption_time TIMESTAMP,
     notification_sent BOOLEAN DEFAULT TRUE,
+    immortal BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (user_id, plant_name)
 );
 

@@ -64,10 +64,13 @@ class UserCommands(utils.Cog):
         # Grab the plant data
         user = user or ctx.author
         async with self.bot.database() as db:
-            user_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
+            plant_data = await db(
+                """SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC, plant_type DESC, plant_nourishment DESC,
+                last_water_time DESC, plant_adoption_time DESC""",
+                user.id,
+            )
 
         # See if they have anything available
-        plant_data = sorted([(i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time'], i['plant_adoption_time']) for i in user_rows])
         if not plant_data:
             embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}> has no plants :c")
             return await ctx.send(embed=embed)
@@ -75,21 +78,31 @@ class UserCommands(utils.Cog):
         # Add the plant information
         embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}>'s plants")
         ctx._set_footer(embed)
-        for plant_name, plant_type, plant_nourishment, last_water_time, plant_adoption_time in plant_data:
-            plant_type_display = plant_type.replace('_', ' ').capitalize()
-            plant_death_time = last_water_time + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
-            plant_death_humanize_time = utils.TimeValue((plant_death_time - dt.utcnow()).total_seconds()).clean_full
-            plant_life_humanize_time = utils.TimeValue((dt.utcnow() - plant_adoption_time).total_seconds()).clean_full
-            if plant_nourishment == 0:
-                text = f"{plant_type_display}, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}."
-            elif plant_nourishment > 0:
-                text = (
-                    f"**{plant_type_display}**, nourishment level {plant_nourishment}/{self.bot.plants[plant_type].max_nourishment_level}.\n"
-                    f"If not watered, this plant will die in **{plant_death_humanize_time}**.\n"
-                    f"This plant has been alive for **{plant_life_humanize_time}**.\n"
-                )
+        for plant in plant_data:
+            plant_type_display = plant['plant_type'].replace('_', ' ').capitalize()
+
+            # Get the time when the plant will die
+            if plant['immortal']:
+                plant_death_time, plant_death_humanize_time = None, None
+            else:
+                plant_death_time = plant['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
+                plant_death_humanize_time = utils.TimeValue((plant_death_time - dt.utcnow()).total_seconds()).clean_full
+
+            # See how long the plant has been alive
+            plant_life_humanize_time = utils.TimeValue((dt.utcnow() - plant['plant_adoption_time']).total_seconds()).clean_full
+
+            # Make the text to put in the embed
+            if plant['plant_nourishment'] == 0 or plant['immortal']:
+                text = f"{plant_type_display}, nourishment level {plant['plant_nourishment']}/{self.bot.plants[plant['plant_type']].max_nourishment_level}."
+            elif plant['plant_nourishment'] > 0 or plant['immortal']:
+                text = f"**{plant_type_display}**, nourishment level {plant['plant_nourishment']}/{self.bot.plants[plant['plant_type']].max_nourishment_level}.\n"
+                if not plant['immortal']:
+                    text += f"If not watered, this plant will die in **{plant_death_humanize_time}**.\n"
+                text += f"This plant has been alive for **{plant_life_humanize_time}**.\n"
             else:
                 text = f"{plant_type_display}, dead :c"
+
+            # And add the field
             embed.add_field(plant_name, text, inline=False)
 
         # Return to user
