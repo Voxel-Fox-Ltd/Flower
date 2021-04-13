@@ -57,7 +57,7 @@ class PlantCareCommands(utils.Cog):
         async with self.bot.database() as db:
             await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
-                plant_nourishment > 0 AND last_water_time + $2 < $1""",
+                plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE""",
                 dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
             )
 
