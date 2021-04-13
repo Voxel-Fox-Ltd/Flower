@@ -226,7 +226,11 @@ class PlantCareCommands(utils.Cog):
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
-                multipliers.append({"multiplier": 1.2, "text": f"{their_your} plant has been alive for longer than a week."})
+                multipliers.append({"multiplier": 1.2, "text": f"{their_your.title()} plant has been alive for longer than a week."})
+
+            # See if we want to give them the plant longevity bonus
+            if user_plant_data['immortal']:
+                multipliers.append({"multiplier": 0.5, "text": f"{their_your} plant is immortal."})
 
             # Add the actual multiplier values
             for obj in multipliers:
