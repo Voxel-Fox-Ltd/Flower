@@ -474,6 +474,42 @@ class PlantCareCommands(utils.Cog):
         response, success = await self.revive_plant_backend(ctx.author.id, plant_name)
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
+    @utils.command(aliases=['immortalise'])
+    @commands.bot_has_permissions(send_messages=True)
+    async def immortalize(self, ctx:utils.Context, *, plant_name:str):
+        """
+        Makes one of your plants immortal.
+        """
+
+        async with self.bot.database() as db:
+
+            # See if they have enough revival tokens
+            inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='immortal_plant_juice'", user_id)
+            if not inventory_rows or inventory_rows[0]['amount'] < 1:
+                return await ctx.send(f"You don't have any immortal plant juice, <@{user_id}>! :c")
+
+            # See if the plant they specified exists
+            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user_id, plant_name)
+            if not plant_rows:
+                return await ctx.send(f"You have no plants named **{plant_name}**.")
+
+            # See if the plant they specified is dead
+            if plant_rows[0]['plant_nourishment'] <= 0:
+                return await ctx.send(f"You can't immortalize a dead plant!")
+
+            # Revive the plant and remove a token
+            await db.start_transaction()
+            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='immortal_plant_juice'", user_id)
+            await db(
+                """UPDATE plant_levels SET immortal=true,
+                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                user_id, plant_name
+            )
+            await db.commit_transaction()
+
+        # And now we done
+        return await ctx.send(f"Immortalized **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
+
 
 def setup(bot:utils.Bot):
     x = PlantCareCommands(bot)

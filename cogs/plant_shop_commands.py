@@ -49,18 +49,27 @@ class PlantShopCommands(utils.Cog):
         self.bot.items = {
             'revival_token': localutils.ItemType(
                 item_name='revival_token',
+                display_name='revival token',
                 item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300),
                 usage="{ctx.clean_prefix}revive <plant_name>",
             ),
             # 'colour_token': localutils.ItemType(
             #     item_name='colour_token',
+            #     display_name='colour_token',
             #     item_price=self.bot.config.get('plants', {}).get('colour_token_price', 50_000),
             #     usage="{ctx.clean_prefix}recolour <plant_name>",
             # ),
             'refresh_token': localutils.ItemType(
                 item_name='refresh_token',
+                display_name='shop refresh token',
                 item_price=self.bot.config.get('plants', {}).get('refresh_token_price', 10_000),
                 usage="{ctx.clean_prefix}refreshshop",
+            ),
+            'immortal_plant_juice': localutils.ItemType(
+                item_name='immortal_plant_juice',
+                display_name='immortal plant juice',
+                item_price=self.bot.config.get('plants', {}).get('immortal_plant_juice_price', 1_000),
+                usage="{ctx.clean_prefix}immortalise",
             ),
         }
 
@@ -297,7 +306,7 @@ class PlantShopCommands(utils.Cog):
         if isinstance(done, discord.RawMessageDeleteEvent):
             return
         plant_type_message = done
-        given_response = plant_type_message.content.lower().replace(' ', '_')
+        given_response = plant_type_message.content.lower()  # .replace(' ', '_')
 
         # See if they want to cancel
         if given_response == "cancel":
@@ -323,7 +332,12 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
 
         # See if they want a revival token
-        item_type = self.bot.items.get(given_response)
+        item_type = self.bot.items.get(given_response.replace(' ', '_'))
+        if item_type is None:
+            try:
+                item_type = [i for i in self.bot.items if i.display_name == given_response][0]
+            except IndexError:
+                item_type = None
         if item_type is not None:
             if user_experience >= item_type.price:
                 async with self.bot.database() as db:
