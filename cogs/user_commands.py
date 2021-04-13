@@ -103,7 +103,7 @@ class UserCommands(utils.Cog):
                 text = f"{plant_type_display}, dead :c"
 
             # And add the field
-            embed.add_field(plant_name, text, inline=False)
+            embed.add_field(plant['plant_name'], text, inline=False)
 
         # Return to user
         v = await ctx.send(embed=embed)
