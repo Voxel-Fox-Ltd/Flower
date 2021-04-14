@@ -359,7 +359,7 @@ class PlantShopCommands(utils.Cog):
 
         # See if they want a plant
         try:
-            plant_type = self.bot.plants[given_response]
+            plant_type = self.bot.plants[given_response.replace(' ', '_')]
         except KeyError:
             return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
         if can_purchase_new_plants is False:
