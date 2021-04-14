@@ -335,7 +335,7 @@ class PlantShopCommands(utils.Cog):
         item_type = self.bot.items.get(given_response.replace(' ', '_'))
         if item_type is None:
             try:
-                item_type = [i for i in self.bot.items if i.display_name == given_response][0]
+                item_type = [i for i in self.bot.items.values() if i.display_name == given_response][0]
             except IndexError:
                 item_type = None
         if item_type is not None:
