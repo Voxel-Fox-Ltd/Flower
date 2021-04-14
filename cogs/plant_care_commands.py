@@ -475,7 +475,7 @@ class PlantCareCommands(utils.Cog):
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
     @utils.command(aliases=['immortalise'])
-    @commands.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True, add_reactions=True)
     async def immortalize(self, ctx:utils.Context, *, plant_name:str):
         """
         Makes one of your plants immortal.
@@ -497,6 +497,24 @@ class PlantCareCommands(utils.Cog):
             # See if the plant they specified is dead
             if plant_rows[0]['plant_nourishment'] <= 0:
                 return await ctx.send(f"You can't immortalize a dead plant!")
+
+        # Make sure they want to
+        m = await ctx.send("By making a plant immortal, you halve the amount of exp you get from it. Are you sure this is something you want to do?")
+        emojis = ["\N{HEAVY CHECK MARK}", "\N{HEAVY MULTIPLICATION X}"]
+        for e in emojis:
+            self.bot.loop.create_task(m.add_reaction(e))
+        try:
+            check = lambda p: p.user_id == ctx.author.id and p.message_id == m.id and str(p.emoji) in emojis
+            payload = await self.bot.wait_for("raw_reaction_add", check=check, timeout=120)
+        except asyncio.TimeoutError:
+            return await ctx.send(f"Timed out waiting for you to confirm plant immortality, {ctx.author.mention}.")
+
+        # Check their reaction
+        if str(payload.emoji) == "\N{HEAVY MULTIPLICATION X}":
+            return await ctx.send("Alright, cancelled making your plant immortal :<")
+
+        # Okay they're sure
+        async with self.bot.database() as db:
 
             # Revive the plant and remove a token
             await db.start_transaction()
