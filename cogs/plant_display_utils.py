@@ -61,9 +61,9 @@ class PlantDisplayUtils(utils.Cog):
     @classmethod
     def gif_to_bytes(cls, *images:Image, duration:int=2_000) -> io.BytesIO:
         image_to_send = io.BytesIO()
-        images[0].save(
+        images[-1].save(
             image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=[cls.image_to_bytes(i) for i in images[1:]], duration=duration,
+            append_images=images[:-1:-1], duration=duration,
         )
         image_to_send.seek(0)
         return image_to_send
