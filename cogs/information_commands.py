@@ -60,7 +60,7 @@ class InformationCommands(utils.Cog):
         with utils.Embed(use_random_colour=True) as embed:
             embed.title = plant.display_name.capitalize()
             embed.description = '\n'.join(description_list)
-            embed.set_image("attachment://plant.png")
+            embed.set_image("attachment://plant.gif")
             ctx._set_footer(embed)
         display_utils = self.bot.get_cog("PlantDisplayUtils")
 
@@ -69,7 +69,7 @@ class InformationCommands(utils.Cog):
         display_levels = sorted(list(set(plant.get_nourishment_display_level(i) for i in range(1, 22))))
         gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
         plant_image_bytes = display_utils.gif_to_bytes(*gif_frames)
-        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"{plant.name}_{pot_hue}.gif"))
+        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"plant.gif"))
 
     @utils.command(enabled=False)
     @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
