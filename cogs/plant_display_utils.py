@@ -58,6 +58,13 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send.seek(0)
         return image_to_send
 
+    @staticmethod
+    def gif_to_bytes(*images:Image, duration:int=2_000) -> io.BytesIO:
+        image_to_send = io.BytesIO()
+        image.save(image_to_send, save_all=True, append_images=[self.image_to_bytes(i) for i in images], disposal=2, loop=0, duration=duration)
+        image_to_send.seek(0)
+        return image_to_send
+
     def get_plant_image(self, plant_type:str, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
         """
         Get a BytesIO object containing the binary data of a given plant/pot item.

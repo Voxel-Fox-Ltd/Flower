@@ -56,11 +56,6 @@ class InformationCommands(utils.Cog):
             description_list.append(f"{i.capitalize()}: [Link]({o})")
         description_list.append("")
 
-        # Work out some other info we want displayed
-        # description_list.append(f"Plant level {plant.plant_level}")
-        # description_list.append(f"Costs {plant.required_experience} exp")
-        # description_list.append(f"Gives between {plant.experience_gain['minimum']} and {plant.experience_gain['maximum']} exp")
-
         # Embed the data
         with utils.Embed(use_random_colour=True) as embed:
             embed.title = plant.display_name.capitalize()
@@ -68,8 +63,13 @@ class InformationCommands(utils.Cog):
             embed.set_image("attachment://plant.png")
             ctx._set_footer(embed)
         display_utils = self.bot.get_cog("PlantDisplayUtils")
-        plant_image_bytes = display_utils.image_to_bytes(display_utils.get_plant_image(plant.name, 21, "clay", random.randint(0, 360)))
-        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.png"))
+
+        # Make a gif of the stages
+        pot_hue = random.randint(0, 360)
+        display_levels = sorted(list(set(plant.get_nourishment_display_level(i) for i in range(1, 22))))
+        gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
+        plant_image_bytes = display_utils.gif_to_bytes(*gif_frames)
+        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"{plant.name}_{pot_hue}.gif"))
 
     @utils.command(enabled=False)
     @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
