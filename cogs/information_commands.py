@@ -70,7 +70,7 @@ class InformationCommands(utils.Cog):
         added_display_stages = []
         for i, o in plant.nourishment_display_levels.items():
             if o not in added_display_stages:
-                display.append(int(i))
+                display_levels.append(int(i))
                 added_display_stages.append(o)
         gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
         plant_image_bytes = display_utils.gif_to_bytes(*gif_frames)
