@@ -49,7 +49,7 @@ class PlantDisplayUtils(utils.Cog):
         non_empty_rows = np.where(image_data_bw.max(axis=1) > 0)[0]
         crop_box = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
         image_data_new = image_data[crop_box[0]:crop_box[1] + 1, crop_box[2]:crop_box[3] + 1, :]
-        return Image.fromarray(image_data_new)
+        return Image.fromarray(image_data_new, "RGBA")
 
     @staticmethod
     def image_to_bytes(image:Image) -> io.BytesIO:
@@ -63,7 +63,7 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send = io.BytesIO()
         images[0].save(
             image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=images[1:], duration=duration, optimize=False, trasparency=255,
+            append_images=images[1:], duration=duration, optimize=False, trasparency=0,
         )
         image_to_send.seek(0)
         return image_to_send
