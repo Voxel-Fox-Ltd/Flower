@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS blacklisted_suggestion_users(
 );
 
 
-CREATE TABLE IF NOT EXISTS flower_achievement_counts(
+CREATE TABLE IF NOT EXISTS plant_achievement_counts(
     user_id BIGINT,
     plant_type VARCHAR(20),
     plant_count SMALLINT DEFAULT 0,

@@ -403,8 +403,8 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_type.required_experience,
             )
             await db(
-                """INSERT INTO flower_achievement_counts (user_id, plant_type, plant_count) VALUES ($1, $2, 1)
-                ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_count=flower_achievement_counts.plant_count+excluded.plant_count""",
+                """INSERT INTO plant_achievement_counts (user_id, plant_type, plant_count) VALUES ($1, $2, 1)
+                ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
                 ctx.author.id, plant_type.name,
             )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")

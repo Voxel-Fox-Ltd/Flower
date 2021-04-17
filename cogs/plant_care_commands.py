@@ -62,7 +62,7 @@ class PlantCareCommands(utils.Cog):
             )
             for row in updated_plant_rows:
                 await db(
-                    """INSERT INTO flower_achievement_counts (user_id, plant_type, plant_death_count) VALUES ($1, $2, 1)
+                    """INSERT INTO plant_achievement_counts (user_id, plant_type, plant_death_count) VALUES ($1, $2, 1)
                     ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_death_count=max_plant_nourishment+1""",
                     row['user_id'], row['plant_type'],
                 )
@@ -275,9 +275,9 @@ class PlantCareCommands(utils.Cog):
                     )
                     await db.commit_transaction()
                 await db(
-                    """INSERT INTO flower_achievement_counts (user_id, plant_type, max_plant_nourishment) VALUES ($1, $2, $3)
+                    """INSERT INTO plant_achievement_counts (user_id, plant_type, max_plant_nourishment) VALUES ($1, $2, $3)
                     ON CONFLICT (user_id, plant_type) DO UPDATE SET
-                    max_plant_nourishment=GREATEST(flower_achievement_counts.max_plant_nourishment, excluded.max_plant_nourishment)""",
+                    max_plant_nourishment=GREATEST(plant_achievement_counts.max_plant_nourishment, excluded.max_plant_nourishment)""",
                     user_id, user_plant_data['plant_type'], user_plant_data['plant_nourishment']
                 )
 
