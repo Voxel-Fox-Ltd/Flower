@@ -79,3 +79,22 @@ CREATE TABLE IF NOT EXISTS user_garden_access(
 CREATE TABLE IF NOT EXISTS blacklisted_suggestion_users(
     user_id BIGINT PRIMARY KEY
 );
+
+
+CREATE TABLE IF NOT EXISTS flower_achievement_counts(
+    user_id BIGINT,
+    plant_type VARCHAR(20),
+    plant_count SMALLINT DEFAULT 0,
+    plant_death_count SMALLINT DEFAULT 0,
+    max_plant_nourishment SMALLINT DEFAULT 0,
+    PRIMARY KEY (user_id, plant_type)
+);
+
+
+CREATE TABLE IF NOT EXISTS user_achievement_counts(
+    user_id BIGINT PRIMARY KEY,
+    trade_count SMALLINT DEFAULT 0,
+    revive_count SMALLINT DEFAULT 0,
+    immortalize_count SMALLINT DEFAULT 0,
+    max_plant_lifetime INTERVAL DEFAULT INTERVAL '0 seconds'
+);

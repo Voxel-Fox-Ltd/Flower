@@ -402,6 +402,11 @@ class PlantShopCommands(utils.Cog):
                 """UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1""",
                 ctx.author.id, plant_type.required_experience,
             )
+            await db(
+                """INSERT INTO flower_achievement_counts (user_id, plant_type, plant_count) VALUES ($1, $2, 1)
+                ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_count=plant_count+1""",
+                ctx.author.id, plant_type.name,
+            )
         await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
 
     @utils.command(aliases=['trade'])
@@ -557,6 +562,11 @@ class PlantShopCommands(utils.Cog):
                         ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_nourishment'],
                         row['last_water_time'] if is_watered else dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})),
                         row['original_owner_id'] or row['user_id'], row['plant_pot_hue'],
+                    )
+                    await db(
+                        """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
+                        ON CONFLICT (user_id) DO UPDATE SET trade_count=trade_count+1""",
+                        row['user_id'],
                     )
                 await db.commit_transaction()
         except Exception:

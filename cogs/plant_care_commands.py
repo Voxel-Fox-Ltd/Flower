@@ -55,10 +55,23 @@ class PlantCareCommands(utils.Cog):
         """
 
         async with self.bot.database() as db:
-            await db(
+            updated_plant_rows = await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
-                plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE""",
+                plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE RETURNING *""",
                 dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
+            )
+            for row in updated_plant_rows:
+                await db(
+                    """INSERT INTO flower_achievement_counts (user_id, plant_type, plant_death_count) VALUES ($1, $2, 1)
+                    ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_death_count=max_plant_nourishment+1""",
+                    row['user_id'], row['plant_type'],
+                )
+            await db(
+                """INSERT INTO user_achievement_counts (user_id, max_plant_lifetime)
+                (SELECT user_id, MAX(TIMEZONE('UTC', NOW()) - plant_adoption_time) FROM plant_levels WHERE plant_nourishment > 0 AND immortal=FALSE
+                GROUP BY user_id) ON CONFLICT (user_id) DO UPDATE SET
+                max_plant_lifetime=GREATEST(user_achievement_counts.max_plant_lifetime, excluded.max_plant_lifetime)
+                WHERE user_achievement_counts.user_id=excluded.user_id""",
             )
 
     @tasks.loop(minutes=1)
@@ -239,7 +252,14 @@ class PlantCareCommands(utils.Cog):
             # Update db
             total_experience = int(total_experience)
             async with self.bot.database() as db:
-                if not waterer_is_owner:
+                if waterer_is_owner:
+                    gained_experience = total_experience
+                    user_experience_row = await db(
+                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                        user_id, gained_experience,
+                    )
+                else:
                     gained_experience = int(total_experience * 0.8)
                     owner_gained_experience = int(total_experience - gained_experience)
                     await db.start_transaction()
@@ -254,13 +274,12 @@ class PlantCareCommands(utils.Cog):
                         user_id, owner_gained_experience,
                     )
                     await db.commit_transaction()
-                else:
-                    gained_experience = total_experience
-                    user_experience_row = await db(
-                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                        user_id, gained_experience,
-                    )
+                await db(
+                    """INSERT INTO flower_achievement_counts (user_id, plant_type, max_plant_nourishment) VALUES ($1, $2, $3)
+                    ON CONFLICT (user_id, plant_type) DO UPDATE SET
+                    max_plant_nourishment=GREATEST(flower_achievement_counts.max_plant_nourishment, excluded.max_plant_nourishment)""",
+                    user_id, user_plant_data['plant_type'], user_plant_data['plant_nourishment']
+                )
 
         # Send an output
         if user_plant_data['plant_nourishment'] < 0:
@@ -459,6 +478,11 @@ class PlantCareCommands(utils.Cog):
                 plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
                 user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
             )
+            await db(
+                """INSERT INTO user_achievement_counts (user_id, revive_count) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET revive_count=revive_count+1""",
+                user_id,
+            )
             await db.commit_transaction()
 
         # And now we done
@@ -523,6 +547,11 @@ class PlantCareCommands(utils.Cog):
                 """UPDATE plant_levels SET immortal=true,
                 plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
                 user_id, plant_name
+            )
+            await db(
+                """INSERT INTO user_achievement_counts (user_id, immortalize_count) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET immortalize_count=immortalize_count+1""",
+                user_id,
             )
             await db.commit_transaction()
 
