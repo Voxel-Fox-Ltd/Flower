@@ -277,7 +277,7 @@ class PlantCareCommands(utils.Cog):
                 await db(
                     """INSERT INTO flower_achievement_counts (user_id, plant_type, max_plant_nourishment) VALUES ($1, $2, $3)
                     ON CONFLICT (user_id, plant_type) DO UPDATE SET
-                    max_plant_nourishment=GREATEST(max_plant_nourishment, excluded.max_plant_nourishment)""",
+                    max_plant_nourishment=GREATEST(flower_achievement_counts.max_plant_nourishment, excluded.max_plant_nourishment)""",
                     user_id, user_plant_data['plant_type'], user_plant_data['plant_nourishment']
                 )
 
