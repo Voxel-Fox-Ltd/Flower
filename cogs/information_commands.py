@@ -73,7 +73,7 @@ class InformationCommands(utils.Cog):
                 display_levels.insert(0, int(i))
                 added_display_stages.append(o)
         gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
-        plant_image_bytes = display_utils.gif_to_bytes(*gif_frames)
+        plant_image_bytes = display_utils.gif_to_bytes(*gif_frames, duration=1_000)
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"plant.gif"))
 
     @utils.command(enabled=False)

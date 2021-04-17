@@ -63,7 +63,7 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send = io.BytesIO()
         images[0].save(
             image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=images[1:], duration=duration, optimize=False,
+            append_images=images[1:], duration=duration, optimize=False, trasparency=0,
         )
         image_to_send.seek(0)
         return image_to_send
