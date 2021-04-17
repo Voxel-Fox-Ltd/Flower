@@ -66,7 +66,7 @@ class InformationCommands(utils.Cog):
 
         # Make a gif of the stages
         pot_hue = random.randint(0, 360)
-        display_levels = sorted(list(set(plant.get_nourishment_display_level(i) for i in range(1, 22))))
+        display_levels = sorted(list(set([plant.get_nourishment_display_level(i) for i in range(1, 22)])))
         gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
         plant_image_bytes = display_utils.gif_to_bytes(*gif_frames)
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"plant.gif"))
