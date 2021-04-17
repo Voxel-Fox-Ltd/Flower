@@ -550,7 +550,7 @@ class PlantCareCommands(utils.Cog):
             )
             await db(
                 """INSERT INTO user_achievement_counts (user_id, immortalize_count) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET immortalize_count=immortalize_count+1""",
+                ON CONFLICT (user_id) DO UPDATE SET immortalize_count=user_achievement_counts.immortalize_count+excluded.immortalize_count""",
                 user_id,
             )
             await db.commit_transaction()
