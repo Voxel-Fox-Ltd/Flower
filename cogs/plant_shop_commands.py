@@ -565,7 +565,7 @@ class PlantShopCommands(utils.Cog):
                     )
                     await db(
                         """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
-                        ON CONFLICT (user_id) DO UPDATE SET trade_count=trade_count+1""",
+                        ON CONFLICT (user_id) DO UPDATE SET trade_count=user_achievement_counts.trade_count+excluded.trade_count""",
                         row['user_id'],
                     )
                 await db.commit_transaction()
