@@ -366,7 +366,7 @@ class PlantCareCommands(utils.Cog):
             return None
         return data[0]
 
-    @utils.command(aliases=['delete'])
+    @utils.command(aliases=['delete', 'deleteflower'])
     @commands.bot_has_permissions(send_messages=True)
     async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
         """
