@@ -282,12 +282,12 @@ class PlantShopCommands(utils.Cog):
         # Cancel if they don't have anything available
         if available_item_count == 0:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
-            return await ctx.send(embed=embed)
+            return await ctx.reply(embed=embed)
         else:
             embed.description += "\n**Say the name of the item you want to purchase, or type `cancel` to exit the shop with nothing.**\n"
 
         # Wait for them to respond
-        shop_menu_message = await ctx.send(embed=embed)
+        shop_menu_message = await ctx.reply(embed=embed)
         try:
             done, pending = await asyncio.wait([
                 self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content),
@@ -327,9 +327,9 @@ class PlantShopCommands(utils.Cog):
                         SET plant_limit=user_settings.plant_limit+1, user_experience=user_settings.user_experience-excluded.user_experience""",
                         ctx.author.id, self.get_points_for_plant_pot(user_plant_limit)
                     )
-                return await ctx.send(f"Given you another plant pot, {ctx.author.mention}!")
+                return await plant_type_message.reply(f"Given you another plant pot, {ctx.author.mention}!")
             else:
-                return await ctx.send(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
+                return await plant_type_message.reply(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
 
         # See if they want a revival token
         item_type = self.bot.items.get(given_response.replace(' ', '_'))
@@ -353,26 +353,26 @@ class PlantShopCommands(utils.Cog):
                         ctx.author.id, item_type.name
                     )
                     await db.commit_transaction()
-                return await ctx.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
+                return await plant_type_message.reply(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
             else:
-                return await ctx.send(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
+                return await plant_type_message.reply(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
 
         # See if they want a plant
         try:
             plant_type = self.bot.plants[given_response.replace(' ', '_')]
         except KeyError:
-            return await ctx.send(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+            return await plant_type_message.reply(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
         if can_purchase_new_plants is False:
-            return await ctx.send(f"You can't purchase new plants for another **{buy_plant_cooldown.clean}**.")
+            return await plant_type_message.reply(f"You can't purchase new plants for another **{buy_plant_cooldown.clean}**.")
         if plant_type not in available_plants.values():
-            return await ctx.send(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
+            return await plant_type_message.reply(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
         if plant_type.required_experience > user_experience:
-            return await ctx.send(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
+            return await plant_type_message.reply(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
         if len(plant_level_rows) >= user_plant_limit:
-            return await ctx.send(f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c")
+            return await plant_type_message.reply(f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c")
 
         # Get a name for the plant
-        await ctx.send("What name do you want to give your plant?")
+        await plant_type_message.reply("What name do you want to give your plant?")
         while True:
             try:
                 plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
@@ -380,7 +380,7 @@ class PlantShopCommands(utils.Cog):
                 return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
             plant_name = localutils.PlantType.validate_name(plant_name_message.content)
             if len(plant_name) > 50 or len(plant_name) == 0:
-                await ctx.send("That name is too long! Please give another one instead!")
+                await plant_name_message.reply("That name is too long! Please give another one instead!")
             else:
                 break
 
@@ -391,7 +391,7 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_name
             )
             if plant_name_exists:
-                return await ctx.send(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
+                return await plant_name_message.reply(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
             await db(
                 """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue)
                 VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $5) ON CONFLICT (user_id, plant_name) DO UPDATE
@@ -407,7 +407,7 @@ class PlantShopCommands(utils.Cog):
                 ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
                 ctx.author.id, plant_type.name,
             )
-        await ctx.send(f"Planted your **{plant_type.display_name}** seeds!")
+        await plant_name_message.reply(f"Planted your **{plant_type.display_name}** seeds!")
 
     @utils.command(aliases=['trade'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
