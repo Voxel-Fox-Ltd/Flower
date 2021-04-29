@@ -423,7 +423,7 @@ class PlantCareCommands(utils.Cog):
         # Make sure some names were provided
         after = localutils.PlantType.validate_name(after)
         if not after:
-            raise utils.MissingRequiredArgumentString("after")
+            raise utils.errors.MissingRequiredArgumentString("after")
         if len(after) > 50 or len(after) == 0:
             return await ctx.send("That name is too long! Please give another one instead!")
 
