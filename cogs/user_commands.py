@@ -25,7 +25,7 @@ class UserCommands(utils.Cog):
 
         # Start our embed
         embed = utils.Embed(use_random_colour=True, description="")
-        ctx._set_footer(embed)
+        ctx.bot.set_footer_from_config(embed)
 
         # Format exp into a string
         if user_rows:
@@ -77,7 +77,7 @@ class UserCommands(utils.Cog):
 
         # Add the plant information
         embed = utils.Embed(use_random_colour=True, description=f"<@{user.id}>'s plants")
-        ctx._set_footer(embed)
+        ctx.bot.set_footer_from_config(embed)
         for plant in plant_data:
             plant_type_display = plant['plant_type'].replace('_', ' ').capitalize()
 

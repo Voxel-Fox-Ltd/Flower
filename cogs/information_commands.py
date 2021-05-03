@@ -36,7 +36,7 @@ class InformationCommands(utils.Cog):
                 plant_list.append(plant.display_name.capitalize())
             plant_list.sort()
             embed = utils.Embed(use_random_colour=True, description="\n".join(plant_list))
-            ctx._set_footer(embed)
+            ctx.bot.set_footer_from_config(embed)
             return await ctx.send(embed=embed)
 
         # See if the given name is valid
@@ -61,7 +61,7 @@ class InformationCommands(utils.Cog):
             embed.title = plant.display_name.capitalize()
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.gif")
-            ctx._set_footer(embed)
+            ctx.bot.set_footer_from_config(embed)
         display_utils = self.bot.get_cog("PlantDisplayUtils")
 
         # Make a gif of the stages
@@ -137,7 +137,7 @@ class InformationCommands(utils.Cog):
             use_random_colour=True,
             description=VOLUNTEER_INFORMATION,
         )
-        ctx._set_footer(embed)
+        ctx.bot.set_footer_from_config(embed)
         try:
             await ctx.author.send(embed=embed)
         except discord.HTTPException:

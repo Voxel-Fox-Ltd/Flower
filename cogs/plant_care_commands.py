@@ -338,14 +338,14 @@ class PlantCareCommands(utils.Cog):
 
             # Add "please vote for Flower" footer
             counter = 0
-            ctx._set_footer(embed)
+            ctx.bot.set_footer_from_config(embed)
 
             def check(footer_text) -> bool:
                 if item['voted_on_topgg']:
                     return 'vote' not in footer_text
                 return 'vote' in footer_text
             while counter < 100 and check(embed.footer.text.lower()):
-                ctx._set_footer(embed)
+                ctx.bot.set_footer_from_config(embed)
                 counter += 1
 
             # Clear the text we would otherwise output

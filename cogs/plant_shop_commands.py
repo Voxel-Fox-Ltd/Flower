@@ -221,7 +221,7 @@ class PlantShopCommands(utils.Cog):
         # Set up our initial embed
         available_item_count = 0  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
-        ctx._set_footer(embed)
+        ctx.bot.set_footer_from_config(embed)
 
         # See what we wanna get to doing
         embed.description += (
