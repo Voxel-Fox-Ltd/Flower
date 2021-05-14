@@ -178,7 +178,7 @@ class PlantCareCommands(utils.Cog):
         if last_water_time + water_cooldown_period > dt.utcnow() and user_id not in self.bot.owner_ids:
             await db.disconnect()
             timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()).total_seconds())
-            return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able water {their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
+            return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able to water {their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
 
         # See if the plant should be dead
         if plant_level_row[0]['plant_nourishment'] < 0:
