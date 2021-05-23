@@ -427,7 +427,11 @@ class PlantShopCommands(utils.Cog):
 
         # Get their alive plants _now_, even if we have to do it later again
         async with self.bot.database() as db:
-            rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
+            rows = await db(
+                """SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0
+                ORDER BY plant_name ASC""",
+                [ctx.author.id, user.id],
+            )
         alive_plants = collections.defaultdict(list)
         for row in rows:
             alive_plants[row['user_id']].append(row)
@@ -436,7 +440,10 @@ class PlantShopCommands(utils.Cog):
         if not alive_plants[ctx.author.id]:
             return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
         elif not alive_plants[user.id]:
-            return await ctx.send(f"{user.mention} doesn't have any alive plants to trade, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+            return await ctx.send(
+                f"{user.mention} doesn't have any alive plants to trade, {ctx.author.mention}!",
+                allowed_mentions=discord.AllowedMentions(users=[ctx.author]),
+            )
 
         # See if they want to trade
         m = await ctx.send(f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?")
@@ -447,16 +454,26 @@ class PlantShopCommands(utils.Cog):
             r, _ = await self.bot.wait_for("reaction_add", check=check, timeout=120)
         except asyncio.TimeoutError:
             try:
-                await ctx.send(f"{user.mention} didn't respond to your trade request in time, {ctx.author.mention}", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+                await ctx.send(
+                    f"{user.mention} didn't respond to your trade request in time, {ctx.author.mention}",
+                    allowed_mentions=discord.AllowedMentions(users=[ctx.author]),
+                )
             except discord.HTTPException:
                 pass
             return
         if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
-            return await ctx.send(f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+            return await ctx.send(
+                f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c",
+                allowed_mentions=discord.AllowedMentions(users=[ctx.author]),
+            )
 
         # Get their alive plants _again_
         async with self.bot.database() as db:
-            rows = await db("SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0 ORDER BY plant_name ASC", [ctx.author.id, user.id])
+            rows = await db(
+                """SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0
+                ORDER BY plant_name ASC""",
+                [ctx.author.id, user.id],
+            )
         alive_plants = collections.defaultdict(list)
         for row in rows:
             alive_plants[row['user_id']].append(row)
@@ -469,14 +486,13 @@ class PlantShopCommands(utils.Cog):
 
         # Format an embed
         embed = utils.Embed(use_random_colour=True)
+        formatter = lambda row: f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})"
         embed.add_field(
-            f"{ctx.author.name}",
-            "\n".join([f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})" for row in alive_plants[ctx.author.id]]),
+            ctx.author.name, "\n".join([formatter(row) for row in alive_plants[ctx.author.id]]),
             inline=True,
         )
         embed.add_field(
-            f"{user.name}",
-            "\n".join([f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})" for row in alive_plants[user.id]]),
+            user.name, "\n".join([formatter(row) for row in alive_plants[user.id]]),
             inline=True,
         )
 
@@ -489,7 +505,7 @@ class PlantShopCommands(utils.Cog):
                 for uid, ind in trade_plant_index.items():
                     if ind is None:
                         allowed_ids.add(uid)
-                return m.author.id in allowed_ids and m.content  # and m.content.isdigit()
+                return m.author.id in allowed_ids and m.content
             try:
                 index_message = await self.bot.wait_for("message", check=check, timeout=30)
             except asyncio.TimeoutError:
@@ -550,14 +566,24 @@ class PlantShopCommands(utils.Cog):
         # Alright sick let's trade
         try:
             async with self.bot.database() as db:
+
+                # Start a transaction to make sure we do alright
                 await db.start_transaction()
+
+                # Delete the current plants from the users
                 for row in plants_being_traded:
                     v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
                     assert v is not None
+
+                # Go through each of the traded plants
                 for row in plants_being_traded:
+
+                    # See if we need to update the last water time
                     water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
                     is_watered = row['last_water_time'] + water_cooldown > dt.utcnow()
                     last_water_time = row['last_water_time'] if is_watered else dt.utcnow() - water_cooldown
+
+                    # Add the plant to the user
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
                         last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue, immortal)
@@ -566,17 +592,25 @@ class PlantShopCommands(utils.Cog):
                         row['plant_nourishment'], last_water_time, row['original_owner_id'] or row['user_id'],
                         row['plant_pot_hue'], row['immortal'],
                     )
+
+                    # Increment their trade count
                     await db(
                         """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
                         ON CONFLICT (user_id) DO UPDATE SET trade_count=user_achievement_counts.trade_count+excluded.trade_count""",
                         row['user_id'],
                     )
+
+                # Commit the transaction
                 await db.commit_transaction()
+
+        # Raised on assertion error or transaction failure
         except Exception:
             return await ctx.send((
                 "I couldn't trade your plants! That probably means that one of you already "
                 "_has_ a plant with the given name in your plant list."
             ))
+
+        # And we're done
         await ctx.send("Traded your plants!")
 
 
