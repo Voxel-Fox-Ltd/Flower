@@ -106,11 +106,7 @@ class UserCommands(utils.Cog):
             embed.add_field(plant['plant_name'], text, inline=False)
 
         # Return to user
-        v = await ctx.send(embed=embed)
-        try:
-            await self.bot.add_delete_button(v, (ctx.author, user,), wait=False)
-        except discord.HTTPException:
-            pass
+        return await ctx.send(embed=embed)
 
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
