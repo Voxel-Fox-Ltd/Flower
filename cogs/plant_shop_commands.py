@@ -555,13 +555,16 @@ class PlantShopCommands(utils.Cog):
                     v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
                     assert v is not None
                 for row in plants_being_traded:
-                    is_watered = row['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})) > dt.utcnow()
+                    water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+                    is_watered = row['last_water_time'] + water_cooldown > dt.utcnow()
+                    last_water_time = row['last_water_time'] if is_watered else dt.utcnow() - water_cooldown
                     await db(
                         """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
-                        last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue) VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()), $7)""",
-                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'], row['plant_nourishment'],
-                        row['last_water_time'] if is_watered else dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})),
-                        row['original_owner_id'] or row['user_id'], row['plant_pot_hue'],
+                        last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue, immortal)
+                        VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()), $7, $8)""",
+                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'],
+                        row['plant_nourishment'], last_water_time, row['original_owner_id'] or row['user_id'],
+                        row['plant_pot_hue'], row['immortal'],
                     )
                     await db(
                         """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
@@ -570,7 +573,10 @@ class PlantShopCommands(utils.Cog):
                     )
                 await db.commit_transaction()
         except Exception:
-            return await ctx.send("I couldn't trade your plants! That probably means that one of you already _has_ a plant with the given name in your plant list.")
+            return await ctx.send((
+                "I couldn't trade your plants! That probably means that one of you already "
+                "_has_ a plant with the given name in your plant list."
+            ))
         await ctx.send("Traded your plants!")
 
 
