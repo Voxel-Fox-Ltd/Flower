@@ -295,7 +295,7 @@ class PlantShopCommands(utils.Cog):
         # Cancel if they don't have anything available
         if not [i for i in all_items if not i['disabled']]:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
-            return await ctx.reply(embed=embed, components=components)
+            return await ctx.send(ctx.author.mention, embed=embed, components=components)
         components.components[-1].components.append(utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER))
 
         # Wait for them to respond
