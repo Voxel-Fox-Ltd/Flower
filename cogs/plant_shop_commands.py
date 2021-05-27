@@ -295,7 +295,7 @@ class PlantShopCommands(utils.Cog):
 
         # Wait for them to respond
         shop_menu_message = await ctx.reply(embed=embed, components=utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(i['name'], i['name'], disabled=i['disabled']) for i in all_items],
+            *[utils.Button(i['label'], i['label'], disabled=i['disabled']) for i in all_items],
             utils.Button("Cancel", "cancel", utils.ButtonStyle.DANGER),
         ))
         try:
@@ -367,9 +367,14 @@ class PlantShopCommands(utils.Cog):
                         ctx.author.id, item_type.name
                     )
                     await db.commit_transaction()
-                return await payload.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
+                return await payload.send((
+                    f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it "
+                    f"with `{item_type.usage.format(ctx=ctx)}`."
+                ))
             else:
-                return await payload.send(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
+                return await payload.send(
+                    f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c",
+                )
 
         # See if they want a plant
         try:
