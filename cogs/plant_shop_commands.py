@@ -229,7 +229,8 @@ class PlantShopCommands(utils.Cog):
         # See what we wanna get to doing
         embed.description += (
             f"What would you like to spend your experience to buy, {ctx.author.mention}? "
-            f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your {user_plant_limit:,} available plant pots.\n"
+            f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your "
+            f"{user_plant_limit:,} available plant pots.\n"
         )
         available_plants = await self.get_available_plants(ctx.author.id)
 
@@ -262,13 +263,13 @@ class PlantShopCommands(utils.Cog):
 
         # Add pots
         modifier = lambda x: x
-        text = f"Pot - `{self.get_points_for_plant_pot(user_plant_limit):,} exp`"
+        text = f"Pot ({self.get_points_for_plant_pot(user_plant_limit):,} exp)"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
             all_items.append({"label": text, "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
-            all_items.append({"label": text, "disabled": True})
+            all_items.append({"label": "Pot (maximum pots reached)", "disabled": True})
         else:
             modifier = strikethrough
             all_items.append({"label": text, "disabled": True})
@@ -277,7 +278,7 @@ class PlantShopCommands(utils.Cog):
         # Add variable items
         for item in self.bot.items.values():
             modifier = lambda x: x
-            text = f"{item.display_name.capitalize()} - `{item.price:,} exp`"
+            text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
                 all_items.append({"label": text, "disabled": False})
             else:
