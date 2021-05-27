@@ -416,23 +416,27 @@ class PlantCareCommands(utils.Cog):
         """
 
         # Make sure they want to
-        m = await ctx.send(f"Are you sure you want to delete **{plant_name}** from your inventory?")
-        emojis = ["\N{HEAVY CHECK MARK}", "\N{HEAVY MULTIPLICATION X}"]
-        for e in emojis:
-            self.bot.loop.create_task(m.add_reaction(e))
+        m = await ctx.send(
+            f"Are you sure you want to delete **{plant_name}** from your inventory?",
+            components=utils.MessageComponents.boolean_buttons(),
+        )
         try:
-            check = lambda p: p.user_id == ctx.author.id and p.message_id == m.id and str(p.emoji) in emojis
-            payload = await self.bot.wait_for("raw_reaction_add", check=check, timeout=120)
+            payload = await m.wait_for_button_click(check=lambda p: p.user.id == ctx.author.id, timeout=120)
+            await payload.ack()
+            await payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components())
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant deletion, {ctx.author.mention}.")
 
         # Check their reaction
-        if str(payload.emoji) == "\N{HEAVY MULTIPLICATION X}":
+        if payload.component.custom_id == "NO":
             return await ctx.send("Alright, cancelled deletion")
 
         data = await self.delete_plant_backend(ctx.author.id, plant_name)
         if not data:
-            return await ctx.send(f"You have no plant names **{plant_name}**!", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+            return await ctx.send(
+                f"You have no plant names **{plant_name}**!",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
         return await ctx.send(f"Done - you've deleted your {data['plant_type'].replace('_', ' ')}.")
 
