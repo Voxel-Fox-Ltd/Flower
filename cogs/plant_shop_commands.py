@@ -326,7 +326,7 @@ class PlantShopCommands(utils.Cog):
         payload = done
         given_response = payload.component.custom_id.lower()  # .replace(' ', '_')
         await payload.ack()
-        await payload.message.edit(component=None)
+        await payload.message.edit(components=None)
 
         # See if they want to cancel
         if given_response == "cancel":
