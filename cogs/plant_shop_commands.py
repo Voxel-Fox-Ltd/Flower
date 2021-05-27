@@ -266,7 +266,7 @@ class PlantShopCommands(utils.Cog):
         text = f"Pot ({self.get_points_for_plant_pot(user_plant_limit):,} exp)"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
-            all_items.append({"label": text, "disabled": False})
+            all_items.append({"label": text, "name": "pot", "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
             all_items.append({"label": "Pot (maximum pots reached)", "name": "pot", "disabled": True})
