@@ -280,10 +280,10 @@ class PlantShopCommands(utils.Cog):
             modifier = lambda x: x
             text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
-                all_items.append({"label": text, "name": item, "disabled": False})
+                all_items.append({"label": text, "name": item.name, "disabled": False})
             else:
                 modifier = strikethrough
-                all_items.append({"label": text, "name": item, "disabled": True})
+                all_items.append({"label": text, "name": item.name, "disabled": True})
             item_text.append(modifier(text))
 
         # Add all our items to the embed
