@@ -121,13 +121,16 @@ class PlantShopCommands(utils.Cog):
                     level += 1
                 await db(
                     """INSERT INTO user_available_plants
-                    (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2, plant_level_3, plant_level_4, plant_level_5, plant_level_6)
+                    (user_id, last_shop_timestamp, plant_level_0, plant_level_1, plant_level_2,
+                    plant_level_3, plant_level_4, plant_level_5, plant_level_6)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (user_id) DO UPDATE SET
-                    last_shop_timestamp=excluded.last_shop_timestamp, plant_level_0=excluded.plant_level_0, plant_level_1=excluded.plant_level_1,
-                    plant_level_2=excluded.plant_level_2, plant_level_3=excluded.plant_level_3, plant_level_4=excluded.plant_level_4,
+                    last_shop_timestamp=excluded.last_shop_timestamp, plant_level_0=excluded.plant_level_0,
+                    plant_level_1=excluded.plant_level_1, plant_level_2=excluded.plant_level_2,
+                    plant_level_3=excluded.plant_level_3, plant_level_4=excluded.plant_level_4,
                     plant_level_5=excluded.plant_level_5, plant_level_6=excluded.plant_level_6""",
-                    user_id, dt.utcnow(), available_plants[0].name, available_plants[1].name, available_plants[2].name, available_plants[3].name,
-                    available_plants[4].name, available_plants[5].name, available_plants[6].name,
+                    user_id, dt.utcnow(), available_plants[0].name, available_plants[1].name,
+                    available_plants[2].name, available_plants[3].name, available_plants[4].name,
+                    available_plants[5].name, available_plants[6].name,
                 )
 
             # They have available plants, format into new dictionary
@@ -219,7 +222,7 @@ class PlantShopCommands(utils.Cog):
             )
 
         # Set up our initial embed
-        available_item_count = 0  # Used to make sure we can continue the command
+        all_items = []  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
         ctx.bot.set_footer_from_config(embed)
 
@@ -238,16 +241,19 @@ class PlantShopCommands(utils.Cog):
         plant_text = []
         for plant in sorted(available_plants.values()):
             modifier = lambda x: x
-            text = f"{plant.display_name.capitalize()} - free"  # TODO remove this - all plants cost nothing now
+            text = plant.display_name.capitalize()
             if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < user_plant_limit:
-                available_item_count += 1
+                all_items.append({"label": text, "disabled": False})
             else:
                 modifier = strikethrough
+                all_items.append({"label": text, "disabled": True})
             plant_text.append(modifier(text))
 
         # Say when the plants will change
         now = dt.utcnow()
-        remaining_time = utils.TimeValue((dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now).total_seconds())
+        remaining_time = utils.TimeValue((
+            dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now
+        ).total_seconds())
         plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
         embed.add_field("Available Plants", '\n'.join(plant_text), inline=True)
 
@@ -259,11 +265,13 @@ class PlantShopCommands(utils.Cog):
         text = f"Pot - `{self.get_points_for_plant_pot(user_plant_limit):,} exp`"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
-            available_item_count += 1
+            all_items.append({"label": text, "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
+            all_items.append({"label": text, "disabled": True})
         else:
             modifier = strikethrough
+            all_items.append({"label": text, "disabled": True})
         item_text.append(modifier(text))
 
         # Add variable items
@@ -271,29 +279,38 @@ class PlantShopCommands(utils.Cog):
             modifier = lambda x: x
             text = f"{item.display_name.capitalize()} - `{item.price:,} exp`"
             if user_experience >= item.price:
-                available_item_count += 1
+                all_items.append({"label": text, "disabled": False})
             else:
                 modifier = strikethrough
+                all_items.append({"label": text, "disabled": True})
             item_text.append(modifier(text))
 
         # Add all our items to the embed
         embed.add_field("Available Items", '\n'.join(item_text), inline=True)
 
         # Cancel if they don't have anything available
-        if available_item_count == 0:
+        if not [i for i in all_items if not i['disabled']]:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
             return await ctx.reply(embed=embed)
-        else:
-            embed.description += "\n**Say the name of the item you want to purchase, or type `cancel` to exit the shop with nothing.**\n"
 
         # Wait for them to respond
-        shop_menu_message = await ctx.reply(embed=embed)
+        shop_menu_message = await ctx.reply(embed=embed, components=utils.MessageComponents.add_buttons_with_rows(
+            *[utils.Button(i['name'], i['name'], disabled=i['disabled']) for i in all_items],
+            utils.Button("Cancel", "cancel", utils.ButtonStyle.DANGER),
+        ))
         try:
             done, pending = await asyncio.wait([
-                self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content),
-                self.bot.wait_for("raw_message_delete", check=lambda m: m.message_id == shop_menu_message.id),
+                self.bot.wait_for(
+                    "message",
+                    check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content,
+                ),
+                self.bot.wait_for(
+                    "button_click",
+                    check=lambda p: p.message.id == shop_menu_message.id and ctx.author.id == p.user.id,
+                ),
             ], timeout=120, return_when=asyncio.FIRST_COMPLETED)
         except asyncio.TimeoutError:
+            await shop_menu_message.edit(components=None)
             return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
 
         # See how they responded
@@ -305,31 +322,28 @@ class PlantShopCommands(utils.Cog):
             return await ctx.send(f"Timed out asking for plant type {ctx.author.mention}.")
         if isinstance(done, discord.RawMessageDeleteEvent):
             return
-        plant_type_message = done
-        given_response = plant_type_message.content.lower()  # .replace(' ', '_')
+        payload = done
+        given_response = payload.component.custom_id.lower()  # .replace(' ', '_')
 
         # See if they want to cancel
         if given_response == "cancel":
-            try:
-                await plant_type_message.add_reaction("\N{OK HAND SIGN}")
-            except discord.HTTPException:
-                pass
-            return
+            return await payload.message.edit(components=None)
 
         # See if they want a plant pot
         if given_response == "pot":
             if user_plant_limit >= self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
-                return await ctx.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
+                return await payload.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
             if user_experience >= self.get_points_for_plant_pot(user_plant_limit):
                 async with self.bot.database() as db:
                     await db(
-                        """INSERT INTO user_settings (user_id, plant_limit, user_experience) VALUES ($1, 2, $2) ON CONFLICT (user_id) DO UPDATE
-                        SET plant_limit=user_settings.plant_limit+1, user_experience=user_settings.user_experience-excluded.user_experience""",
+                        """INSERT INTO user_settings (user_id, plant_limit, user_experience) VALUES ($1, 2, $2)
+                        ON CONFLICT (user_id) DO UPDATE SET plant_limit=user_settings.plant_limit+1,
+                        user_experience=user_settings.user_experience-excluded.user_experience""",
                         ctx.author.id, self.get_points_for_plant_pot(user_plant_limit)
                     )
-                return await plant_type_message.reply(f"Given you another plant pot, {ctx.author.mention}!")
+                return await payload.send(f"Given you another plant pot, {ctx.author.mention}!")
             else:
-                return await plant_type_message.reply(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
+                return await payload.send(f"You don't have the required experience to get a new plant pot, {ctx.author.mention} :c")
 
         # See if they want a revival token
         item_type = self.bot.items.get(given_response.replace(' ', '_'))
@@ -353,31 +367,47 @@ class PlantShopCommands(utils.Cog):
                         ctx.author.id, item_type.name
                     )
                     await db.commit_transaction()
-                return await plant_type_message.reply(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
+                return await payload.send(f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it with `{item_type.usage.format(ctx=ctx)}`.")
             else:
-                return await plant_type_message.reply(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
+                return await payload.send(f"You don't have the required experience to get a **{item_type.display_name}**, {ctx.author.mention} :c")
 
         # See if they want a plant
         try:
             plant_type = self.bot.plants[given_response.replace(' ', '_')]
         except KeyError:
-            return await plant_type_message.reply(f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!", allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False))
+            return await payload.send(
+                f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!",
+                allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False),
+            )
         if can_purchase_new_plants is False:
-            return await plant_type_message.reply(f"You can't purchase new plants for another **{buy_plant_cooldown.clean}**.")
+            return await payload.send(
+                f"You can't purchase new plants for another **{buy_plant_cooldown.clean}**.",
+            )
         if plant_type not in available_plants.values():
-            return await plant_type_message.reply(f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c")
+            return await payload.send(
+                f"**{plant_type.display_name.capitalize()}** isn't available in your shop this month, {ctx.author.mention} :c",
+            )
         if plant_type.required_experience > user_experience:
-            return await plant_type_message.reply(f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} (it requires {plant_type.required_experience}, you have {user_experience}) :c")
+            return await payload.send((
+                f"You don't have the required experience to get a **{plant_type.display_name}**, {ctx.author.mention} "
+                f"(it requires {plant_type.required_experience}, you have {user_experience}) :c"
+            ))
         if len(plant_level_rows) >= user_plant_limit:
-            return await plant_type_message.reply(f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c")
+            return await payload.send(
+                f"You don't have enough plant pots to be able to get a **{plant_type.display_name}**, {ctx.author.mention} :c",
+            )
 
         # Get a name for the plant
-        await plant_type_message.reply("What name do you want to give your plant?")
+        await payload.send("What name do you want to give your plant?")
         while True:
             try:
-                plant_name_message = await self.bot.wait_for("message", check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content, timeout=120)
+                plant_name_message = await self.bot.wait_for(
+                    "message",
+                    check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content,
+                    timeout=120,
+                )
             except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out asking for plant name {ctx.author.mention}.")
+                return await payload.send(f"Timed out asking for plant name {ctx.author.mention}.")
             plant_name = localutils.PlantType.validate_name(plant_name_message.content)
             if len(plant_name) > 50 or len(plant_name) == 0:
                 await plant_name_message.reply("That name is too long! Please give another one instead!")
@@ -391,20 +421,30 @@ class PlantShopCommands(utils.Cog):
                 ctx.author.id, plant_name
             )
             if plant_name_exists:
-                return await plant_name_message.reply(f"You've already used the name `{plant_name}` for one of your other plants - please run this command again to give a new one!", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
+                return await plant_name_message.reply(
+                    (
+                        f"You've already used the name `{plant_name}` for one of your other plants - "
+                        "please run this command again to give a new one!"
+                    ),
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
             await db(
-                """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment, last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue)
-                VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $5) ON CONFLICT (user_id, plant_name) DO UPDATE
+                """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
+                last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue)
+                VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $5) ON
+                CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
                 ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
             )
             await db(
-                """UPDATE user_settings SET user_experience=user_settings.user_experience-$2, last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1""",
+                """UPDATE user_settings SET user_experience=user_settings.user_experience-$2,
+                last_plant_shop_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1""",
                 ctx.author.id, plant_type.required_experience,
             )
             await db(
                 """INSERT INTO plant_achievement_counts (user_id, plant_type, plant_count) VALUES ($1, $2, 1)
-                ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
+                ON CONFLICT (user_id, plant_type) DO UPDATE SET
+                plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
                 ctx.author.id, plant_type.name,
             )
         await plant_name_message.reply(f"Planted your **{plant_type.display_name}** seeds!")
