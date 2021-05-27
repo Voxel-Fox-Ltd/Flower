@@ -244,10 +244,10 @@ class PlantShopCommands(utils.Cog):
             modifier = lambda x: x
             text = plant.display_name.capitalize()
             if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < user_plant_limit:
-                all_items.append({"label": text, "disabled": False})
+                all_items.append({"label": text, "name": plant.name, "disabled": False})
             else:
                 modifier = strikethrough
-                all_items.append({"label": text, "disabled": True})
+                all_items.append({"label": text, "name": plant.name, "disabled": True})
             plant_text.append(modifier(text))
 
         # Say when the plants will change
@@ -269,10 +269,10 @@ class PlantShopCommands(utils.Cog):
             all_items.append({"label": text, "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
-            all_items.append({"label": "Pot (maximum pots reached)", "disabled": True})
+            all_items.append({"label": "Pot (maximum pots reached)", "name": "pot", "disabled": True})
         else:
             modifier = strikethrough
-            all_items.append({"label": text, "disabled": True})
+            all_items.append({"label": text, "name": "pot", "disabled": True})
         item_text.append(modifier(text))
 
         # Add variable items
@@ -280,10 +280,10 @@ class PlantShopCommands(utils.Cog):
             modifier = lambda x: x
             text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
-                all_items.append({"label": text, "disabled": False})
+                all_items.append({"label": text, "name": item, "disabled": False})
             else:
                 modifier = strikethrough
-                all_items.append({"label": text, "disabled": True})
+                all_items.append({"label": text, "name": item, "disabled": True})
             item_text.append(modifier(text))
 
         # Add all our items to the embed
@@ -296,7 +296,7 @@ class PlantShopCommands(utils.Cog):
 
         # Wait for them to respond
         shop_menu_message = await ctx.reply(embed=embed, components=utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(i['label'], i['label'], disabled=i['disabled']) for i in all_items],
+            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
             utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
         ))
         try:
@@ -382,7 +382,7 @@ class PlantShopCommands(utils.Cog):
             plant_type = self.bot.plants[given_response.replace(' ', '_')]
         except KeyError:
             return await payload.send(
-                f"`{plant_type_message.content}` isn't an available plant name, {ctx.author.mention}!",
+                f"`{given_response}` isn't an available plant name, {ctx.author.mention}!",
                 allowed_mentions=discord.AllowedMentions(users=[ctx.author], roles=False, everyone=False),
             )
         if can_purchase_new_plants is False:
