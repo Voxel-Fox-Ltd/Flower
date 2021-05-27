@@ -68,10 +68,10 @@ class PlantCareCommands(utils.Cog):
                 )
             await db(
                 """INSERT INTO user_achievement_counts (user_id, max_plant_lifetime)
-                (SELECT user_id, MAX(TIMEZONE('UTC', NOW()) - plant_adoption_time) FROM plant_levels WHERE plant_nourishment > 0 AND immortal=FALSE
-                GROUP BY user_id) ON CONFLICT (user_id) DO UPDATE SET
-                max_plant_lifetime=GREATEST(user_achievement_counts.max_plant_lifetime, excluded.max_plant_lifetime)
-                WHERE user_achievement_counts.user_id=excluded.user_id""",
+                (SELECT user_id, MAX(TIMEZONE('UTC', NOW()) - plant_adoption_time) FROM plant_levels WHERE
+                plant_levels.plant_nourishment > 0 AND immortal=FALSE GROUP BY user_id) ON CONFLICT
+                (user_id) DO UPDATE SET max_plant_lifetime=GREATEST(user_achievement_counts.max_plant_lifetime,
+                excluded.max_plant_lifetime) WHERE user_achievement_counts.user_id=excluded.user_id""",
             )
 
     @tasks.loop(minutes=1)
@@ -154,38 +154,60 @@ class PlantCareCommands(utils.Cog):
 
         # See if they can water this person's plant
         if not waterer_is_owner:
-            given_key = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2", user_id, waterer_id)
+            given_key = await db(
+                """SELECT * FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2""",
+                user_id, waterer_id,
+            )
             if not given_key:
                 await db.disconnect()
                 return self.get_water_plant_dict(f"You don't have access to <@{user_id}>'s garden!")
 
         # See if they have a plant available
-        plant_level_row = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user_id, plant_name)
+        plant_level_row = await db(
+            """SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+            user_id, plant_name,
+        )
         if not plant_level_row:
             await db.disconnect()
-            shop_note = "Run the `shop` command to plant some new seeds, or `plants` to see the list of plants you have already!"
-            return self.get_water_plant_dict(f"{they_you.capitalize()} don't have a plant with the name **{plant_name}**! {shop_note if waterer_is_owner else ''}")
+            shop_note = (
+                "Run the `shop` command to plant some new seeds, or `plants` "
+                "to see the list of plants you have already!"
+            )
+            return self.get_water_plant_dict((
+                f"{they_you.capitalize()} don't have a plant with the name **{plant_name}**! "
+                f"{shop_note if waterer_is_owner else ''}"
+            ))
         plant_data = self.bot.plants[plant_level_row[0]['plant_type']]
 
+        # See if the user running the command is the owner of the plant and give a cooldown period properly
         if waterer_is_owner:
-            water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+            water_cooldown_period = timedelta(
+                **self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})
+            )
         else:
-            water_cooldown_period = timedelta(**self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60}))
-
-        last_water_time = plant_level_row[0]['last_water_time']
+            water_cooldown_period = timedelta(
+                **self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60})
+            )
 
         # See if they're allowed to water things
-        if last_water_time + water_cooldown_period > dt.utcnow() and user_id not in self.bot.owner_ids:
+        last_water_time = plant_level_row[0]['last_water_time']
+        if (last_water_time + water_cooldown_period) > dt.utcnow() and user_id not in self.bot.owner_ids:
             await db.disconnect()
-            timeout = utils.TimeValue(((plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()).total_seconds())
-            return self.get_water_plant_dict(f"You need to wait another {timeout.clean_spaced} to be able to water {their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}.")
+            timeout = utils.TimeValue((
+                (plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()
+            ).total_seconds())
+            return self.get_water_plant_dict((
+                f"You need to wait another {timeout.clean_spaced} to be able to water "
+                f"{their_your} {plant_level_row[0]['plant_type'].replace('_', ' ')}."
+            ))
 
         # See if the plant should be dead
         if plant_level_row[0]['plant_nourishment'] < 0:
             plant_level_row = await db(
                 """UPDATE plant_levels SET
-                plant_nourishment=LEAST(-plant_levels.plant_nourishment, plant_levels.plant_nourishment), last_water_time=$3
-                WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *""",
+                plant_nourishment=LEAST(-plant_levels.plant_nourishment, plant_levels.plant_nourishment),
+                last_water_time=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)
+                RETURNING *""",
                 user_id, plant_name, dt.utcnow(),
             )
 
@@ -193,7 +215,8 @@ class PlantCareCommands(utils.Cog):
         else:
             plant_level_row = await db(
                 """UPDATE plant_levels
-                SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4), last_water_time=$3, notification_sent=FALSE
+                SET plant_nourishment=LEAST(plant_levels.plant_nourishment+1, $4),
+                last_water_time=$3, notification_sent=FALSE
                 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *""",
                 user_id, plant_name, dt.utcnow(), plant_data.max_nourishment_level,
             )
@@ -216,16 +239,20 @@ class PlantCareCommands(utils.Cog):
             # Get the experience that they should have gained
             total_experience = plant_data.get_experience()
             original_gained_experience = total_experience
-            # if not waterer_is_owner:
-            #     original_gained_experience = int(original_gained_experience * 0.8)
 
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - water_cooldown_period <= timedelta(seconds=30):
-                multipliers.append({"multiplier": 1.5, "text": f"You watered within 30 seconds of {their_your} plant's cooldown resetting."})
+                multipliers.append({
+                    "multiplier": 1.5,
+                    "text": f"You watered within 30 seconds of {their_your} plant's cooldown resetting.",
+                })
 
             # See if we want to give the new owner bonus
             if plant_level_row[0]['user_id'] != plant_level_row[0]['original_owner_id']:
-                multipliers.append({"multiplier": 1.05, "text": f"You watered a plant that {they_you} got from a trade."})
+                multipliers.append({
+                    "multiplier": 1.05,
+                    "text": f"You watered a plant that {they_you} got from a trade.",
+                })
 
             # See if we want to give them the voter bonus
             user_voted_api_request = False
@@ -234,16 +261,26 @@ class PlantCareCommands(utils.Cog):
             except asyncio.TimeoutError:
                 pass
             if self.bot.config.get('bot_listing_api_keys', {}).get('topgg_token') and user_voted_api_request:
-                multipliers.append({"multiplier": 1.1, "text": f"You [voted for the bot](https://top.gg/bot/{self.bot.config['oauth']['client_id']}/vote) on Top.gg."})
+                bot_client_id = self.bot.config['oauth']['client_id']
+                multipliers.append({
+                    "multiplier": 1.1,
+                    "text": f"You [voted for the bot](https://top.gg/bot/{bot_client_id}/vote) on Top.gg.",
+                })
                 voted_on_topgg = True
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['plant_adoption_time'] < dt.utcnow() - timedelta(days=7):
-                multipliers.append({"multiplier": 1.2, "text": f"{their_your.title()} plant has been alive for longer than a week."})
+                multipliers.append({
+                    "multiplier": 1.2,
+                    "text": f"{their_your.title()} plant has been alive for longer than a week.",
+                })
 
             # See if we want to give them the plant longevity bonus
             if user_plant_data['immortal']:
-                multipliers.append({"multiplier": 0.5, "text": f"{their_your} plant is immortal."})
+                multipliers.append({
+                    "multiplier": 0.5,
+                    "text": f"{their_your} plant is immortal.",
+                })
 
             # Add the actual multiplier values
             for obj in multipliers:
@@ -252,6 +289,8 @@ class PlantCareCommands(utils.Cog):
             # Update db
             total_experience = int(total_experience)
             async with self.bot.database() as db:
+
+                # Give exp to everyone we care about
                 if waterer_is_owner:
                     gained_experience = total_experience
                     user_experience_row = await db(
@@ -274,10 +313,13 @@ class PlantCareCommands(utils.Cog):
                         user_id, owner_gained_experience,
                     )
                     await db.commit_transaction()
+
+                # Update the user achievements
                 await db(
                     """INSERT INTO plant_achievement_counts (user_id, plant_type, max_plant_nourishment) VALUES ($1, $2, $3)
                     ON CONFLICT (user_id, plant_type) DO UPDATE SET
-                    max_plant_nourishment=GREATEST(plant_achievement_counts.max_plant_nourishment, excluded.max_plant_nourishment)""",
+                    max_plant_nourishment=GREATEST(plant_achievement_counts.max_plant_nourishment,
+                    excluded.max_plant_nourishment)""",
                     user_id, user_plant_data['plant_type'], user_plant_data['plant_nourishment']
                 )
 

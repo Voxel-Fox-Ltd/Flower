@@ -42,13 +42,22 @@ class UserCommands(utils.Cog):
         they_you = {True: "you", False: "they"}.get(user.id == ctx.author.id)
         their_your = {True: "your", False: "their"}.get(user.id == ctx.author.id)
         if plant_limit == len(plant_rows):
-            embed.description += f"{they_you.capitalize()} are currently using all of {their_your} available {plant_limit} plant pots.\n"
+            embed.description += ((
+                f"{they_you.capitalize()} are currently using all of {their_your} "
+                f"available {plant_limit} plant pots.\n"
+            ))
         else:
-            embed.description += f"{they_you.capitalize()} are currently using {len(plant_rows)} of {their_your} available {plant_limit} plant pots.\n"
+            embed.description += ((
+                f"{they_you.capitalize()} are currently using {len(plant_rows)} of "
+                f"{their_your} available {plant_limit} plant pots.\n"
+            ))
 
         # Format inventory into a string
         if user_inventory_rows:
-            inventory_string = "\n".join([f"{row['item_name'].replace('_', ' ').capitalize()} x{row['amount']:,}" for row in user_inventory_rows])
+            inventory_string = "\n".join([
+                f"{row['item_name'].replace('_', ' ').capitalize()} x{row['amount']:,}"
+                for row in user_inventory_rows
+            ])
             embed.add_field("Inventory", inventory_string)
 
         # Return to user
@@ -65,8 +74,9 @@ class UserCommands(utils.Cog):
         user = user or ctx.author
         async with self.bot.database() as db:
             plant_data = await db(
-                """SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC, plant_type DESC, plant_nourishment DESC,
-                last_water_time DESC, plant_adoption_time DESC""",
+                """SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC,
+                plant_type DESC, plant_nourishment DESC, last_water_time DESC,
+                plant_adoption_time DESC""",
                 user.id,
             )
 
@@ -85,8 +95,11 @@ class UserCommands(utils.Cog):
             if plant['immortal']:
                 plant_death_time, plant_death_humanize_time = None, None
             else:
-                plant_death_time = plant['last_water_time'] + timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
-                plant_death_humanize_time = utils.TimeValue((plant_death_time - dt.utcnow()).total_seconds()).clean_full
+                death_timeout = timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
+                plant_death_time = plant['last_water_time'] + death_timeout
+                plant_death_humanize_time = utils.TimeValue(
+                    (plant_death_time - dt.utcnow()).total_seconds()
+                ).clean_full
 
             # See how long the plant has been alive
             plant_life_humanize_time = utils.TimeValue((dt.utcnow() - plant['plant_adoption_time']).total_seconds()).clean_full
