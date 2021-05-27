@@ -295,13 +295,14 @@ class PlantShopCommands(utils.Cog):
             return await ctx.reply(embed=embed)
 
         # Wait for them to respond
+        components = utils.MessageComponents.add_buttons_with_rows(
+            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
+            utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
+        )
         shop_menu_message = await ctx.send(
             ctx.author.mention,
             embed=embed,
-            components=utils.MessageComponents.add_buttons_with_rows(
-                *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
-                utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
-            ),
+            components=components,
         )
         try:
             done, pending = await asyncio.wait([
@@ -330,11 +331,11 @@ class PlantShopCommands(utils.Cog):
         payload = done
         given_response = payload.component.custom_id.lower()  # .replace(' ', '_')
         await payload.ack()
-        await payload.message.edit(components=None)
 
         # See if they want to cancel
         if given_response == "cancel":
-            return await payload.message.edit(components=None)
+            return await payload.message.delete()
+        await payload.message.edit(components=components.disable_components())
 
         # See if they want a plant pot
         if given_response == "pot":
