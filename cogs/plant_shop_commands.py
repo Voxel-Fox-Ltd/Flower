@@ -295,10 +295,14 @@ class PlantShopCommands(utils.Cog):
             return await ctx.reply(embed=embed)
 
         # Wait for them to respond
-        shop_menu_message = await ctx.reply(embed=embed, components=utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
-            utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
-        ))
+        shop_menu_message = await ctx.send(
+            ctx.author.mention,
+            embed=embed,
+            components=utils.MessageComponents.add_buttons_with_rows(
+                *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
+                utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
+            ),
+        )
         try:
             done, pending = await asyncio.wait([
                 self.bot.wait_for(
