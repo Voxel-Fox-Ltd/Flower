@@ -307,8 +307,8 @@ class PlantShopCommands(utils.Cog):
         try:
             done, pending = await asyncio.wait([
                 self.bot.wait_for(
-                    "message",
-                    check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content,
+                    "raw_message_delete",
+                    check=lambda m: m.message_id == shop_menu_message.id,
                 ),
                 self.bot.wait_for(
                     "button_click",
