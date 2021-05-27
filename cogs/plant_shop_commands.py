@@ -288,17 +288,17 @@ class PlantShopCommands(utils.Cog):
 
         # Add all our items to the embed
         embed.add_field("Available Items", '\n'.join(item_text), inline=True)
+        components = utils.MessageComponents.add_buttons_with_rows(
+            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
+        )
 
         # Cancel if they don't have anything available
         if not [i for i in all_items if not i['disabled']]:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
-            return await ctx.reply(embed=embed)
+            return await ctx.reply(embed=embed, components=components)
+        components.components[-1].components.append(utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER))
 
         # Wait for them to respond
-        components = utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
-            utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER),
-        )
         shop_menu_message = await ctx.send(
             ctx.author.mention,
             embed=embed,
