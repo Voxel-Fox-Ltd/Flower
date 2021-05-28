@@ -63,7 +63,8 @@ class PlantCareCommands(utils.Cog):
             for row in updated_plant_rows:
                 await db(
                     """INSERT INTO plant_achievement_counts (user_id, plant_type, plant_death_count) VALUES ($1, $2, 1)
-                    ON CONFLICT (user_id, plant_type) DO UPDATE SET plant_death_count=max_plant_nourishment+1""",
+                    ON CONFLICT (user_id, plant_type) DO UPDATE SET
+                    plant_death_count=plant_achievement_counts.max_plant_nourishment+1""",
                     row['user_id'], row['plant_type'],
                 )
             await db(
