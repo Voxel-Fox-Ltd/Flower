@@ -89,7 +89,7 @@ async def revive_plant(request:Request):
 
 
 @routes.post('/webhooks/voxelfox/paypal')
-async def revive_plant(request:Request):
+async def purchase_complete(request: Request):
     """
     Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
     """
@@ -98,7 +98,7 @@ async def revive_plant(request:Request):
     data = await request.json()
     item_name = data['item_name']
     quantity = data['quantity']
-    user_id = data['discord_id']
+    user_id = data['discord_user_id']
 
     # Process exp adds
     if item_name == "Flower 2000 EXP":
