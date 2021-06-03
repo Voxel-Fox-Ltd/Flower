@@ -206,6 +206,8 @@ class PlantShopCommands(utils.Cog):
             user_plant_limit = 1
             last_plant_shop_time = dt(2000, 1, 1)
             plant_pot_hue = ctx.author.id % 360
+
+        # Work out if the user's cooldown is expired for purchasing new plants
         water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + water_cooldown
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
@@ -218,9 +220,9 @@ class PlantShopCommands(utils.Cog):
         # Set up our initial embed
         all_items = []  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
-        ctx.bot.set_footer_from_config(embed)
+        self.bot.set_footer_from_config(embed)
 
-        # See what we wanna get to doing
+        # Make the initial embed
         embed.description += (
             f"What would you like to spend your experience to buy, {ctx.author.mention}? "
             f"You currently have **{user_experience:,} exp**, and you're using {len(plant_level_rows):,} of your "
@@ -233,55 +235,44 @@ class PlantShopCommands(utils.Cog):
             embed.description += f"\nYou can't purchase new plants for another **{buy_plant_cooldown.clean}**.\n"
 
         # Add plants to the embed
-        plant_text = []
         for plant in sorted(available_plants.values()):
-            modifier = lambda x: x
             text = plant.display_name.capitalize()
-            if can_purchase_new_plants and plant.required_experience <= user_experience and len(plant_level_rows) < user_plant_limit:
-                all_items.append({"label": text, "name": plant.name, "disabled": False})
-            else:
-                modifier = strikethrough
-                all_items.append({"label": text, "name": plant.name, "disabled": True})
-            plant_text.append(modifier(text))
+            disabled = not all([
+                can_purchase_new_plants,
+                plant.required_experience <= user_experience,
+                len(plant_level_rows) < user_plant_limit,
+            ])
+            all_items.append({"label": text, "name": plant.name, "disabled": disabled})
 
         # Say when the plants will change
         now = dt.utcnow()
         remaining_time = utils.TimeValue((
             dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now
         ).total_seconds())
-        plant_text.append(f"These plants will change in {remaining_time.clean_spaced}.")
-        embed.add_field("Available Plants", '\n'.join(plant_text), inline=True)
+        embed.description += f"Your plants will change in {remaining_time.clean_spaced}.\n"
 
         # Set up items to be added to the embed
-        item_text = []
 
         # Add pots
-        modifier = lambda x: x
         text = f"Pot ({self.get_points_for_plant_pot(user_plant_limit):,} exp)"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
             all_items.append({"label": text, "name": "pot", "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
-            all_items.append({"label": "Pot (maximum pots reached)", "name": "pot", "disabled": True})
+            all_items.append({"label": "Pot (maximum pots reached)", "name": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
         else:
-            modifier = strikethrough
-            all_items.append({"label": text, "name": "pot", "disabled": True})
-        item_text.append(modifier(text))
+            all_items.append({"label": text, "name": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
         # Add variable items
         for item in self.bot.items.values():
-            modifier = lambda x: x
             text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
-                all_items.append({"label": text, "name": item.name, "disabled": False})
+                all_items.append({"label": text, "name": item.name, "disabled": False, "style": utils.ButtonStyle.SECONDARY})
             else:
-                modifier = strikethrough
-                all_items.append({"label": text, "name": item.name, "disabled": True})
-            item_text.append(modifier(text))
+                all_items.append({"label": text, "name": item.name, "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
         # Add all our items to the embed
-        embed.add_field("Available Items", '\n'.join(item_text), inline=True)
         components = utils.MessageComponents.add_buttons_with_rows(
             *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
         )
@@ -305,7 +296,7 @@ class PlantShopCommands(utils.Cog):
                     check=lambda m: m.message_id == shop_menu_message.id,
                 ),
                 self.bot.wait_for(
-                    "button_click",
+                    "component_interaction",
                     check=lambda p: p.message.id == shop_menu_message.id and ctx.author.id == p.user.id,
                 ),
             ], timeout=120, return_when=asyncio.FIRST_COMPLETED)
@@ -495,12 +486,15 @@ class PlantShopCommands(utils.Cog):
             )
 
         # See if they want to trade
-        m = await ctx.send(f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?")
-        await m.add_reaction("\N{THUMBS UP SIGN}")
-        await m.add_reaction("\N{THUMBS DOWN SIGN}")
+        m = await ctx.send(
+            f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?",
+            components=utils.MessageComponents.boolean_buttons(),
+        )
         try:
-            check = lambda r, u: r.message.id == m.id and u.id == user.id and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
-            r, _ = await self.bot.wait_for("reaction_add", check=check, timeout=120)
+            check = lambda p: p.message.id == m.id and p.user.id == user.id
+            payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
+            await payload.ack()
+            await payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components())
         except asyncio.TimeoutError:
             try:
                 await ctx.send(
@@ -510,8 +504,8 @@ class PlantShopCommands(utils.Cog):
             except discord.HTTPException:
                 pass
             return
-        if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
-            return await ctx.send(
+        if payload.component.custom_id == "NO":
+            return await payload.send(
                 f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c",
                 allowed_mentions=discord.AllowedMentions(users=[ctx.author]),
             )
@@ -529,9 +523,9 @@ class PlantShopCommands(utils.Cog):
 
         # Make sure they both still have plants that are alive
         if not alive_plants[ctx.author.id]:
-            return await ctx.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
+            return await payload.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
         elif not alive_plants[user.id]:
-            return await ctx.send(f"You don't have any alive plants to trade, {user.mention}!")
+            return await payload.send(f"You don't have any alive plants to trade, {user.mention}!")
 
         # Format an embed
         embed = utils.Embed(use_random_colour=True)
@@ -546,7 +540,7 @@ class PlantShopCommands(utils.Cog):
         )
 
         # Ask what they want to trade
-        await ctx.send(f"What's the name of the plant that you'd like to trade, {ctx.author.mention} {user.mention}?", embed=embed)
+        await payload.send(f"What's the name of the plant that you'd like to trade, {ctx.author.mention} {user.mention}?", embed=embed)
         trade_plant_index = {ctx.author.id: None, user.id: None}
         while True:
             def check(m):
@@ -559,7 +553,7 @@ class PlantShopCommands(utils.Cog):
                 index_message = await self.bot.wait_for("message", check=check, timeout=30)
             except asyncio.TimeoutError:
                 try:
-                    await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                    await payload.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
                 except discord.HTTPException:
                     pass
                 return
@@ -592,24 +586,29 @@ class PlantShopCommands(utils.Cog):
 
         # Ask if they wanna go ahead with it
         embed = utils.Embed(use_random_colour=True).set_image("attachment://plant_trade.png")
-        m = await ctx.send("Do you both want to go ahead with this trade?", embed=embed, file=file)
-        await m.add_reaction("\N{THUMBS UP SIGN}")
-        await m.add_reaction("\N{THUMBS DOWN SIGN}")
-        said_yes = set()
+        components = utils.MessageComponents.boolean_buttons()
+        components.get_component("YES").label = "Yes (0/2)"
+        m = await ctx.send("Do you both want to go ahead with this trade?", embed=embed, file=file, components=components)
+        pending_response = [ctx.author.id, user.id]
+        payload = None
         while True:
             try:
-                check = lambda r, u: r.message.id == m.id and u.id in [ctx.author.id, user.id] and str(r.emoji) in ["\N{THUMBS UP SIGN}", "\N{THUMBS DOWN SIGN}"]
-                r, u = await self.bot.wait_for("reaction_add", check=check, timeout=30)
+                check = lambda p: p.message.id == m.id and p.user.id in [ctx.author.id, user.id]
+                payload = await self.bot.wait_for("component_interaction", check=check, timeout=30)
+                await payload.ack()
+                components.get_component("YES").label = f"Yes ({2 - len(pending_response)}/2)"
+                await payload.message.edit(component=components)
             except asyncio.TimeoutError:
                 try:
-                    await ctx.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                    await m.edit(component=components.disable_components())
+                    await (payload or ctx).send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
                 except discord.HTTPException:
                     pass
                 return
-            if str(r.emoji) == "\N{THUMBS DOWN SIGN}":
-                return await ctx.send(f"{u.mention} doesn't want to go ahead with the trade :<")
-            said_yes.add(u.id)
-            if len(said_yes) == 2:
+            if payload.component.custom_id == "NO":
+                return await payload.send(f"{payload.user.mention} doesn't want to go ahead with the trade :<")
+            pending_response.remove(payload.user.id)
+            if not pending_response:
                 break
 
         # Alright sick let's trade
@@ -654,13 +653,13 @@ class PlantShopCommands(utils.Cog):
 
         # Raised on assertion error or transaction failure
         except Exception:
-            return await ctx.send((
+            return await payload.send((
                 "I couldn't trade your plants! That probably means that one of you already "
                 "_has_ a plant with the given name in your plant list."
             ))
 
         # And we're done
-        await ctx.send("Traded your plants!")
+        await payload.send("Traded your plants!")
 
 
 def setup(bot):
