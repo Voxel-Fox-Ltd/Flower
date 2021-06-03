@@ -15,4 +15,13 @@
 
 .plant-image {
     width: 5em;
+    image-rendering: crisp-edges;
+}
+
+.pot-image {
+    image-rendering: crisp-edges;
+}
+
+.inventory .subtitle {
+    margin-bottom: 0;
 }

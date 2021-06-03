@@ -8,7 +8,7 @@
         <div class="columns" style="text-align: center;">
             <div class="column is-3 is-offset-3">
                 <h1 class="title">User Experience</h1>
-                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
+                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience or 0) }}</p>
             </div>
             <div class="column is-3">
                 <h1 class="title">Pot Count</h1>

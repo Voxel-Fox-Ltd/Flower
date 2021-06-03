@@ -19,18 +19,38 @@
         <div class="columns">
             <div class="column is-3">
                 <h1 class="title">User Experience</h1>
-                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience) }}</p>
+                <p id="experience" class="subtitle">{{ "{0:,}".format(user.user_experience or 0) }}</p>
             </div>
             <div class="column is-3">
                 <h1 class="title">Pot Count</h1>
                 <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
             </div>
-            <div class="column is-3">
+            <div class="column is-3 inventory">
                 <h1 class="title">Inventory</h1>
                 {%- for item_name, amount in inventory.items() -%}
                     <p class="subtitle">{{ "{0:,}".format(amount) }}x {{ item_name }}</p>
                 {%- endfor -%}
             </div>
+
+            {# Add the pot colour filter #}
+            <div class="column is-3" style="padding: 0; display: flex; flex-direction: column;">
+                {% set pot_hue = (user.plant_pot_hue if user.plant_pot_hue is not none else user.user_id % 360) - 28 %}
+                <img
+                    class="pot-image"
+                    src="{{ static('full_cropped.png') }}"
+                    style="width: 100px; margin:  8px auto 0 auto; filter: hue-rotate({{ pot_hue }}deg);"
+                    {% if not user_has_premium %}disabled{% endif %} />
+                <input
+                    type="range"
+                    id="colour"
+                    name="colour"
+                    min="0"
+                    max="360"
+                    value="{{ pot_hue }}"
+                    oninput="changePlantColour(this);"
+                    onload="setTimeout(changePlantColour, 100, this);" />
+            </div>
+
         </div>
         <hr />
 

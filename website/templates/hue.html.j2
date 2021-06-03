@@ -8,11 +8,11 @@
         <div class="columns is-multiline plant" style="align-items: flex-end;">
             <div class="column is-narrow" style="padding: 0;">
                 <img class="plant-image" src="{{ static('full.png') }}" style="width: 200px" />
-                <input type="range" id="colour" name="colour" min="-360" max="360" value="0" oninput="changePlantColour(this);" />
+                <input type="range" id="colour" name="colour" min="0" max="360" value="0" oninput="changePlantColour(this);" />
             </div>
         </div>
 
-        {# The script needed to send the post requests to the website #}
+        {# The script needed to change the pot colour #}
         <script type="text/javascript" src="{{ static('water.js') }}"></script>
 
     </div>

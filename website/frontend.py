@@ -7,6 +7,8 @@ from voxelbotutils import web as webutils
 import aiohttp_session
 from aiohttp_jinja2 import template
 
+from cogs import localutils
+
 
 routes = RouteTableDef()
 generated_herbiary = None
@@ -72,12 +74,21 @@ async def flowers(request:Request):
             v = 0
         p['wait_water_seconds'] = v
 
+    # Decide if the user has premium
+    ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
+    user_has_premium = False
+    try:
+        user_has_premium = await localutils.checks.has_premium().predicate(ctx)
+    except Exception:
+        pass
+
     # Return data for the page
     return {
         'user': dict(user_rows[0]),
         'plants': plants,
         'inventory': inventory,
         'base_water_timeout': base_water_timeout.total_seconds(),
+        'user_has_premium': user_has_premium,
     }
 
 
