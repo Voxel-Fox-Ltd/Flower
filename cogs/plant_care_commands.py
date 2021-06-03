@@ -16,13 +16,11 @@ class PlantCareCommands(utils.Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.plant_death_timeout_loop.start()
-        # self.plant_water_reminder_loop.start()
 
     def cog_unload(self):
         self.plant_death_timeout_loop.cancel()
-        # self.plant_water_reminder_loop.cancel()
 
-    async def get_user_voted(self, user_id:int) -> bool:
+    async def get_user_voted(self, user_id: int) -> bool:
         """
         Returns whether or not the user with the given ID has voted for the bot on Top.gg.
 
@@ -113,8 +111,8 @@ class PlantCareCommands(utils.Cog):
 
     @staticmethod
     def get_water_plant_dict(
-            text:str, success:bool=False, gained_experience:int=0, new_nourishment_level:int=0,
-            new_user_experience:int=0, voted_on_topgg:bool=False, multipliers:list=None):
+            text: str, success: bool = False, gained_experience: int = 0, new_nourishment_level: int = 0,
+            new_user_experience: int = 0, voted_on_topgg: bool = False, multipliers: list = None):
         return {
             "text": text,
             "success": success,
@@ -125,7 +123,7 @@ class PlantCareCommands(utils.Cog):
             "multipliers": multipliers or list(),
         }
 
-    async def water_plant_backend(self, user_id:int, plant_name:str, waterer_id:int=None):
+    async def water_plant_backend(self, user_id: int, plant_name: str, waterer_id: int = None):
         """
         Run the backend for the plant watering.
 
@@ -353,9 +351,12 @@ class PlantCareCommands(utils.Cog):
             multipliers=multipliers,
         )
 
-    @utils.command(aliases=['water', 'w'], cooldown_after_parsing=True)
+    @utils.command(aliases=['water', 'w'], cooldown_after_parsing=True, argument_descriptions=(
+        "The user whose plant you want to water.",
+        "The plant that you want to water.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def waterplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str):
+    async def waterplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str):
         """
         Increase the growth level of your plant.
         """
@@ -399,7 +400,7 @@ class PlantCareCommands(utils.Cog):
         # Send message
         return await ctx.send("\n".join(output_lines), embed=embed)
 
-    async def delete_plant_backend(self, user_id:int, plant_name:str) -> dict:
+    async def delete_plant_backend(self, user_id: int, plant_name: str) -> dict:
         """
         The backend function for deleting a plant from the database. Either returns the deleted
         plant's data, or None.
@@ -411,9 +412,11 @@ class PlantCareCommands(utils.Cog):
             return None
         return data[0]
 
-    @utils.command(aliases=['delete', 'deleteflower'])
+    @utils.command(aliases=['delete', 'deleteflower'], argument_descriptions=(
+        "The plant that you want to delete.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def deleteplant(self, ctx:utils.Context, *, plant_name:str):
+    async def deleteplant(self, ctx: utils.Context, *, plant_name: str):
         """
         Deletes your plant from the database.
         """
@@ -444,9 +447,12 @@ class PlantCareCommands(utils.Cog):
 
         return await ctx.send(f"Done - you've deleted your {data['plant_type'].replace('_', ' ')}.")
 
-    @utils.command(aliases=['rename'])
+    @utils.command(aliases=['rename'], argument_descriptions=(
+        "The starting name of the plant that you want to rename.",
+        "The ending name of the plant that you want to rename.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def renameplant(self, ctx:utils.Context, before:str="", *, after:str=""):
+    async def renameplant(self, ctx: utils.Context, before: str = "", *, after: str = ""):
         """
         Gives a new name to your plant. Use "quotes" if your plant has a space in its name.
         """
@@ -514,7 +520,7 @@ class PlantCareCommands(utils.Cog):
             await db("UPDATE plant_levels SET plant_name=$3 WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before, after)
         await ctx.send("Done!~")
 
-    async def revive_plant_backend(self, user_id:int, plant_name:str):
+    async def revive_plant_backend(self, user_id: int, plant_name: str):
         """
         The backend for reviving a plant.
         Returns a response string and whether or not the revive succeeded, as a tuple.
@@ -554,9 +560,11 @@ class PlantCareCommands(utils.Cog):
         # And now we done
         return f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D", True
 
-    @utils.command()
+    @utils.command(argument_descriptions=(
+        "The name of the plant that you want to revive.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def revive(self, ctx:utils.Context, *, plant_name:str):
+    async def revive(self, ctx: utils.Context, *, plant_name: str):
         """
         Use one of your revival tokens to be able to revive your plant.
         """
@@ -566,7 +574,7 @@ class PlantCareCommands(utils.Cog):
 
     @utils.command(aliases=['immortalise'])
     @commands.bot_has_permissions(send_messages=True, add_reactions=True)
-    async def immortalize(self, ctx:utils.Context, *, plant_name:str):
+    async def immortalize(self, ctx: utils.Context, *, plant_name: str):
         """
         Makes one of your plants immortal.
         """

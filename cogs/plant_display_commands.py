@@ -7,9 +7,12 @@ import voxelbotutils as utils
 
 class PlantDisplayCommands(utils.Cog):
 
-    @utils.command(aliases=['showplant', 'show', 'display'])
+    @utils.command(aliases=['showplant', 'show', 'display'], argument_descriptions=(
+        "The user whose plant you want to display.",
+        "The plant which you want to look at.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayplant(self, ctx:utils.Context, user:typing.Optional[discord.User], *, plant_name:str=None):
+    async def displayplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
         """
         Shows you your plant status.
         """
@@ -61,9 +64,11 @@ class PlantDisplayCommands(utils.Cog):
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @utils.command(hidden=True, aliases=['showall'])
+    @utils.command(hidden=True, aliases=['showall'], argument_descriptions=(
+        "The user whose plants you want to display.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayall(self, ctx:utils.Context, user:typing.Optional[discord.User]):
+    async def displayall(self, ctx: utils.Context, user: typing.Optional[discord.User]):
         """
         Show you all of your plants.
         """

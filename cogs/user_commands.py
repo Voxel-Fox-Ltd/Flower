@@ -9,9 +9,11 @@ from asyncpg import UniqueViolationError
 
 class UserCommands(utils.Cog):
 
-    @utils.command(aliases=['experience', 'exp', 'points', 'inv', 'bal', 'balance'])
+    @utils.command(aliases=['experience', 'exp', 'points', 'inv', 'bal', 'balance'], argument_descriptions=(
+        "The user who you want to check the inventory of.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def inventory(self, ctx:utils.Context, user:typing.Optional[discord.User]):
+    async def inventory(self, ctx: utils.Context, user: typing.Optional[discord.User]):
         """
         Show you the inventory of a user.
         """
@@ -63,9 +65,11 @@ class UserCommands(utils.Cog):
         # Return to user
         return await ctx.send(embed=embed)
 
-    @utils.command(aliases=['list'])
+    @utils.command(aliases=['list'], argument_descriptions=(
+        "The user who you want to see the plants of.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def plants(self, ctx:utils.Context, user:typing.Optional[discord.User]):
+    async def plants(self, ctx: utils.Context, user: typing.Optional[discord.User]):
         """
         Shows you all the plants that a given user has.
         """
@@ -121,9 +125,12 @@ class UserCommands(utils.Cog):
         # Return to user
         return await ctx.send(embed=embed)
 
-    @utils.command()
+    @utils.command(argument_descriptions=(
+        "The user who you want to give the item to.",
+        "The item you want to give away.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def giveitem(self, ctx:utils.Context, user:discord.Member, *, item_type:str):
+    async def giveitem(self, ctx: utils.Context, user: discord.Member, *, item_type: str):
         """
         Send an item to another member.
         """
@@ -154,7 +161,7 @@ class UserCommands(utils.Cog):
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{self.bot.items[item_type.replace(' ', '_').lower()].display_name}** to {user.mention}!")
 
     @utils.group(aliases=['key', 'access'], invoke_without_command=True)
-    async def keys(self, ctx:utils.Context):
+    async def keys(self, ctx: utils.Context):
         """
         The parent command for keys - allowing other users to access your garden.
         """
@@ -164,15 +171,15 @@ class UserCommands(utils.Cog):
 
     @keys.command(name='list', aliases=['show', 'holders'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def key_list(self, ctx:utils.Context):
+    async def key_list(self, ctx: utils.Context):
         """
-        Check all users who have a key to your garden
+        Shows all users who have a key to your garden.
         """
 
         async with self.bot.database() as db:
             key_owners = await db("SELECT * FROM user_garden_access WHERE garden_owner=$1", ctx.author.id)
         if not key_owners:
-            return await ctx.send(f"No one else has a key to your garden.")
+            return await ctx.send("No one else has a key to your garden.")
         embed = utils.Embed(use_random_colour=True, description=f"<@{ctx.author.id}>'s allowed users ({len(key_owners)})")
         embed_fields = []
         for key_owner in key_owners:
@@ -180,9 +187,11 @@ class UserCommands(utils.Cog):
         embed.add_field("Key Holders", '\n'.join(sorted(embed_fields)), inline=False)
         return await ctx.send(embed=embed)
 
-    @keys.command(name='give', aliases=['add'])
+    @keys.command(name='give', aliases=['add'], argument_descriptions=(
+        "The user who you want to give a key to.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def key_give(self, ctx:utils.Context, user:discord.Member):
+    async def key_give(self, ctx: utils.Context, user: discord.Member):
         """
         Give a key to your garden to another member.
         """
@@ -202,9 +211,11 @@ class UserCommands(utils.Cog):
                 return await ctx.send("They already have a key.")
         return await ctx.send(f"Gave {user.mention} a key to your garden! They can now water your plants for you!")
 
-    @keys.command(name='revoke', aliases=['remove', 'take', 'delete'])
+    @keys.command(name='revoke', aliases=['remove', 'take', 'delete'], argument_descriptions=(
+        "The user who you want to remove a key from.",
+    ))
     @commands.bot_has_permissions(send_messages=True)
-    async def key_revoke(self, ctx:utils.Context, user:utils.converters.UserID):
+    async def key_revoke(self, ctx: utils.Context, user: utils.converters.UserID):
         """
         Revoke a member's access to your garden
         """
@@ -214,7 +225,7 @@ class UserCommands(utils.Cog):
         async with self.bot.database() as db:
             data = await db("DELETE FROM user_garden_access WHERE garden_owner=$1 AND garden_access=$2 RETURNING *", ctx.author.id, user)
         if not data:
-            return await ctx.send(f"They don't have a key!")
+            return await ctx.send("They don't have a key!")
         return await ctx.send(f"Their key crumbles. <@{user}> no longer has a key to your garden.", allowed_mentions=discord.AllowedMentions.none())
 
 

@@ -13,7 +13,7 @@ import voxelbotutils as utils
 from cogs import localutils
 
 
-def strikethrough(text:str) -> str:
+def strikethrough(text: str) -> str:
     """
     Returns a string wrapped in a strikethrough
     """
@@ -23,7 +23,7 @@ def strikethrough(text:str) -> str:
 
 class PlantShopCommands(utils.Cog):
 
-    def __init__(self, bot:utils.Bot):
+    def __init__(self, bot: utils.Bot):
         super().__init__(bot)
 
         # Load up all the plants
@@ -53,12 +53,6 @@ class PlantShopCommands(utils.Cog):
                 item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300),
                 usage="{ctx.clean_prefix}revive <plant_name>",
             ),
-            # 'colour_token': localutils.ItemType(
-            #     item_name='colour_token',
-            #     display_name='colour_token',
-            #     item_price=self.bot.config.get('plants', {}).get('colour_token_price', 50_000),
-            #     usage="{ctx.clean_prefix}recolour <plant_name>",
-            # ),
             'refresh_token': localutils.ItemType(
                 item_name='refresh_token',
                 display_name='shop refresh token',
@@ -77,7 +71,7 @@ class PlantShopCommands(utils.Cog):
         self.bot.get_cog("InformationCommands")._artist_info = None
 
     @staticmethod
-    def get_points_for_plant_pot(current_limit:int) -> int:
+    def get_points_for_plant_pot(current_limit: int) -> int:
         """
         Get the amount of points needed to get the next level of pot.
         """
@@ -86,7 +80,7 @@ class PlantShopCommands(utils.Cog):
             return 5_000 * (current_limit ** 2)
         return (45_000 * (current_limit - 9)) + 405_000
 
-    async def get_available_plants(self, user_id:int) -> dict:
+    async def get_available_plants(self, user_id: int) -> dict:
         """
         Get the available plants for a given user at each given level.
         """
@@ -149,7 +143,7 @@ class PlantShopCommands(utils.Cog):
     @utils.command()
     @utils.checks.is_bot_support()
     @commands.bot_has_permissions(send_messages=True)
-    async def reloadplants(self, ctx:utils.Context):
+    async def reloadplants(self, ctx: utils.Context):
         """
         Shows you the available plants.
         """
@@ -178,7 +172,7 @@ class PlantShopCommands(utils.Cog):
 
     @utils.command(ignore_extra=False)
     @commands.bot_has_permissions(send_messages=True)
-    async def refreshshop(self, ctx:utils.Context):
+    async def refreshshop(self, ctx: utils.Context):
         """
         Refreshes your shop items.
         """
@@ -193,7 +187,7 @@ class PlantShopCommands(utils.Cog):
 
     @utils.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def shop(self, ctx:utils.Context):
+    async def shop(self, ctx: utils.Context):
         """
         Shows you the available plants.
         """
@@ -462,10 +456,12 @@ class PlantShopCommands(utils.Cog):
             )
         await plant_name_message.reply(f"Planted your **{plant_type.display_name}** seeds!")
 
-    @utils.command(aliases=['trade'])
+    @utils.command(aliases=['trade'], argument_descriptions=(
+        "The user who you want to give a plant to.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
     @commands.guild_only()
-    async def tradeplant(self, ctx, user:discord.Member):
+    async def tradeplant(self, ctx, user: discord.Member):
         """
         Trade a plant with a given user.
         """

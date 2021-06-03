@@ -21,7 +21,7 @@ class PlantDisplayUtils(utils.Cog):
         return sorted(rows, key=lambda i: (i['plant_name'], i['plant_type'], i['plant_nourishment'], i['last_water_time']))
 
     @classmethod
-    def _shift_hue(cls, image_array, hue_value:float):
+    def _shift_hue(cls, image_array, hue_value: float):
         r, g, b, a = np.rollaxis(image_array, axis=-1)
         h, s, v = cls.rgb_to_hsv(r, g, b)
         r, g, b = cls.hsv_to_rgb(hue_value / 360, s, v)
@@ -29,7 +29,7 @@ class PlantDisplayUtils(utils.Cog):
         return image_array
 
     @classmethod
-    def shift_image_hue(cls, image:Image, hue:int) -> Image:
+    def shift_image_hue(cls, image: Image, hue: int) -> Image:
         """
         Shift the hue of an image by a given amount.
         """
@@ -38,7 +38,7 @@ class PlantDisplayUtils(utils.Cog):
         return Image.fromarray(cls._shift_hue(image_array, hue).astype('uint8'), 'RGBA')
 
     @staticmethod
-    def crop_image_to_content(image:Image) -> Image:
+    def crop_image_to_content(image: Image) -> Image:
         """
         Crop out any "wasted" transparent data from an image.
         """
@@ -52,14 +52,14 @@ class PlantDisplayUtils(utils.Cog):
         return Image.fromarray(image_data_new, "RGBA")
 
     @staticmethod
-    def image_to_bytes(image:Image) -> io.BytesIO:
+    def image_to_bytes(image: Image) -> io.BytesIO:
         image_to_send = io.BytesIO()
         image.save(image_to_send, "PNG")
         image_to_send.seek(0)
         return image_to_send
 
     @staticmethod
-    def gif_to_bytes(*images:Image, duration:int=500) -> io.BytesIO:
+    def gif_to_bytes(*images: Image, duration: int = 500) -> io.BytesIO:
         image_to_send = io.BytesIO()
         images[0].save(
             image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
@@ -68,7 +68,7 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send.seek(0)
         return image_to_send
 
-    def get_plant_image(self, plant_type:str, plant_nourishment:int, pot_type:str, pot_hue:int) -> Image:
+    def get_plant_image(self, plant_type: str, plant_nourishment: int, pot_type: str, pot_hue: int) -> Image:
         """
         Get a BytesIO object containing the binary data of a given plant/pot item.
         """
@@ -155,7 +155,7 @@ class PlantDisplayUtils(utils.Cog):
         return image
 
     @classmethod
-    def compile_plant_images(cls, *plants, add_flipping:bool=True):
+    def compile_plant_images(cls, *plants, add_flipping: bool = True):
         """
         Add together some plant images.
         """
@@ -178,7 +178,7 @@ class PlantDisplayUtils(utils.Cog):
         return cls.crop_image_to_content(new_image)
 
     @staticmethod
-    def get_display_data(plant_row, user_id:int=None) -> dict:
+    def get_display_data(plant_row, user_id: int = None) -> dict:
         """
         Get the display data of a given plant and return it as a dict.
 

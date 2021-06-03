@@ -1,4 +1,3 @@
-import collections
 import json
 import random
 
@@ -9,7 +8,7 @@ import voxelbotutils as utils
 
 class InformationCommands(utils.Cog):
 
-    def __init__(self, bot:utils.Bot):
+    def __init__(self, bot: utils.Bot):
         super().__init__(bot)
         self._artist_info = None
 
@@ -22,9 +21,11 @@ class InformationCommands(utils.Cog):
         self._artist_info = data
         return data
 
-    @utils.command()
+    @utils.command(argument_descriptions=(
+        "The name of the plant that you want to see the information for.",
+    ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def herbiary(self, ctx:utils.Context, *, plant_name:str=None):
+    async def herbiary(self, ctx: utils.Context, *, plant_name: str = None):
         """
         Get the information for a given plant.
         """
@@ -74,36 +75,7 @@ class InformationCommands(utils.Cog):
                 added_display_stages.append(o)
         gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
         plant_image_bytes = display_utils.gif_to_bytes(*gif_frames, duration=1_000)
-        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename=f"plant.gif"))
-
-    @utils.command(enabled=False)
-    @utils.cooldown.cooldown(1, 10, commands.BucketType.user)
-    @commands.bot_has_permissions(send_messages=True)
-    @utils.checks.is_config_set('command_data', 'suggestion_channel_id')
-    async def suggest(self, ctx:utils.Context, *, suggestion:str):
-        """
-        Send a suggestion for Flower to the bot developer.
-        """
-
-        # Make sure they can send in suggestions
-        async with self.bot.database() as db:
-            rows = await db("SELECT * FROM blacklisted_suggestion_users WHERE user_id=$1", ctx.author.id)
-        if rows:
-            return await ctx.send("You've been blacklisted from sending in suggestions.")
-
-        # See if they said something valid
-        if ctx.message.attachments:
-            return await ctx.send("I can't send images as suggestions :<")
-
-        # Send it to the channel
-        text = f"`G{ctx.guild.id if ctx.guild else 'DMs'}`\\|\\|`C{ctx.channel.id}`\\|\\|`U{ctx.author.id}`\\|\\|{ctx.author.mention}\\|\\|{suggestion}"
-        try:
-            await self.bot.http.send_message(self.bot.config['command_data']['suggestion_channel_id'], text, allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, users=[ctx.author,]))
-        except discord.HTTPException:
-            return await ctx.send("I couldn't send in your suggestion!")
-
-        # Tell them it's done
-        return await ctx.send("Sent in your suggestion!")
+        await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.gif"))
 
     @utils.command()
     @commands.bot_has_permissions(send_messages=True)
