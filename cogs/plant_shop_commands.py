@@ -126,6 +126,8 @@ class PlantShopCommands(utils.Cog):
                     available_plants[2].name, available_plants[3].name, available_plants[4].name,
                     available_plants[5].name, available_plants[6].name,
                 )
+                del available_plants[6]
+                del available_plants[5]
 
             # They have available plants, format into new dictionary
             else:
@@ -135,8 +137,8 @@ class PlantShopCommands(utils.Cog):
                     2: self.bot.plants[plant_shop_rows[0]['plant_level_2']],
                     3: self.bot.plants[plant_shop_rows[0]['plant_level_3']],
                     4: self.bot.plants[plant_shop_rows[0]['plant_level_4']],
-                    5: self.bot.plants[plant_shop_rows[0]['plant_level_5']],
-                    6: self.bot.plants[plant_shop_rows[0]['plant_level_6']],
+                    # 5: self.bot.plants[plant_shop_rows[0]['plant_level_5']],
+                    # 6: self.bot.plants[plant_shop_rows[0]['plant_level_6']],
                 }
         return available_plants
 
@@ -218,6 +220,7 @@ class PlantShopCommands(utils.Cog):
             )
 
         # Set up our initial embed
+        all_plants = []  # Used to make sure we can continue the command
         all_items = []  # Used to make sure we can continue the command
         embed = utils.Embed(use_random_colour=True, description="")
         self.bot.set_footer_from_config(embed)
@@ -242,7 +245,7 @@ class PlantShopCommands(utils.Cog):
                 plant.required_experience <= user_experience,
                 len(plant_level_rows) < user_plant_limit,
             ])
-            all_items.append({"label": text, "custom_id": plant.name, "disabled": disabled})
+            all_plants.append({"label": text, "custom_id": plant.name, "disabled": disabled})
 
         # Say when the plants will change
         now = dt.utcnow()
@@ -273,15 +276,16 @@ class PlantShopCommands(utils.Cog):
                 all_items.append({"label": text, "custom_id": item.name, "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
         # Add all our items to the embed
-        components = utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(**i) for i in all_items],
+        components = utils.MessageComponents(
+            utils.ActionRow(*[utils.Button(**i) for i in all_plants]),
+            utils.ActionRow(*[utils.Button(**i) for i in all_items]),
         )
 
         # Cancel if they don't have anything available
         if not [i for i in all_items if not i['disabled']]:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
             return await ctx.send(ctx.author.mention, embed=embed, components=components)
-        components.components[-1].components.append(utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER))
+        components.components.append(utils.ActionRow(utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER)))
 
         # Wait for them to respond
         shop_menu_message = await ctx.send(
