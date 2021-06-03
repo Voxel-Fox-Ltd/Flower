@@ -242,7 +242,7 @@ class PlantShopCommands(utils.Cog):
                 plant.required_experience <= user_experience,
                 len(plant_level_rows) < user_plant_limit,
             ])
-            all_items.append({"label": text, "name": plant.name, "disabled": disabled})
+            all_items.append({"label": text, "custom_id": plant.name, "disabled": disabled})
 
         # Say when the plants will change
         now = dt.utcnow()
@@ -257,24 +257,24 @@ class PlantShopCommands(utils.Cog):
         text = f"Pot ({self.get_points_for_plant_pot(user_plant_limit):,} exp)"
         bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
-            all_items.append({"label": text, "name": "pot", "disabled": False})
+            all_items.append({"label": text, "custom_id": "pot", "disabled": False})
         elif user_plant_limit >= bot_plant_limit:
             text = "~~Pot~~ Maximum pots reached"
-            all_items.append({"label": "Pot (maximum pots reached)", "name": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+            all_items.append({"label": "Pot (maximum pots reached)", "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
         else:
-            all_items.append({"label": text, "name": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+            all_items.append({"label": text, "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
         # Add variable items
         for item in self.bot.items.values():
             text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
-                all_items.append({"label": text, "name": item.name, "disabled": False, "style": utils.ButtonStyle.SECONDARY})
+                all_items.append({"label": text, "custom_id": item.name, "disabled": False, "style": utils.ButtonStyle.SECONDARY})
             else:
-                all_items.append({"label": text, "name": item.name, "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+                all_items.append({"label": text, "custom_id": item.name, "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
         # Add all our items to the embed
         components = utils.MessageComponents.add_buttons_with_rows(
-            *[utils.Button(i['label'], i['name'], disabled=i['disabled']) for i in all_items],
+            *[utils.Button(**i) for i in all_items],
         )
 
         # Cancel if they don't have anything available
