@@ -601,10 +601,10 @@ class PlantShopCommands(utils.Cog):
                 payload = await self.bot.wait_for("component_interaction", check=check, timeout=30)
                 await payload.ack()
                 components.get_component("YES").label = f"Yes ({2 - len(pending_response)}/2)"
-                await payload.message.edit(component=components)
+                await payload.message.edit(components=components)
             except asyncio.TimeoutError:
                 try:
-                    await m.edit(component=components.disable_components())
+                    await m.edit(components=components.disable_components())
                     await (payload or ctx).send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
                 except discord.HTTPException:
                     pass
