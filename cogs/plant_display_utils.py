@@ -59,11 +59,18 @@ class PlantDisplayUtils(utils.Cog):
         return image_to_send
 
     @staticmethod
-    def gif_to_bytes(*images: Image, duration: int = 500) -> io.BytesIO:
+    def gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
         image_to_send = io.BytesIO()
-        images[0].save(
+        max_size = max([i.size for i in images])
+        new_images = []
+        for i in images:
+            base = Image.new("RGBA", max_size, (0, 0, 0, 0))
+            base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]))
+            new_images.append(base)
+        new_images[-1].save(
             image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=images[1:], duration=duration, optimize=False, trasparency=0,
+            append_images=new_images[:1:-1], duration=duration, optimize=False,
+            # transparency=new_images[0].im.bands + 14,
         )
         image_to_send.seek(0)
         return image_to_send
