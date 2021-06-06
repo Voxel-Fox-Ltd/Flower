@@ -6,6 +6,8 @@ import numpy as np
 import colorsys
 import voxelbotutils as utils
 
+from cogs import localutils
+
 
 class PlantDisplayUtils(utils.Cog):
 
@@ -59,19 +61,31 @@ class PlantDisplayUtils(utils.Cog):
         return image_to_send
 
     @staticmethod
+    def _gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
+        image_to_send = io.BytesIO()
+        max_size = max([i.size for i in images])
+        new_images = []
+        for i in images:
+            base = Image.new("RGBA", max_size, (0, 0, 0, 0))
+            base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]), i)
+            new_images.append(base)
+        new_images[-1].save(
+            image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
+            append_images=new_images[:1:-1], duration=duration, optimize=False,
+        )
+        image_to_send.seek(0)
+        return image_to_send
+
+    @staticmethod
     def gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
         image_to_send = io.BytesIO()
         max_size = max([i.size for i in images])
         new_images = []
         for i in images:
             base = Image.new("RGBA", max_size, (0, 0, 0, 0))
-            base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]))
+            base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]), i)
             new_images.append(base)
-        new_images[-1].save(
-            image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=new_images[:1:-1], duration=duration, optimize=False,
-            # transparency=new_images[0].im.bands + 14,
-        )
+        localutils.save_transparent_gif(new_images, duration, image_to_send)
         image_to_send.seek(0)
         return image_to_send
 
