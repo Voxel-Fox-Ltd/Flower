@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS user_settings(
     pot_type VARCHAR(50),
     user_experience INTEGER,
     last_plant_shop_time TIMESTAMP,
-    plant_pot_hue SMALLINT
+    plant_pot_hue SMALLINT,
+    has_premium BOOLEAN DEFAULT FALSE,
+    premium_expiry_time TIMESTAMP
 );
 
 

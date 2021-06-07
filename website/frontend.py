@@ -181,6 +181,7 @@ async def hue(request:Request):
 
 @routes.get("/donate")
 @template("donate.html.j2")
+@webutils.requires_login()
 @webutils.add_discord_arguments()
 async def donate(request:Request):
     """
@@ -198,28 +199,4 @@ async def donate(request:Request):
         user_rows = [{}]
     return {
         'user': dict(user_rows[0]),
-    }
-
-
-@routes.get("/donate_confirm")
-@template("donate_confirm.html.j2")
-@webutils.requires_login()
-@webutils.add_discord_arguments()
-async def donate_confirm(request:Request):
-    """
-    Support the bot with an actual buy button.
-    """
-
-    # Get the ID of the user signed in
-    session = await aiohttp_session.get_session(request)
-    user_id = session['user_id']
-    if int(request.query.get('quantity', 0)) <= 0:
-        return HTTPFound("/donate")
-
-    async with request.app['database']() as db:
-        user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
-    return {
-        'user': dict(user_rows[0]),
-        'item_quantity': int(request.query.get('quantity', 1)),
-        'item_discount': 0,
     }

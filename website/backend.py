@@ -1,3 +1,5 @@
+from datetime import datetime as dt
+
 from aiohttp.web import HTTPFound, Request, RouteTableDef, Response, json_response
 from voxelbotutils import web as webutils
 import aiohttp_session
@@ -96,19 +98,21 @@ async def purchase_complete(request: Request):
 
     # Get our data
     data = await request.json()
-    item_name = data['item_name']
-    quantity = data['quantity']
+    product_name = data['product_name']
+    quantity = data.get('quantity', 0)
     user_id = data['discord_user_id']
+    discord_channel_send_text = None
 
     # Process exp adds
-    if item_name == "Flower 2000 EXP":
+    if product_name == "Flower 2000 EXP":
         experience = 2000 * quantity
-        if data['refunded']:
+        if data['refund']:
             experience = -experience
         async with request.app['database']() as db:
             await db(
                 """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2)
-                ON CONFLICT (user_id) DO UPDATE SET user_experience=user_settings.user_experience+excluded.user_experience""",
+                ON CONFLICT (user_id) DO UPDATE SET
+                user_experience=user_settings.user_experience+excluded.user_experience""",
                 user_id, experience,
             )
 
@@ -120,16 +124,40 @@ async def purchase_complete(request: Request):
                 await user.send(f"Added **{experience:,} exp** to your account!")
             except Exception:
                 pass
-        channel_id = request.app['config']['paypal']['notification_channel_id']
-        if channel_id:
-            try:
-                channel = await bot.fetch_channel(channel_id)
-                if data['refunded']:
-                    await channel.send(f"<@{user_id}> just refunded **{item_name}** x{quantity}.")
-                else:
-                    await channel.send(f"<@{user_id}> just purchased **{item_name}** x{quantity}!")
-            except Exception:
-                pass
+
+        # Work out what to send to Discord
+        if data['refunded']:
+            discord_channel_send_text = f"<@{user_id}> just refunded **{product_name}** x{quantity}."
+        else:
+            discord_channel_send_text = f"<@{user_id}> just purchased **{product_name}** x{quantity}!"
+
+    # Process subscription
+    elif product_name == "Flower Premium":
+        expiry_time = data['subscription_expiry_time']
+        if expiry_time:
+            expiry_time = dt.fromtimestamp(expiry_time)
+        async with request.app['database']() as db:
+            await db(
+                """INSERT INTO user_settings (user_id, has_premium, premium_expiry_time) VALUES ($1, $2, $3)
+                ON CONFLICT (user_id) DO UPDATE SET has_premium=excluded.has_premium,
+                premium_expiry_time=excluded.premium_expiry_time""",
+                user_id, not bool(expiry_time), expiry_time,
+            )
+
+        # Work out what to send to Discord
+        if expiry_time:
+            discord_channel_send_text = f"<@{user_id}> cancelled their subscription to Flower Premium. It will expire on {expiry_time.strftime('%c')}."
+        else:
+            discord_channel_send_text = f"<@{user_id}> subscribed to Flower Premium."
+
+    # Send data to channel
+    channel_id = request.app['config']['paypal']['notification_channel_id']
+    if channel_id and discord_channel_send_text:
+        try:
+            channel = await bot.fetch_channel(channel_id)
+            await channel.send(discord_channel_send_text)
+        except Exception:
+            pass
 
     # And done
     return Response(status=200)

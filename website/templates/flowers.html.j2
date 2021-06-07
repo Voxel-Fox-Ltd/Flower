@@ -49,6 +49,9 @@
                     value="{{ pot_hue }}"
                     oninput="changePlantColour(this);"
                     onload="setTimeout(changePlantColour, 100, this);" />
+                <button style="margin-top: 5px;" {% if not user_has_premium %}disabled{% endif %}>
+                    Change new pot colour {% if not user_has_premium %}- requires premium{% endif %}
+                </button>
             </div>
 
         </div>

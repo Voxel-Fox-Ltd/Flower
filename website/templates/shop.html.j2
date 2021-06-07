@@ -14,7 +14,7 @@
                 <h1 class="title">Pot Count</h1>
                 <p class="subtitle">{{ "{0:,}".format(user.plant_limit) }}</p>
             </div>
-            <div class="column is-3">
+            <div class="column is-3 inventory">
                 <h1 class="title">Inventory</h1>
                 {%- for item_name, amount in inventory.items() -%}
                     <p class="subtitle">{{ "{0:,}".format(amount) }}x {{ item_name }}</p>
