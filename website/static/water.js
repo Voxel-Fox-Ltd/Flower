@@ -122,6 +122,21 @@ async function changePlantColour(object) {
 }
 
 
+async function submitPlantColourChange(object) {
+    let hue = object.parentNode.getElementById("hue").value;
+    fetch("/set_pot_hue", {
+        method: "POST",
+        body: JSON.stringify({
+            hue: hue,
+        }),
+    }).then((response) => {
+        return response.json();
+    }).then((data) => {
+        alert(response.message);
+    })
+}
+
+
 async function deletePlantDom(object) {
     while(!object.classList.contains("plant")) object = object.parentNode;
     object.remove();

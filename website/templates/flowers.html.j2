@@ -38,18 +38,21 @@
                 <img
                     class="pot-image"
                     src="{{ static('full_cropped.png') }}"
-                    style="width: 100px; margin:  8px auto 0 auto; filter: hue-rotate({{ pot_hue }}deg);"
-                    {% if not user_has_premium %}disabled{% endif %} />
+                    style="width: 100px; margin:  8px auto 0 auto; filter: hue-rotate({{ pot_hue }}deg);" />
                 <input
                     type="range"
-                    id="colour"
-                    name="colour"
+                    id="hue"
+                    name="hue"
                     min="0"
                     max="360"
                     value="{{ pot_hue }}"
                     oninput="changePlantColour(this);"
-                    onload="setTimeout(changePlantColour, 100, this);" />
-                <button style="margin-top: 5px;" {% if not user_has_premium %}disabled{% endif %}>
+                    onload="setTimeout(changePlantColour, 100, this);"
+                    {% if not user_has_premium %}disabled{% endif %} />
+                <button
+                        style="margin-top: 5px;"
+                        onclick="submitPlantColourChange(this); return false;"
+                        {% if not user_has_premium %}disabled{% endif %} >
                     Change new pot colour {% if not user_has_premium %}- requires premium{% endif %}
                 </button>
             </div>

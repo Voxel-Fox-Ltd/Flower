@@ -5,6 +5,8 @@ from aiohttp.web import HTTPFound, Request, RouteTableDef, Response, json_respon
 from voxelbotutils import web as webutils
 import aiohttp_session
 
+from cogs import localutils as botlocalutils
+
 
 routes = RouteTableDef()
 
@@ -186,7 +188,7 @@ async def purchase_complete(request: Request):
 
 
 @routes.post('/unsubscribe')
-async def purchase_complete(request: Request):
+async def unsubscribe(request: Request):
     """
     Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
     """
@@ -216,3 +218,33 @@ async def purchase_complete(request: Request):
 
     # And done
     return Response(status=200)
+
+
+@routes.post('/set_pot_hue')
+async def set_pot_hue(request: Request):
+    """
+    Lets users change the colour of their pots.
+    """
+
+    # Get our data
+    data = await request.json()
+    session = await aiohttp_session.get_session(request)
+    user_id = session['user_id']
+    ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
+
+    # See if they're allowed on this route
+    try:
+        await botlocalutils.checks.has_premium().predicate(ctx)
+    except Exception:
+        return json_response({"message": "User does not have premium."}, status=401)
+
+    # Update the user
+    async with request.app['database']() as db:
+        await db(
+            """INSERT INTO user_settings (user_id plant_pot_hue) VALUES ($1, $2)
+            ON CONFLICT (user_id) DO UPDATE SET plant_pot_hue=excluded.plant_pot_hue""",
+            user_id, data['hue'],
+        )
+
+    # And done
+    return json_response({"message": "Pot hue updated!"})
