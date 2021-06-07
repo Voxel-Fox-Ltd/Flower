@@ -1,3 +1,7 @@
+body {
+    margin-bottom: 20px;
+}
+
 .container {
     padding: 0 20px;
 }
@@ -24,4 +28,10 @@
 
 .inventory .subtitle {
     margin-bottom: 0;
+}
+
+@media screen and (max-width: 770px) {
+    .columns {
+        text-align: center;
+    }
 }
