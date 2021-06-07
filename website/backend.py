@@ -147,10 +147,14 @@ async def purchase_complete(request: Request):
 
     # Process subscription
     elif product_name == "Flower Premium":
-        expiry_time = data['subscription_expiry_time']
-        premium_subscription_delete_url = data['subscription_delete_url']
-        if expiry_time:
-            expiry_time = dt.fromtimestamp(expiry_time)
+        if data['refund']
+            expiry_time = dt.utcnow()
+            premium_subscription_delete_url = None
+        else:
+            expiry_time = data['subscription_expiry_time']
+            premium_subscription_delete_url = data['subscription_delete_url']
+            if expiry_time:
+                expiry_time = dt.fromtimestamp(expiry_time)
         async with request.app['database']() as db:
             await db(
                 """INSERT INTO user_settings (user_id, has_premium, premium_expiry_time, premium_subscription_delete_url)
@@ -161,7 +165,9 @@ async def purchase_complete(request: Request):
             )
 
         # Work out what to send to Discord
-        if expiry_time:
+        if data['refund']:
+            discord_channel_send_text = f"<@{user_id}>'s subscription to Flower Premium was refunded."
+        elif expiry_time:
             discord_channel_send_text = f"<@{user_id}> cancelled their subscription to Flower Premium. It will expire on {expiry_time.strftime('%c')}."
         else:
             discord_channel_send_text = f"<@{user_id}> subscribed to Flower Premium."
