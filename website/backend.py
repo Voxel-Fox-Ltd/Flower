@@ -134,14 +134,16 @@ async def purchase_complete(request: Request):
     # Process subscription
     elif product_name == "Flower Premium":
         expiry_time = data['subscription_expiry_time']
+        premium_subscription_delete_url = data['premium_subscription_delete_url']
         if expiry_time:
             expiry_time = dt.fromtimestamp(expiry_time)
         async with request.app['database']() as db:
             await db(
-                """INSERT INTO user_settings (user_id, has_premium, premium_expiry_time) VALUES ($1, $2, $3)
-                ON CONFLICT (user_id) DO UPDATE SET has_premium=excluded.has_premium,
-                premium_expiry_time=excluded.premium_expiry_time""",
-                user_id, not bool(expiry_time), expiry_time,
+                """INSERT INTO user_settings (user_id, has_premium, premium_expiry_time, premium_subscription_delete_url)
+                VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET has_premium=excluded.has_premium,
+                premium_expiry_time=excluded.premium_expiry_time,
+                premium_subscription_delete_url=excluded.premium_subscription_delete_url""",
+                user_id, not bool(expiry_time), expiry_time, premium_subscription_delete_url,
             )
 
         # Work out what to send to Discord
