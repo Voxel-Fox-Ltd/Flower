@@ -184,10 +184,6 @@ async def purchase_complete(request: Request):
     Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
     """
 
-    # Verify the header
-    if not verify_vfl_auth_header(request):
-        return Response(status=401)
-
     # Get our data
     data = await request.json()
     product_name = data['product_name']
