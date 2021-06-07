@@ -195,7 +195,7 @@ async def donate(request:Request):
     ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
     has_premium = False
     try:
-        await botlocalutils.checks.has_premium().predicate(ctx)
+        await localutils.checks.has_premium().predicate(ctx)
         has_premium = True
     except Exception:
         pass
