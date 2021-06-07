@@ -51,7 +51,7 @@
                     {% if not user_has_premium %}disabled{% endif %} />
                 <button
                         style="margin-top: 5px;"
-                        onclick="submitPlantColourChange(this); return false;"
+                        onclick="submitPlantColourChange(); return false;"
                         {% if not user_has_premium %}disabled{% endif %} >
                     Change new pot colour {% if not user_has_premium %}- requires premium{% endif %}
                 </button>

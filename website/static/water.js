@@ -122,8 +122,8 @@ async function changePlantColour(object) {
 }
 
 
-async function submitPlantColourChange(object) {
-    let hue = object.parentNode.getElementById("hue").value;
+async function submitPlantColourChange() {
+    let hue = document.getElementById("hue").value;
     fetch("/set_pot_hue", {
         method: "POST",
         body: JSON.stringify({
