@@ -134,7 +134,7 @@ async def purchase_complete(request: Request):
     # Process subscription
     elif product_name == "Flower Premium":
         expiry_time = data['subscription_expiry_time']
-        premium_subscription_delete_url = data['premium_subscription_delete_url']
+        premium_subscription_delete_url = data['subscription_delete_url']
         if expiry_time:
             expiry_time = dt.fromtimestamp(expiry_time)
         async with request.app['database']() as db:
