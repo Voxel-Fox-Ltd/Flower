@@ -132,7 +132,7 @@ async function submitPlantColourChange() {
     }).then((response) => {
         return response.json();
     }).then((data) => {
-        alert(response.message);
+        alert(data.message);
     })
 }
 
