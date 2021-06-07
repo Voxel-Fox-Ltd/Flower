@@ -192,6 +192,14 @@ async def donate(request:Request):
     session = await aiohttp_session.get_session(request)
     user_id = session.get('user_id')
 
+    ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
+    has_premium = False
+    try:
+        await botlocalutils.checks.has_premium().predicate(ctx)
+        has_premium = True
+    except Exception:
+        pass
+
     if user_id:
         async with request.app['database']() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=ANY($1::BIGINT[]) ORDER BY user_id DESC LIMIT 1", [user_id, 0])
@@ -199,4 +207,5 @@ async def donate(request:Request):
         user_rows = [{}]
     return {
         'user': dict(user_rows[0]),
+        'has_premium': has_premium,
     }

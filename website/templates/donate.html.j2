@@ -23,7 +23,13 @@
         <div class="columns is-multiline">
             <div class="column is-4 is-offset-4" style="text-align: center;">
 
-                {% if not user.has_premium %}
+                {% if has_premium %}
+
+                    <h1 class="title">You are currently subscribed to Premium</h1>
+                    <button onclick="fetch('/unsubscribe', {method: 'POST', body: JSON.stringify({product_name: 'Flower Premium'})})">Unsubscribe</button>
+
+                {% else %}
+
                     <h1 class="title">Subscribe to Premium</h1>
                     <h1 class="title"><b>£3.00</b> monthly</h1>
 
@@ -75,9 +81,6 @@
                         }).render('#paypal-plan-container-P-5C533545H17816407MC6TYSY');
                     </script>
 
-                {% else %}
-                    <h1 class="title">You are currently subscribed to Premium</h1>
-                    <button onclick="fetch('/unsubscribe', {method: 'POST', body: JSON.stringify({product_name: 'Flower Premium'})})">Unsubscribe</button>
                 {% endif %}
 
             </div>
