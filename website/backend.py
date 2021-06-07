@@ -8,6 +8,15 @@ import aiohttp_session
 routes = RouteTableDef()
 
 
+def verify_vfl_auth_header(request: Request):
+    """
+    Verifies that the given VFL auth header is correct.
+    """
+
+    auth = request.headers['Authorization']
+    return auth.strip() == request.app['config']['paypal']['authorization']
+
+
 @routes.get('/login_processor')
 async def login_processor(request:Request):
     """
@@ -96,6 +105,10 @@ async def purchase_complete(request: Request):
     Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
     """
 
+    # Verify the header
+    if not verify_vfl_auth_header(request):
+        return Response(status=401)
+
     # Get our data
     data = await request.json()
     product_name = data['product_name']
@@ -159,6 +172,42 @@ async def purchase_complete(request: Request):
             channel = await bot.fetch_channel(channel_id)
             await channel.send(discord_channel_send_text)
         except Exception:
+            pass
+
+    # And done
+    return Response(status=200)
+
+
+@routes.post('/unsubscribe')
+async def purchase_complete(request: Request):
+    """
+    Handles incomming webhooks from Voxel Fox for the PayPal purchase IPN
+    """
+
+    # Verify the header
+    if not verify_vfl_auth_header(request):
+        return Response(status=401)
+
+    # Get our data
+    data = await request.json()
+    product_name = data['product_name']
+    user_session = await aiohttp_session.get_session(request)
+
+    # Process subscription
+    if product_name != "Flower Premium":
+        raise Exception("Invalid product_name")
+
+    # Grab the cancel url
+    async with request.app['database']() as db:
+        rows = await db("SELECT * FROM user_settings WHERE user_id=$1", user_session['user_id'])
+    async with aiohttp.ClientSession() as session:
+        headers = {"Authorization": request.app['config']['paypal']['authorization']}
+        cancel_url = rows[0]['premium_subscription_delete_url']
+        json = {
+            "product_name": product_name,
+            "cancel_url": cancel_url,
+        }
+        async with session.post("https://voxelfox.co.uk/webhooks/cancel_subscription", json=json, headers=headers) as r:
             pass
 
     # And done
