@@ -147,7 +147,7 @@ async def purchase_complete(request: Request):
 
     # Process subscription
     elif product_name == "Flower Premium":
-        if data['refund']
+        if data['refund']:
             expiry_time = dt.utcnow()
             premium_subscription_delete_url = None
         else:
