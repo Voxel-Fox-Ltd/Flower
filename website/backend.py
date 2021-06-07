@@ -241,7 +241,7 @@ async def set_pot_hue(request: Request):
     # Update the user
     async with request.app['database']() as db:
         await db(
-            """INSERT INTO user_settings (user_id plant_pot_hue) VALUES ($1, $2)
+            """INSERT INTO user_settings (user_id, plant_pot_hue) VALUES ($1, $2)
             ON CONFLICT (user_id) DO UPDATE SET plant_pot_hue=excluded.plant_pot_hue""",
             user_id, data['hue'],
         )
