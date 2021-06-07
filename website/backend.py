@@ -100,7 +100,7 @@ async def purchase_complete(request: Request):
     data = await request.json()
     product_name = data['product_name']
     quantity = data.get('quantity', 0)
-    user_id = data['discord_user_id']
+    user_id = int(data['discord_user_id'])
     discord_channel_send_text = None
 
     # Process exp adds
