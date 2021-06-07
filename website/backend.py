@@ -205,7 +205,7 @@ async def purchase_complete(request: Request):
             "cancel_url": cancel_url,
         }
         async with session.post("https://voxelfox.co.uk/webhooks/cancel_subscription", json=json, headers=headers) as r:
-            pass
+            return json_response(await r.json())
 
     # And done
     return Response(status=200)
