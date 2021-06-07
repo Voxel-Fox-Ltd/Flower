@@ -102,6 +102,7 @@ async def purchase_complete(request: Request):
     quantity = data.get('quantity', 0)
     user_id = int(data['discord_user_id'])
     discord_channel_send_text = None
+    bot = request.app['bots']['bot']
 
     # Process exp adds
     if product_name == "Flower 2000 EXP":
@@ -118,7 +119,6 @@ async def purchase_complete(request: Request):
 
         # Send DMs
         if experience > 0:
-            bot = request.app['bots']['bot']
             try:
                 user = await bot.fetch_user(user_id)
                 await user.send(f"Added **{experience:,} exp** to your account!")
