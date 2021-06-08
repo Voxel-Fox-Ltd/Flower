@@ -253,7 +253,7 @@ class PlantCareCommands(utils.Cog):
             # See if we want to give them a premium bonus
             if user_is_premium:
                 multipliers.append({
-                    "multiplier": 4.0,
+                    "multiplier": 2.0,
                     "text": f"You're subscribed to Flower Premium! :D",
                 })
 
