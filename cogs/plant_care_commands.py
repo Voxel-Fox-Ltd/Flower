@@ -232,12 +232,12 @@ class PlantCareCommands(utils.Cog):
         user_is_premium = False
 
         # See if the user is premium
-        user_experience_row = await db(
-            """SELECT * FROM user_settings WHERE user_id=$1 AND
-            (has_premium=true OR premium_expiry_time > TIMEZONE('UTC', NOW())""",
-            user_id,
-        )
-        user_is_premium = bool(user_experience_row)
+        try:
+            await localutils.checks.has_premium().predicate(utils.web.WebContext(self.bot, waterer_id))
+            user_is_premium = True
+        except commands.CheckFailure:
+            pass
+
 
         # Disconnect from the database so we don't have hanging connections open while
         # making our Top.gg web request
