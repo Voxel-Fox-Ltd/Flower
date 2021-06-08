@@ -229,6 +229,15 @@ class PlantCareCommands(utils.Cog):
         multipliers = []  # List[dict]
         additional_text = []  # List[str]
         voted_on_topgg = False
+        user_is_premium = False
+
+        # See if the user is premium
+        user_experience_row = await db(
+            """SELECT * FROM user_settings WHERE user_id=$1 AND
+            (has_premium=true OR premium_expiry_time > TIMEZONE('UTC', NOW())""",
+            user_id,
+        )
+        user_is_premium = bool(user_experience_row)
 
         # Disconnect from the database so we don't have hanging connections open while
         # making our Top.gg web request
@@ -240,6 +249,14 @@ class PlantCareCommands(utils.Cog):
             # Get the experience that they should have gained
             total_experience = plant_data.get_experience()
             original_gained_experience = total_experience
+
+            # See if we want to give them a premium bonus
+            if user_is_premium:
+                multipliers.append({
+                    "multiplier": 4.0,
+                    "text": f"You're subscribed to Flower Premium! :D",
+                })
+
 
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - water_cooldown_period <= timedelta(seconds=30):
@@ -388,8 +405,8 @@ class PlantCareCommands(utils.Cog):
 
             def check(footer_text) -> bool:
                 if item['voted_on_topgg']:
-                    return 'vote' not in footer_text
-                return 'vote' in footer_text
+                    return 'vote' in footer_text
+                return 'vote' not in footer_text
             while counter < 100 and check(embed.footer.text.lower()):
                 ctx.bot.set_footer_from_config(embed)
                 counter += 1
