@@ -1,15 +1,16 @@
 {
     "background_color": "grey",
     "description": "An integrated website for Discord's Flower bot.",
-    "display": "fullscreen",
+    "display": "standalone",
     "icons": [
         {
-            "src": "https://cdn.discordapp.com/app-icons/731736201400418314/918df3b3669f3d7087c811c69cfee094.png?size=128",
-            "sizes": "128x128",
+            "src": "/static/images/flower_icon_256.png",
+            "sizes": "256x256",
             "type": "image/png"
         }
     ],
     "name": "Flower for Discord",
     "short_name": "Flower",
-    "start_url": "/flowers"
+    "start_url": "/flowers",
+    "orientation": "portrait"
 }
