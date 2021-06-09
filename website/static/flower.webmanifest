@@ -1,5 +1,5 @@
 {
-    "background_color": "grey",
+    "background_color": "#0b1809",
     "description": "An integrated website for Discord's Flower bot.",
     "display": "standalone",
     "icons": [
