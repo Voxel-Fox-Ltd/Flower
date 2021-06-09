@@ -26,7 +26,12 @@
                 {% if has_premium %}
 
                     <h1 class="title">You are currently subscribed to Premium</h1>
-                    <button onclick="fetch('/unsubscribe', {method: 'POST', body: JSON.stringify({product_name: 'Flower Premium'})})">Unsubscribe</button>
+                    <button
+                            class="button is-danger"
+                            onclick="fetch('/unsubscribe', {method: 'POST', body: JSON.stringify({product_name: 'Flower Premium'})})"
+                            style="width: 50%; height: 3em;" >
+                        Unsubscribe
+                    </button>
 
                 {% else %}
 
