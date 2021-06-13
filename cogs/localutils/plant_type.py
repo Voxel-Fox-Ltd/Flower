@@ -19,7 +19,8 @@ class PlantType(object):
     }
 
     required_experience = 0
-    experience_gain = {"maximum": 300, "minimum": 150}
+    # experience_gain = {"maximum": 300, "minimum": 150}
+    experience_gain = {"maximum": 700, "minimum": 300}
     max_nourishment_level = 21
 
     __slots__ = ('name', 'available_variants', 'nourishment_display_levels', 'stages', 'soil_hue', 'visible', 'available', 'artist', 'image_data')
