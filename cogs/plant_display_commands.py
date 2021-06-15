@@ -64,11 +64,11 @@ class PlantDisplayCommands(utils.Cog):
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @utils.command(hidden=True, aliases=['showall'], argument_descriptions=(
-        "The user whose plants you want to display.",
+    @utils.command(hidden=True, argument_descriptions=(
+        "The user whose plants you want to show.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayall(self, ctx: utils.Context, user: typing.Optional[discord.User]):
+    async def showallold(self, ctx: utils.Context, user: typing.Optional[discord.User]):
         """
         Show you all of your plants.
         """
@@ -94,6 +94,43 @@ class PlantDisplayCommands(utils.Cog):
 
         # Get our images
         image = display_utils.compile_plant_images(*images)
+        image_to_send = display_utils.image_to_bytes(image)
+        text = f"Here are all of <@{user.id}>'s plants!"
+        file = discord.File(image_to_send, filename="plant.png")
+        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        ctx.bot.set_footer_from_config(embed)
+        await ctx.send(embed=embed, file=file)
+
+    @utils.command(aliases=['displayall'], argument_descriptions=(
+        "The user whose plants you want to display.",
+    ))
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
+    async def showall(self, ctx: utils.Context, user: typing.Optional[discord.User]):
+        """
+        Show you all of your plants at once.
+        """
+
+        # Get data from database
+        user = user or ctx.author
+        async with self.bot.database() as db:
+            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
+            if not plant_rows:
+                return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
+        await ctx.trigger_typing()
+
+        # Filter into variables
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        plant_rows = display_utils.sort_plant_rows(plant_rows)
+        images = []
+        for plant_row in plant_rows:
+            if plant_row:
+                display_data = display_utils.get_display_data(plant_row, user_id=user.id)
+            else:
+                display_data = display_utils.get_display_data(None, user_id=user.id)
+            images.append(display_utils.get_plant_image(**display_data, crop_image=False))
+
+        # Get our images
+        image = display_utils.compile_plant_images_compressed(*images)
         image_to_send = display_utils.image_to_bytes(image)
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")

@@ -39,6 +39,9 @@ async function waterPlant(object) {
 
     // Update the flower image
     // TODO
+
+    // Alert to the user
+    alert(response.text);
 }
 
 

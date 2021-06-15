@@ -11,6 +11,8 @@ from cogs import localutils
 
 class PlantDisplayUtils(utils.Cog):
 
+    PLANT_SCALE_SIZE = 5
+
     rgb_to_hsv = np.vectorize(colorsys.rgb_to_hsv)
     hsv_to_rgb = np.vectorize(colorsys.hsv_to_rgb)
 
@@ -61,25 +63,9 @@ class PlantDisplayUtils(utils.Cog):
         return image_to_send
 
     @staticmethod
-    def _gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
-        image_to_send = io.BytesIO()
-        max_size = max([i.size for i in images])
-        new_images = []
-        for i in images:
-            base = Image.new("RGBA", max_size, (0, 0, 0, 0))
-            base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]), i)
-            new_images.append(base)
-        new_images[-1].save(
-            image_to_send, format="GIF", save_all=True, disposal=2, loop=0,
-            append_images=new_images[:1:-1], duration=duration, optimize=False,
-        )
-        image_to_send.seek(0)
-        return image_to_send
-
-    @staticmethod
     def gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
         image_to_send = io.BytesIO()
-        max_size = max([i.size for i in images])
+        max_size = [max([i.size[0] for i in images]), max([i.size[1] for i in images])]
         new_images = []
         for i in images:
             base = Image.new("RGBA", max_size, (0, 0, 0, 0))
@@ -89,7 +75,7 @@ class PlantDisplayUtils(utils.Cog):
         image_to_send.seek(0)
         return image_to_send
 
-    def get_plant_image(self, plant_type: str, plant_nourishment: int, pot_type: str, pot_hue: int) -> Image:
+    def get_plant_image(self, plant_type: str, plant_nourishment: int, pot_type: str, pot_hue: int, crop_image: bool = True) -> Image:
         """
         Get a BytesIO object containing the binary data of a given plant/pot item.
         """
@@ -172,7 +158,15 @@ class PlantDisplayUtils(utils.Cog):
             image.paste(plant_overlay_image, (0, 0), plant_overlay_image)
 
         # Read the bytes
-        image = self.crop_image_to_content(image.resize((image.size[0] * 5, image.size[1] * 5,), Image.NEAREST))
+        image = image.resize(
+            (
+                image.size[0] * self.PLANT_SCALE_SIZE,
+                image.size[1] * self.PLANT_SCALE_SIZE,
+            ),
+            Image.NEAREST,
+        )
+        if crop_image:
+            return self.crop_image_to_content(image)
         return image
 
     @classmethod
@@ -185,15 +179,72 @@ class PlantDisplayUtils(utils.Cog):
         max_height = max([i.size[1] for i in plants])
         total_width = sum([i.size[0] for i in plants])
 
-        # Create the new image
-        new_image = Image.new("RGBA", (total_width, max_height,))
-        width_offset = 0
+        # Work out which of our images to flip
+        new_plants = []
         for index, image in enumerate(plants):
             if add_flipping:
                 if random.randint(0, 1):
                     image = ImageOps.mirror(image)
+            new_plants.append(image)
+
+        # Create the new image
+        new_image = Image.new("RGBA", (total_width, max_height,))
+        width_offset = 0
+        for index, image in enumerate(new_plants):
             new_image.paste(image, (width_offset, max_height - image.size[1],), image)
             width_offset += image.size[0]
+
+        # And Discord it up
+        return cls.crop_image_to_content(new_image)
+
+    @staticmethod
+    def get_plant_hang(plant, pot_width):
+        return (plant.size[0] - pot_width) // 2
+
+    @classmethod
+    def get_offset(cls, plants, index: int, pot_width: int, spacer_pixels: int = 4):
+        """
+        Get the offset for a plant to be added given its index.
+        """
+
+        if index == 0:
+            return 0
+        a1 = cls.get_plant_hang(plants[0], pot_width)
+        return a1 + (index * (pot_width + (spacer_pixels * cls.PLANT_SCALE_SIZE))) - cls.get_plant_hang(plants[index], pot_width)
+
+    @classmethod
+    def compile_plant_images_compressed(cls, *plants, add_flipping: bool = True):
+        """
+        Add together some plant images.
+        """
+
+        # Work out our numbers
+        spacer_pixels = 1
+        max_height = max([i.size[1] for i in plants])
+        total_width = sum([i.size[0] + (spacer_pixels * cls.PLANT_SCALE_SIZE) for i in plants])
+        pot_image = Image.open("images/pots/clay/front.png").convert("RGBA")
+        pot_width = pot_image.size[0] * cls.PLANT_SCALE_SIZE
+
+        # Work out which of our images to flip
+        new_plants = []
+        for index, image in enumerate(plants):
+            if add_flipping:
+                if random.randint(0, 1):
+                    image = ImageOps.mirror(image)
+            new_plants.append(image)
+
+        # Create the new image
+        new_image = Image.new("RGBA", (total_width, max_height,))
+        for index, image in enumerate(new_plants[::-1]):
+            offset_index = len(new_plants) - index - 1
+            new_image.paste(
+                image,
+                (
+                    cls.get_offset(plants, offset_index, pot_width, spacer_pixels),
+                    max_height - image.size[1],
+                ),
+                image,
+            )
 
         # And Discord it up
         return cls.crop_image_to_content(new_image)
