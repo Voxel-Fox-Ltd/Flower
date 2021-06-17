@@ -50,19 +50,19 @@ class PlantShopCommands(utils.Cog):
             'revival_token': localutils.ItemType(
                 item_name='revival_token',
                 display_name='revival token',
-                item_price=self.bot.config.get('plants', {}).get('revival_token_price', 300),
+                item_price=self.bot.config['plants']['revival_token_price'],
                 usage="{ctx.clean_prefix}revive <plant_name>",
             ),
             'refresh_token': localutils.ItemType(
                 item_name='refresh_token',
                 display_name='shop refresh token',
-                item_price=self.bot.config.get('plants', {}).get('refresh_token_price', 10_000),
+                item_price=self.bot.config['plants']['refresh_token_price'],
                 usage="{ctx.clean_prefix}refreshshop",
             ),
             'immortal_plant_juice': localutils.ItemType(
                 item_name='immortal_plant_juice',
                 display_name='immortal plant juice',
-                item_price=self.bot.config.get('plants', {}).get('immortal_plant_juice_price', 1_000),
+                item_price=self.bot.config['plants']['immortal_plant_juice_price'],
                 usage="{ctx.clean_prefix}immortalise",
             ),
         }
@@ -210,7 +210,7 @@ class PlantShopCommands(utils.Cog):
             plant_pot_hue = ctx.author.id % 360
 
         # Work out if the user's cooldown is expired for purchasing new plants
-        water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+        water_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + water_cooldown
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
         buy_plant_cooldown = None
@@ -254,16 +254,27 @@ class PlantShopCommands(utils.Cog):
         ).total_seconds())
         embed.description += f"Your plants will change in {remaining_time.clean_spaced}.\n"
 
-        # Set up items to be added to the embed
+        # See if the user has premium
+        user_has_premium = False
+        try:
+            await localutils.checks.has_premium().predicate(ctx)
+            user_has_premium = True
+        except commands.CommandError:
+            pass
+
+        # See how many pots the user is allowed
+        bot_plant_cap = self.bot.config['plants']['hard_plant_cap']
+        non_subscriber_plant_cap = self.bot.config['plants']['non_subscriber_plant_cap']
+        user_plant_cap = bot_plant_cap if user_has_premium else non_subscriber_plant_cap
 
         # Add pots
         text = f"Pot ({self.get_points_for_plant_pot(user_plant_limit):,} exp)"
-        bot_plant_limit = self.bot.config.get('plants', {}).get('hard_plant_cap', 10)
-        if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < bot_plant_limit:
+        if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < user_plant_cap:
             all_items.append({"label": text, "custom_id": "pot", "disabled": False})
-        elif user_plant_limit >= bot_plant_limit:
-            text = "~~Pot~~ Maximum pots reached"
+        elif user_plant_limit >= bot_plant_cap:
             all_items.append({"label": "Pot (maximum pots reached)", "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+        elif user_plant_limit >= user_plant_cap:
+            all_items.append({"label": "Pot (maximum free pots reached)", "custom_id": "pot_free", "disabled": False, "style": utils.ButtonStyle.SECONDARY})
         else:
             all_items.append({"label": text, "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
 
@@ -326,9 +337,16 @@ class PlantShopCommands(utils.Cog):
             return await payload.message.delete()
         await payload.message.edit(components=components.disable_components())
 
+        # See if they want a pot but they're not subbed
+        if given_response == "pot_free":
+            return await payload.send((
+                f"You're already at the maximum amount of pots you can have without "
+                f"subscribing - see `{ctx.clean_prefix}donate` for more information."
+            ))
+
         # See if they want a plant pot
         if given_response == "pot":
-            if user_plant_limit >= self.bot.config.get('plants', {}).get('hard_plant_cap', 10):
+            if user_plant_limit >= self.bot.config['plants']['hard_plant_cap']:
                 return await payload.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
             if user_experience >= self.get_points_for_plant_pot(user_plant_limit):
                 async with self.bot.database() as db:
@@ -631,7 +649,7 @@ class PlantShopCommands(utils.Cog):
                 for row in plants_being_traded:
 
                     # See if we need to update the last water time
-                    water_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+                    water_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
                     is_watered = row['last_water_time'] + water_cooldown > dt.utcnow()
                     last_water_time = row['last_water_time'] if is_watered else dt.utcnow() - water_cooldown
 

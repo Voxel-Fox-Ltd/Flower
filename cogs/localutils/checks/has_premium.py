@@ -2,9 +2,8 @@ from discord.ext import commands
 
 
 class DoesNotHavePremium(commands.CheckFailure):
-
     def __init__(self):
-        super().__init__("You need to have premium to be able to run this command.")
+        super().__init__("You need to have premium to be able to run this command!")
 
 
 def has_premium():

@@ -56,7 +56,7 @@ class PlantCareCommands(utils.Cog):
             updated_plant_rows = await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
                 plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE RETURNING *""",
-                dt.utcnow(), timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3})),
+                dt.utcnow(), timedelta(**self.bot.config.get['plants']['death_timeout']),
             )
             for row in updated_plant_rows:
                 await db(
@@ -79,8 +79,8 @@ class PlantCareCommands(utils.Cog):
         Loop to see when we should tell users about their plants needing another water.
         """
 
-        water_plant_cooldown = timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
-        notification_time = timedelta(**self.bot.config.get('plants', {}).get('notification_time', {'hours': 1}))
+        water_plant_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
+        notification_time = timedelta(**self.bot.config['plants']['notification_time'])
         async with self.bot.database() as db:
             user_id_rows = await db(
                 """SELECT DISTINCT user_id FROM plant_levels WHERE last_water_time < $1 AND notification_sent=FALSE""",
@@ -182,13 +182,9 @@ class PlantCareCommands(utils.Cog):
 
         # See if the user running the command is the owner of the plant and give a cooldown period properly
         if waterer_is_owner:
-            water_cooldown_period = timedelta(
-                **self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15})
-            )
+            water_cooldown_period = timedelta(**self.bot.config['plants']['water_cooldown'])
         else:
-            water_cooldown_period = timedelta(
-                **self.bot.config.get('plants', {}).get('guest_water_cooldown', {'minutes': 60})
-            )
+            water_cooldown_period = timedelta(**self.bot.config['plants']['guest_water_cooldown'])
 
         # See if they're allowed to water things
         last_water_time = plant_level_row[0]['last_water_time']
@@ -565,7 +561,7 @@ class PlantCareCommands(utils.Cog):
             await db(
                 """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
                 plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config.get('plants', {}).get('water_cooldown', {'minutes': 15}))
+                user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config['plants']['water_cooldown'])
             )
             await db(
                 """INSERT INTO user_achievement_counts (user_id, revive_count) VALUES ($1, 1)

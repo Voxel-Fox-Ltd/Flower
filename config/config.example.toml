@@ -6,50 +6,37 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
 
 # Data for the plant bot
 [plants]
-    hard_plant_cap = 10  # The maximum amount of plant pots that a user can buy
-    revival_token_price = 3_000  # The price of revival tokens
-    refresh_token_price = 10_000  # The price of shop refresh tokens
-    [plants.death_timeout]  # The death timeout - this gets passed directly into a timedelta
+    non_subscriber_plant_cap = 5
+    hard_plant_cap = 10
+    revival_token_price = 3_000
+    refresh_token_price = 10_000
+    immortal_plant_juice_price = 1_000
+    [plants.death_timeout]
         days = 3
-    [plants.water_cooldown]  # The water command cooldown - this gets passed directly into a timedelta
+    [plants.water_cooldown]
         minutes = 15
-    [plants.guest_water_cooldown]  # The water command cooldown for watering someone else's plant
-        minutes = 60
     [plants.notification_time]
-        days = 1
+        hours = 1
+    [plants.guest_water_cooldown]
+        minutes = 60
 
 # The intents that the bot should start with
 [intents]
-    # Guilds - recommended: true. Used for guild join/remove, channel create/delete/update, Bot.get_channel, Bot.guilds.
-    guilds = true
-    # Members - recommended: false (privileged intent). Used for member join/remove/update, Member.roles, Member.nick, User.name, etc.
-    members = false
-    # Bans - recommended: false. Used for member ban/unban.
-    bans = false
-    # Emojis - recommended: false. Used for guild emojis update, Bot.get_emoji, Guild.emojis.
-    emojis = false
-    # Integrations - recommended: false. Used for guild integrations update.
-    integrations = false
-    # Webhooks - recommended: false. Used for guild webhooks update.
-    webhooks = false
-    # Invites - recommended: false. Used for invite create/delete.
-    invites = false
-    # Voice states - recommended: false. Used for voice state update, VoiceChannel.members, Member.voice.
-    voice_states = false
-    # Presences - recommended: false (privileged intent). Used for member update (for activities and status), Member.status.
-    presences = false
-    # Guild messages - recommended: true. Used for message events in guilds.
-    guild_messages = true
-    # DM messages - recommended: true. Used for message events in DMs.
-    dm_messages = true
-    # Guild reactions - recommended: false. Used for [raw] reaction add/remove/clear events in guilds.
-    guild_reactions = true
-    # DM reactions - recommended: false. Used for [raw] reaction add/remove/clear events in DMs.
-    dm_reactions = false
-    # Guild typing - recommended: false. Used for the typing event in guilds.
-    guild_typing = false
-    # DM typing - recommended: false. Used for the typing event in Dms.
-    dm_typing = false
+    guilds = true  # Guilds - recommended: true. Used for guild join/remove, channel create/delete/update, Bot.get_channel, Bot.guilds.
+    members = false  # Members - recommended: false (privileged intent). Used for member join/remove/update, Member.roles, Member.nick, User.name, etc.
+    bans = false  # Bans - recommended: false. Used for member ban/unban.
+    emojis = false  # Emojis - recommended: false. Used for guild emojis update, Bot.get_emoji, Guild.emojis.
+    integrations = false  # Integrations - recommended: false. Used for guild integrations update.
+    webhooks = false  # Webhooks - recommended: false. Used for guild webhooks update.
+    invites = false  # Invites - recommended: false. Used for invite create/delete.
+    voice_states = false  # Voice states - recommended: false. Used for voice state update, VoiceChannel.members, Member.voice.
+    presences = false  # Presences - recommended: false (privileged intent). Used for member update (for activities and status), Member.status.
+    guild_messages = true  # Guild messages - recommended: true. Used for message events in guilds.
+    dm_messages = true  # DM messages - recommended: true. Used for message events in DMs.
+    guild_reactions = true  # Guild reactions - recommended: false. Used for [raw] reaction add/remove/clear events in guilds.
+    dm_reactions = false  # DM reactions - recommended: false. Used for [raw] reaction add/remove/clear events in DMs.
+    guild_typing = false  # Guild typing - recommended: false. Used for the typing event in guilds.
+    dm_typing = false  # DM typing - recommended: false. Used for the typing event in Dms.
 
 # Data used to send API requests to whatever service
 [bot_listing_api_keys]
@@ -94,17 +81,23 @@ event_webhook_url = ""  # Some events will be posted via webhook to this url
         name = "{ctx.bot.user}"
         url = ""  # the url added to the author
     [[embed.footer]]  # an array of possible footers
-        text = "Add the bot to your server! ({ctx.clean_prefix}invite)"  # text to appear in the footer
-        amount = 1  # the amount of times this particular text is added to the pool
-    [[embed.footer]]  # an array of possible footers
-        text = "Vote for Flower on Top.gg! ({ctx.clean_prefix}vote)"
+        text = "Add the bot to your server! ({ctx.clean_prefix}invite)"
         amount = 1
     [[embed.footer]]
-        text = "Trade plants with your friends! ({ctx.clean_prefix}trade)"
+        text = "Vote for Flower on Top.gg and get an exp multiplier! ({ctx.clean_prefix}vote)"
         amount = 1
     [[embed.footer]]
-        text = "Suggest new plants for Flower! ({ctx.clean_prefix}suggest)"
+        text = "Water your plants from the website! ({ctx.clean_prefix}website)"
         amount = 1
+    [[embed.footer]]
+        text = "You can get more than 5 plants by subscribing! ({ctx.clean_prefix}donate)"
+        amount = 3
+    [[embed.footer]]
+        text = "Subscribe to the bot and get an exp multiplier! ({ctx.clean_prefix}donate)"
+        amount = 3
+    [[embed.footer]]
+        text = "Change your pot colour by subscribing! ({ctx.clean_prefix}donate)"
+        amount = 3
 
 # What the bot is playing
 [presence]

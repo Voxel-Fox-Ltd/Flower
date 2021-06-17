@@ -4,15 +4,17 @@ import discord
 from discord.ext import commands
 import voxelbotutils as utils
 
+from cogs import localutils
+
 
 class PlantDisplayCommands(utils.Cog):
 
-    @utils.command(aliases=['showplant', 'show', 'display'], argument_descriptions=(
+    @utils.command(aliases=['displayplant', 'show', 'display'], argument_descriptions=(
         "The user whose plant you want to display.",
         "The plant which you want to look at.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def displayplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
+    async def showplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
         """
         Shows you your plant status.
         """
@@ -45,7 +47,9 @@ class PlantDisplayCommands(utils.Cog):
             text = f"<@{user.id}>'s {display_data['plant_type'].replace('_', ' ')} - **{plant_rows[0]['plant_name']}**"
             if int(display_data['plant_nourishment']) > 0:
                 if ctx.author.id == user.id:
-                    text += "!"
+                    text += f"!\nYou can see all of your plants at once with the `{ctx.clean_prefix}showall` command!"
+                else:
+                    text += f".\nYou can see all of their plants at once with the `{ctx.clean_prefix}showall` command!"
             elif int(display_data['plant_nourishment']) < 0:
                 if ctx.author.id == user.id:
                     text += f". It's looking a tad... dead. Run `{ctx.prefix}deleteplant {plant_name}` to plant some new seeds."
@@ -104,6 +108,7 @@ class PlantDisplayCommands(utils.Cog):
     @utils.command(aliases=['displayall'], argument_descriptions=(
         "The user whose plants you want to display.",
     ))
+    @localutils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def showall(self, ctx: utils.Context, user: typing.Optional[discord.User]):
         """

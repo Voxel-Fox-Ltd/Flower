@@ -99,7 +99,7 @@ class UserCommands(utils.Cog):
             if plant['immortal']:
                 plant_death_time, plant_death_humanize_time = None, None
             else:
-                death_timeout = timedelta(**self.bot.config.get('plants', {}).get('death_timeout', {'days': 3}))
+                death_timeout = timedelta(**self.bot.config.get['plants']['death_timeout'])
                 plant_death_time = plant['last_water_time'] + death_timeout
                 plant_death_humanize_time = utils.TimeValue(
                     (plant_death_time - dt.utcnow()).total_seconds()
