@@ -56,7 +56,7 @@ class PlantCareCommands(utils.Cog):
             updated_plant_rows = await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
                 plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE RETURNING *""",
-                dt.utcnow(), timedelta(**self.bot.config.get['plants']['death_timeout']),
+                dt.utcnow(), timedelta(**self.bot.config['plants']['death_timeout']),
             )
             for row in updated_plant_rows:
                 await db(
