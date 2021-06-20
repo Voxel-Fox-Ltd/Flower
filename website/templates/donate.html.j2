@@ -92,7 +92,8 @@
                             },
                            createSubscription: function(data, actions) {
                                 return actions.subscription.create({
-                                   'plan_id': 'P-5C533545H17816407MC6TYSY'
+                                   'plan_id': 'P-5C533545H17816407MC6TYSY',
+                                   'custom_id': JSON.stringify({discord_user_id: "{{ session.user_id }}"}),
                                 });
                             },
                             onApprove: function(data, actions) {
