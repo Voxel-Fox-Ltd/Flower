@@ -610,19 +610,23 @@ class PlantCareCommands(utils.Cog):
                 return await ctx.send(f"You can't immortalize a dead plant!")
 
         # Make sure they want to
-        m = await ctx.send("By making a plant immortal, you halve the amount of exp you get from it. Are you sure this is something you want to do?")
-        emojis = ["\N{HEAVY CHECK MARK}", "\N{HEAVY MULTIPLICATION X}"]
-        for e in emojis:
-            self.bot.loop.create_task(m.add_reaction(e))
+        m = await ctx.send(
+            (
+                "By making a plant immortal, you halve the amount of exp you get from it. "
+                "Are you sure this is something you want to do?"
+            ),
+            components=utils.MessageComponents.boolean_buttons(),
+        )
         try:
-            check = lambda p: p.user_id == ctx.author.id and p.message_id == m.id and str(p.emoji) in emojis
-            payload = await self.bot.wait_for("raw_reaction_add", check=check, timeout=120)
+            check = lambda p: p.user.id == ctx.author.id and p.message.id == m.id
+            payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
+            await payload.ack()
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant immortality, {ctx.author.mention}.")
 
         # Check their reaction
-        if str(payload.emoji) == "\N{HEAVY MULTIPLICATION X}":
-            return await ctx.send("Alright, cancelled making your plant immortal :<")
+        if payload.component.custom_id == "NO":
+            return await payload.send("Alright, cancelled making your plant immortal :<")
 
         # Okay they're sure
         async with self.bot.database() as db:
@@ -643,7 +647,7 @@ class PlantCareCommands(utils.Cog):
             await db.commit_transaction()
 
         # And now we done
-        return await ctx.send(f"Immortalized **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
+        return await payload.send(f"Immortalized **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
 
 
 def setup(bot:utils.Bot):
