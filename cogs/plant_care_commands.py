@@ -621,6 +621,7 @@ class PlantCareCommands(utils.Cog):
             check = lambda p: p.user.id == ctx.author.id and p.message.id == m.id
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
             await payload.ack()
+            self.bot.loop.create_task(payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components()))
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant immortality, {ctx.author.mention}.")
 
