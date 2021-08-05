@@ -110,7 +110,7 @@ class PlantDisplayCommands(utils.Cog):
     ))
     @localutils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showall(self, ctx: utils.Context, user: typing.Optional[discord.User]):
+    async def showall(self, ctx: utils.Context, user: discord.User = None):
         """
         Show you all of your plants at once.
         """

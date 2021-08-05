@@ -234,7 +234,6 @@ class PlantCareCommands(utils.Cog):
         except commands.CheckFailure:
             pass
 
-
         # Disconnect from the database so we don't have hanging connections open while
         # making our Top.gg web request
         await db.disconnect()
@@ -250,9 +249,8 @@ class PlantCareCommands(utils.Cog):
             if user_is_premium:
                 multipliers.append({
                     "multiplier": 2.0,
-                    "text": f"You're subscribed to Flower Premium! :D",
+                    "text": "You're subscribed to Flower Premium! :D",
                 })
-
 
             # See if we want to give them a 30 second water-time bonus
             if dt.utcnow() - last_water_time - water_cooldown_period <= timedelta(seconds=30):
@@ -494,7 +492,7 @@ class PlantCareCommands(utils.Cog):
                 assert plant_number >= 1
                 before = plant_name_list[plant_number - 1]
             except (AssertionError, IndexError):
-                return await ctx.send(f"The plant number you gave wasn't valid!")
+                return await ctx.send("The plant number you gave wasn't valid!")
 
             # Ask what they want to rename the plant to
             await ctx.send("What do you want to rename it to?")
@@ -607,7 +605,7 @@ class PlantCareCommands(utils.Cog):
 
             # See if the plant they specified is dead
             if plant_rows[0]['plant_nourishment'] <= 0:
-                return await ctx.send(f"You can't immortalize a dead plant!")
+                return await ctx.send("You can't immortalize a dead plant!")
 
         # Make sure they want to
         m = await ctx.send(
