@@ -291,7 +291,7 @@ class PlantCareCommands(utils.Cog):
             if user_plant_data['immortal']:
                 multipliers.append({
                     "multiplier": 0.5,
-                    "text": f"{their_your} plant is immortal.",
+                    "text": f"{their_your.title()} plant is immortal.",
                 })
 
             # Add the actual multiplier values
