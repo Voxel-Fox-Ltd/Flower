@@ -207,5 +207,6 @@ async def donate(request:Request):
         user_rows = [{}]
     return {
         'user': dict(user_rows[0]),
+        'premium_expiring': user_rows[0].get('premium_expiry_time') and user_rows[0]['premium_expiry_time'] > dt.utcnow(),
         'has_premium': has_premium,
     }

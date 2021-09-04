@@ -24,8 +24,16 @@
             <div class="column is-6 is-offset-3" style="text-align: center;">
 
                 {# Say if we're subbed #}
-                {% if has_premium %}
+                {% if has_premium and not premium_expiring %}
                     <h1 class="title">You are currently subscribed to Premium</h1>
+                {% elif premium_expiring %}
+                    <h1 class="title">Your premium subscription will end on <span id="premium-end-time">{{ user.premium_expiry_time }}</span></h1>
+                    <script type="text/javascript">
+                        var field = document.getElementById("premium-end-time");
+                        var time = new Date({{ user.premium_expiry_time }} * 1_000);
+                        var options = { dateStyle: 'long', timeStyle: 'long' };
+                        field.innerHTML = time.toLocaleDateString(undefined, options);
+                    </script>
                 {% else %}
                     <h1 class="title">Subscribe to Premium</h1>
                     <h1 class="title"><b>£3.00</b> monthly</h1>
@@ -44,7 +52,7 @@
                 <hr />
 
                 {# Show the relevant buttons #}
-                {% if has_premium %}
+                {% if has_premium and not premium_expiring %}
                     <button
                             class="button is-danger"
                             onclick="fetch('/unsubscribe', {method: 'POST', body: JSON.stringify({product_name: 'Flower Premium'})})"
