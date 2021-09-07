@@ -629,7 +629,10 @@ class PlantShopCommands(utils.Cog):
                 return
             if payload.component.custom_id == "NO":
                 return await payload.send(f"{payload.user.mention} doesn't want to go ahead with the trade :<")
-            pending_response.remove(payload.user.id)
+            try:
+                pending_response.remove(payload.user.id)
+            except ValueError:
+                pass
             if not pending_response:
                 break
 
