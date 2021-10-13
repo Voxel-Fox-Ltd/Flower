@@ -5,12 +5,15 @@ import glob
 import json
 import collections
 import random
+import typing
 
 import discord
-from discord.ext import commands
-import voxelbotutils as utils
+from discord.ext import commands, vbu
 
-from cogs import localutils
+from cogs import utils
+
+if typing.TYPE_CHECKING:
+    from cogs.utils.types.bot import Bot
 
 
 def strikethrough(text: str) -> str:
@@ -21,9 +24,11 @@ def strikethrough(text: str) -> str:
     return f"~~{text}~~"
 
 
-class PlantShopCommands(utils.Cog):
+class PlantShopCommands(vbu.Cog):
 
-    def __init__(self, bot: utils.Bot):
+    bot: Bot
+
+    def __init__(self, bot: Bot):
         super().__init__(bot)
 
         # Load up all the plants
@@ -43,23 +48,23 @@ class PlantShopCommands(utils.Cog):
             self.bot.plants.clear()
         except AttributeError:
             pass
-        self.bot.plants = {i['name']: localutils.PlantType(**i) for i in available_plants}
+        self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
 
         # Add the items
         self.bot.items = {
-            'revival_token': localutils.ItemType(
+            'revival_token': utils.ItemType(
                 item_name='revival_token',
                 display_name='revival token',
                 item_price=self.bot.config['plants']['revival_token_price'],
                 usage="{ctx.clean_prefix}revive <plant_name>",
             ),
-            'refresh_token': localutils.ItemType(
+            'refresh_token': utils.ItemType(
                 item_name='refresh_token',
                 display_name='shop refresh token',
                 item_price=self.bot.config['plants']['refresh_token_price'],
                 usage="{ctx.clean_prefix}refreshshop",
             ),
-            'immortal_plant_juice': localutils.ItemType(
+            'immortal_plant_juice': utils.ItemType(
                 item_name='immortal_plant_juice',
                 display_name='immortal plant juice',
                 item_price=self.bot.config['plants']['immortal_plant_juice_price'],
@@ -85,7 +90,7 @@ class PlantShopCommands(utils.Cog):
         Get the available plants for a given user at each given level.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
 
             # Check what plants they have available
             plant_shop_rows = await db("SELECT * FROM user_available_plants WHERE user_id=$1", user_id)
@@ -142,10 +147,10 @@ class PlantShopCommands(utils.Cog):
                 }
         return available_plants
 
-    @utils.command()
-    @utils.checks.is_bot_support()
+    @commands.command()
+    @vbu.checks.is_bot_support()
     @commands.bot_has_permissions(send_messages=True)
-    async def reloadplants(self, ctx: utils.Context):
+    async def reloadplants(self, ctx: vbu.Context):
         """
         Shows you the available plants.
         """
@@ -164,7 +169,7 @@ class PlantShopCommands(utils.Cog):
 
         # Dictionary it up
         self.bot.plants.clear()
-        self.bot.plants = {i['name']: localutils.PlantType(**i) for i in available_plants}
+        self.bot.plants = {i['name']: utils.PlantType(**i) for i in available_plants}
 
         # Reset the artist dict
         self.bot.get_cog("InformationCommands")._artist_info = None
@@ -172,14 +177,14 @@ class PlantShopCommands(utils.Cog):
         # And done
         return await ctx.send("Reloaded.")
 
-    @utils.command(ignore_extra=False)
+    @commands.command(ignore_extra=False)
     @commands.bot_has_permissions(send_messages=True)
-    async def refreshshop(self, ctx: utils.Context):
+    async def refreshshop(self, ctx: vbu.Context):
         """
         Refreshes your shop items.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='refresh_token'", ctx.author.id)
             if not inventory_rows or inventory_rows[0]['amount'] < 1:
                 return await ctx.send(f"You don't have any refresh tokens tokens, {ctx.author.mention}! :c")
@@ -187,15 +192,15 @@ class PlantShopCommands(utils.Cog):
             await db("UPDATE user_inventory SET amount=amount-1 WHERE user_id=$1 AND item_name='refresh_token'", ctx.author.id)
         return await ctx.send("Refreshed your shop!")
 
-    @utils.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
+    @commands.command(aliases=['getplant', 'getpot', 'newpot', 'newplant'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def shop(self, ctx: utils.Context):
+    async def shop(self, ctx: vbu.Context):
         """
         Shows you the available plants.
         """
 
         # Get data from the user and set up our variables to be used later
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             user_rows = await db("SELECT * FROM user_settings WHERE user_id=$1", ctx.author.id)
             plant_level_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1", ctx.author.id)
         if user_rows:
@@ -215,14 +220,14 @@ class PlantShopCommands(utils.Cog):
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
         buy_plant_cooldown = None
         if can_purchase_new_plants is False:
-            buy_plant_cooldown = utils.TimeValue(
+            buy_plant_cooldown = vbu.TimeValue(
                 ((last_plant_shop_time + water_cooldown) - dt.utcnow()).total_seconds()
             )
 
         # Set up our initial embed
         all_plants = []  # Used to make sure we can continue the command
         all_items = []  # Used to make sure we can continue the command
-        embed = utils.Embed(use_random_colour=True, description="")
+        embed = vbu.Embed(use_random_colour=True, description="")
         self.bot.set_footer_from_config(embed)
 
         # Make the initial embed
@@ -249,7 +254,7 @@ class PlantShopCommands(utils.Cog):
 
         # Say when the plants will change
         now = dt.utcnow()
-        remaining_time = utils.TimeValue((
+        remaining_time = vbu.TimeValue((
             dt(now.year if now.month < 12 else now.year + 1, now.month + 1 if now.month < 12 else 1, 1) - now
         ).total_seconds())
         embed.description += f"Your plants will change in {remaining_time.clean_spaced}.\n"
@@ -257,7 +262,7 @@ class PlantShopCommands(utils.Cog):
         # See if the user has premium
         user_has_premium = False
         try:
-            await localutils.checks.has_premium().predicate(ctx)
+            await utils.checks.has_premium().predicate(ctx)
             user_has_premium = True
         except commands.CommandError:
             pass
@@ -272,31 +277,31 @@ class PlantShopCommands(utils.Cog):
         if user_experience >= self.get_points_for_plant_pot(user_plant_limit) and user_plant_limit < user_plant_cap:
             all_items.append({"label": text, "custom_id": "pot", "disabled": False})
         elif user_plant_limit >= bot_plant_cap:
-            all_items.append({"label": "Pot (maximum pots reached)", "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+            all_items.append({"label": "Pot (maximum pots reached)", "custom_id": "pot", "disabled": True, "style": discord.ui.ButtonStyle.secondary})
         elif user_plant_limit >= user_plant_cap:
-            all_items.append({"label": "Pot (maximum free pots reached)", "custom_id": "pot_free", "disabled": False, "style": utils.ButtonStyle.SECONDARY})
+            all_items.append({"label": "Pot (maximum free pots reached)", "custom_id": "pot_free", "disabled": False, "style": discord.ui.ButtonStyle.secondary})
         else:
-            all_items.append({"label": text, "custom_id": "pot", "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+            all_items.append({"label": text, "custom_id": "pot", "disabled": True, "style": discord.ui.ButtonStyle.secondary})
 
         # Add variable items
         for item in self.bot.items.values():
             text = f"{item.display_name.capitalize()} ({item.price:,} exp)"
             if user_experience >= item.price:
-                all_items.append({"label": text, "custom_id": item.name, "disabled": False, "style": utils.ButtonStyle.SECONDARY})
+                all_items.append({"label": text, "custom_id": item.name, "disabled": False, "style": discord.ui.ButtonStyle.secondary})
             else:
-                all_items.append({"label": text, "custom_id": item.name, "disabled": True, "style": utils.ButtonStyle.SECONDARY})
+                all_items.append({"label": text, "custom_id": item.name, "disabled": True, "style": discord.ui.ButtonStyle.secondary})
 
         # Add all our items to the embed
-        components = utils.MessageComponents(
-            utils.ActionRow(*[utils.Button(**i) for i in all_plants]),
-            utils.ActionRow(*[utils.Button(**i) for i in all_items]),
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(*[discord.ui.Button(**i) for i in all_plants]),
+            discord.ui.ActionRow(*[discord.ui.Button(**i) for i in all_items]),
         )
 
         # Cancel if they don't have anything available
         if not [i for i in all_plants + all_items if not i['disabled']]:
             embed.description += "\n**There is currently nothing available which you can purchase.**\n"
             return await ctx.send(ctx.author.mention, embed=embed, components=components)
-        components.components.append(utils.ActionRow(utils.Button("Cancel", "cancel", style=utils.ButtonStyle.DANGER)))
+        components.components.append(discord.ui.ActionRow(discord.ui.Button(label="Cancel", custom_id="cancel", style=discord.ui.ButtonStyle.danger)))
 
         # Wait for them to respond
         shop_menu_message = await ctx.send(
@@ -349,7 +354,7 @@ class PlantShopCommands(utils.Cog):
             if user_plant_limit >= self.bot.config['plants']['hard_plant_cap']:
                 return await payload.send(f"You're already at the maximum amount of pots, {ctx.author.mention}! :c")
             if user_experience >= self.get_points_for_plant_pot(user_plant_limit):
-                async with self.bot.database() as db:
+                async with vbu.Database() as db:
                     await db(
                         """INSERT INTO user_settings (user_id, plant_limit, user_experience) VALUES ($1, 2, $2)
                         ON CONFLICT (user_id) DO UPDATE SET plant_limit=user_settings.plant_limit+1,
@@ -369,7 +374,7 @@ class PlantShopCommands(utils.Cog):
                 item_type = None
         if item_type is not None:
             if user_experience >= item_type.price:
-                async with self.bot.database() as db:
+                async with vbu.Database() as db:
                     await db.start_transaction()
                     await db(
                         """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE
@@ -428,14 +433,14 @@ class PlantShopCommands(utils.Cog):
                 )
             except asyncio.TimeoutError:
                 return await payload.send(f"Timed out asking for plant name {ctx.author.mention}.")
-            plant_name = localutils.PlantType.validate_name(plant_name_message.content)
+            plant_name = utils.PlantType.validate_name(plant_name_message.content)
             if len(plant_name) > 50 or len(plant_name) == 0:
                 await plant_name_message.reply("That name is too long! Please give another one instead!")
             else:
                 break
 
         # Save the enw plant to database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             plant_name_exists = await db(
                 "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
                 ctx.author.id, plant_name
@@ -469,7 +474,7 @@ class PlantShopCommands(utils.Cog):
             )
         await plant_name_message.reply(f"Planted your **{plant_type.display_name}** seeds!")
 
-    @utils.command(aliases=['trade'], argument_descriptions=(
+    @commands.command(aliases=['trade'], argument_descriptions=(
         "The user who you want to give a plant to.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, add_reactions=True)
@@ -488,7 +493,7 @@ class PlantShopCommands(utils.Cog):
             return await ctx.send(":/")
 
         # Get their alive plants _now_, even if we have to do it later again
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             rows = await db(
                 """SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0
                 ORDER BY plant_name ASC""",
@@ -510,13 +515,13 @@ class PlantShopCommands(utils.Cog):
         # See if they want to trade
         m = await ctx.send(
             f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?",
-            components=utils.MessageComponents.boolean_buttons(),
+            components=vbu.MessageComponents.boolean_buttons(),
         )
         try:
             check = lambda p: p.message.id == m.id and p.user.id == user.id
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
             await payload.ack()
-            await payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components())
+            await payload.message.edit(components=vbu.MessageComponents.boolean_buttons().disable_components())
         except asyncio.TimeoutError:
             try:
                 await ctx.send(
@@ -533,7 +538,7 @@ class PlantShopCommands(utils.Cog):
             )
 
         # Get their alive plants _again_
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             rows = await db(
                 """SELECT * FROM plant_levels WHERE user_id=ANY($1::BIGINT[]) AND plant_nourishment > 0
                 ORDER BY plant_name ASC""",
@@ -550,7 +555,7 @@ class PlantShopCommands(utils.Cog):
             return await payload.send(f"You don't have any alive plants to trade, {user.mention}!")
 
         # Format an embed
-        embed = utils.Embed(use_random_colour=True)
+        embed = vbu.Embed(use_random_colour=True)
         formatter = lambda row: f"**{row['plant_name']}** ({row['plant_type'].replace('_', ' ')}, {row['plant_nourishment']})"
         embed.add_field(
             ctx.author.name, "\n".join([formatter(row) for row in alive_plants[ctx.author.id]]),
@@ -593,22 +598,22 @@ class PlantShopCommands(utils.Cog):
                 break
 
         # Get their plant images
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_vbu = self.bot.get_cog("PlantDisplayvbu")
         image_data = []
         plants_being_traded = [
             alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]],
             alive_plants[user.id][trade_plant_index[user.id]]
         ]
         for plant_row in plants_being_traded:
-            display_data = display_utils.get_display_data(plant_row)
-            image_data.append(display_utils.get_plant_image(**display_data))
-        compiled_image = display_utils.compile_plant_images(*image_data)
-        handle = display_utils.image_to_bytes(compiled_image)
+            display_data = display_vbu.get_display_data(plant_row)
+            image_data.append(display_vbu.get_plant_image(**display_data))
+        compiled_image = display_vbu.compile_plant_images(*image_data)
+        handle = display_vbu.image_to_bytes(compiled_image)
         file = discord.File(handle, filename="plant_trade.png")
 
         # Ask if they wanna go ahead with it
-        embed = utils.Embed(use_random_colour=True).set_image("attachment://plant_trade.png")
-        components = utils.MessageComponents.boolean_buttons()
+        embed = vbu.Embed(use_random_colour=True).set_image("attachment://plant_trade.png")
+        components = vbu.MessageComponents.boolean_buttons()
         components.get_component("YES").label = "Yes (0/2)"
         m = await ctx.send("Do you both want to go ahead with this trade?", embed=embed, file=file, components=components)
         pending_response = [ctx.author.id, user.id]
@@ -638,7 +643,7 @@ class PlantShopCommands(utils.Cog):
 
         # Alright sick let's trade
         try:
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
 
                 # Start a transaction to make sure we do alright
                 await db.start_transaction()
