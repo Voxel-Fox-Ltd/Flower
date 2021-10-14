@@ -4,12 +4,12 @@ import random
 from PIL import Image, ImageOps
 import numpy as np
 import colorsys
-import voxelbotutils as utils
+from discord.ext import vbu
 
-from cogs import localutils
+from cogs import utils
 
 
-class PlantDisplayUtils(utils.Cog):
+class PlantDisplayUtils(vbu.Cog):
 
     PLANT_SCALE_SIZE = 5
 
@@ -71,7 +71,7 @@ class PlantDisplayUtils(utils.Cog):
             base = Image.new("RGBA", max_size, (0, 0, 0, 0))
             base.paste(i, ((max_size[0] - i.size[0]) // 2, max_size[1] - i.size[1]), i)
             new_images.append(base)
-        localutils.save_transparent_gif(new_images, duration, image_to_send)
+        utils.save_transparent_gif(new_images, duration, image_to_send)
         image_to_send.seek(0)
         return image_to_send
 
@@ -282,6 +282,6 @@ class PlantDisplayUtils(utils.Cog):
         }
 
 
-def setup(bot:utils.Bot):
-    x = PlantDisplayUtils(bot)
+def setup(bot:vbu.Bot):
+    x = PlantDisplayvbu(bot)
     bot.add_cog(x)

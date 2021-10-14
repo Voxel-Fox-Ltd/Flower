@@ -142,8 +142,6 @@ class PlantShopCommands(vbu.Cog):
                     2: self.bot.plants[plant_shop_rows[0]['plant_level_2']],
                     3: self.bot.plants[plant_shop_rows[0]['plant_level_3']],
                     4: self.bot.plants[plant_shop_rows[0]['plant_level_4']],
-                    # 5: self.bot.plants[plant_shop_rows[0]['plant_level_5']],
-                    # 6: self.bot.plants[plant_shop_rows[0]['plant_level_6']],
                 }
         return available_plants
 
@@ -375,18 +373,17 @@ class PlantShopCommands(vbu.Cog):
         if item_type is not None:
             if user_experience >= item_type.price:
                 async with vbu.Database() as db:
-                    await db.start_transaction()
-                    await db(
-                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE
-                        SET user_experience=user_settings.user_experience-excluded.user_experience""",
-                        ctx.author.id, item_type.price
-                    )
-                    await db(
-                        """INSERT INTO user_inventory (user_id, item_name, amount) VALUES ($1, $2, 1)
-                        ON CONFLICT (user_id, item_name) DO UPDATE SET amount=user_inventory.amount+excluded.amount""",
-                        ctx.author.id, item_type.name
-                    )
-                    await db.commit_transaction()
+                    async with db.transaction() as trans:
+                        await trans(
+                            """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE
+                            SET user_experience=user_settings.user_experience-excluded.user_experience""",
+                            ctx.author.id, item_type.price
+                        )
+                        await trans(
+                            """INSERT INTO user_inventory (user_id, item_name, amount) VALUES ($1, $2, 1)
+                            ON CONFLICT (user_id, item_name) DO UPDATE SET amount=user_inventory.amount+excluded.amount""",
+                            ctx.author.id, item_type.name
+                        )
                 return await payload.send((
                     f"Given you a **{item_type.display_name}**, {ctx.author.mention}! You can use it "
                     f"with `{item_type.usage.format(ctx=ctx)}`."
@@ -515,13 +512,13 @@ class PlantShopCommands(vbu.Cog):
         # See if they want to trade
         m = await ctx.send(
             f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?",
-            components=vbu.MessageComponents.boolean_buttons(),
+            components=discord.ui.MessageComponents.boolean_buttons(),
         )
         try:
             check = lambda p: p.message.id == m.id and p.user.id == user.id
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
             await payload.ack()
-            await payload.message.edit(components=vbu.MessageComponents.boolean_buttons().disable_components())
+            await payload.message.edit(components=discord.ui.MessageComponents.boolean_buttons().disable_components())
         except asyncio.TimeoutError:
             try:
                 await ctx.send(
@@ -613,7 +610,7 @@ class PlantShopCommands(vbu.Cog):
 
         # Ask if they wanna go ahead with it
         embed = vbu.Embed(use_random_colour=True).set_image("attachment://plant_trade.png")
-        components = vbu.MessageComponents.boolean_buttons()
+        components = discord.ui.MessageComponents.boolean_buttons()
         components.get_component("YES").label = "Yes (0/2)"
         m = await ctx.send("Do you both want to go ahead with this trade?", embed=embed, file=file, components=components)
         pending_response = [ctx.author.id, user.id]
@@ -646,40 +643,37 @@ class PlantShopCommands(vbu.Cog):
             async with vbu.Database() as db:
 
                 # Start a transaction to make sure we do alright
-                await db.start_transaction()
+                async with db.transaction() as trans:
 
-                # Delete the current plants from the users
-                for row in plants_being_traded:
-                    v = await db("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
-                    assert v is not None
+                    # Delete the current plants from the users
+                    for row in plants_being_traded:
+                        v = await trans("DELETE FROM plant_levels WHERE user_id=$1 AND plant_name=$2 RETURNING *", row['user_id'], row['plant_name'])
+                        assert v is not None
 
-                # Go through each of the traded plants
-                for row in plants_being_traded:
+                    # Go through each of the traded plants
+                    for row in plants_being_traded:
 
-                    # See if we need to update the last water time
-                    water_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
-                    is_watered = row['last_water_time'] + water_cooldown > dt.utcnow()
-                    last_water_time = row['last_water_time'] if is_watered else dt.utcnow() - water_cooldown
+                        # See if we need to update the last water time
+                        water_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
+                        is_watered = row['last_water_time'] + water_cooldown > dt.utcnow()
+                        last_water_time = row['last_water_time'] if is_watered else dt.utcnow() - water_cooldown
 
-                    # Add the plant to the user
-                    await db(
-                        """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
-                        last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue, immortal)
-                        VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()), $7, $8)""",
-                        ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'],
-                        row['plant_nourishment'], last_water_time, row['original_owner_id'] or row['user_id'],
-                        row['plant_pot_hue'], row['immortal'],
-                    )
+                        # Add the plant to the user
+                        await trans(
+                            """INSERT INTO plant_levels (user_id, plant_name, plant_type, plant_nourishment,
+                            last_water_time, original_owner_id, plant_adoption_time, plant_pot_hue, immortal)
+                            VALUES ($1, $2, $3, $4, $5, $6, TIMEZONE('UTC', NOW()), $7, $8)""",
+                            ctx.author.id if row['user_id'] == user.id else user.id, row['plant_name'], row['plant_type'],
+                            row['plant_nourishment'], last_water_time, row['original_owner_id'] or row['user_id'],
+                            row['plant_pot_hue'], row['immortal'],
+                        )
 
-                    # Increment their trade count
-                    await db(
-                        """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
-                        ON CONFLICT (user_id) DO UPDATE SET trade_count=user_achievement_counts.trade_count+excluded.trade_count""",
-                        row['user_id'],
-                    )
-
-                # Commit the transaction
-                await db.commit_transaction()
+                        # Increment their trade count
+                        await trans(
+                            """INSERT INTO user_achievement_counts (user_id, trade_count) VALUES ($1, 1)
+                            ON CONFLICT (user_id) DO UPDATE SET trade_count=user_achievement_counts.trade_count+excluded.trade_count""",
+                            row['user_id'],
+                        )
 
         # Raised on assertion error or transaction failure
         except Exception:

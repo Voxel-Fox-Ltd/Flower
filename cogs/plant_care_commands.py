@@ -3,13 +3,12 @@ from datetime import datetime as dt, timedelta
 import typing
 
 import discord
-from discord.ext import commands, tasks
-import voxelbotutils as utils
+from discord.ext import commands, tasks, vbu
 
-from cogs import localutils
+from cogs import utils
 
 
-class PlantCareCommands(utils.Cog):
+class PlantCareCommands(vbu.Cog):
 
     TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot_client_id}/check"
 
@@ -52,7 +51,7 @@ class PlantCareCommands(utils.Cog):
         Loop to see if we should kill off any plants that may have been timed out.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             updated_plant_rows = await db(
                 """UPDATE plant_levels SET plant_nourishment=-plant_levels.plant_nourishment WHERE
                 plant_nourishment > 0 AND last_water_time + $2 < $1 AND immortal=FALSE RETURNING *""",
@@ -81,7 +80,7 @@ class PlantCareCommands(utils.Cog):
 
         water_plant_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
         notification_time = timedelta(**self.bot.config['plants']['notification_time'])
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             user_id_rows = await db(
                 """SELECT DISTINCT user_id FROM plant_levels WHERE last_water_time < $1 AND notification_sent=FALSE""",
                 dt.utcnow() - (water_plant_cooldown + notification_time),
@@ -190,7 +189,7 @@ class PlantCareCommands(utils.Cog):
         last_water_time = plant_level_row[0]['last_water_time']
         if (last_water_time + water_cooldown_period) > dt.utcnow() and user_id not in self.bot.owner_ids:
             await db.disconnect()
-            timeout = utils.TimeValue((
+            timeout = vbu.TimeValue((
                 (plant_level_row[0]['last_water_time'] + water_cooldown_period) - dt.utcnow()
             ).total_seconds())
             return self.get_water_plant_dict((
@@ -229,7 +228,7 @@ class PlantCareCommands(utils.Cog):
 
         # See if the user is premium
         try:
-            await localutils.checks.has_premium().predicate(utils.web.WebContext(self.bot, waterer_id))
+            await utils.checks.has_premium().predicate(vbu.web.WebContext(self.bot, waterer_id))
             user_is_premium = True
         except commands.CheckFailure:
             pass
@@ -300,7 +299,7 @@ class PlantCareCommands(utils.Cog):
 
             # Update db
             total_experience = int(total_experience)
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
 
                 # Give exp to everyone we care about
                 if waterer_is_owner:
@@ -313,18 +312,17 @@ class PlantCareCommands(utils.Cog):
                 else:
                     gained_experience = int(total_experience * 0.8)
                     owner_gained_experience = int(total_experience - gained_experience)
-                    await db.start_transaction()
-                    user_experience_row = await db(
-                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                        waterer_id, gained_experience,
-                    )
-                    owner_experience_row = await db(
-                        """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
-                        DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
-                        user_id, owner_gained_experience,
-                    )
-                    await db.commit_transaction()
+                    async with db.transaction() as trans:
+                        user_experience_row = await trans(
+                            """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                            DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                            waterer_id, gained_experience,
+                        )
+                        owner_experience_row = await trans(
+                            """INSERT INTO user_settings (user_id, user_experience) VALUES ($1, $2) ON CONFLICT (user_id)
+                            DO UPDATE SET user_experience=user_settings.user_experience+$2 RETURNING *""",
+                            user_id, owner_gained_experience,
+                        )
 
                 # Update the user achievements
                 await db(
@@ -362,12 +360,12 @@ class PlantCareCommands(utils.Cog):
             multipliers=multipliers,
         )
 
-    @utils.command(aliases=['water', 'w'], cooldown_after_parsing=True, argument_descriptions=(
+    @vbu.command(aliases=['water', 'w'], cooldown_after_parsing=True, argument_descriptions=(
         "The user whose plant you want to water.",
         "The plant that you want to water.",
     ))
     @commands.bot_has_permissions(send_messages=True)
-    async def waterplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str):
+    async def waterplant(self, ctx: vbu.Context, user: typing.Optional[discord.User], *, plant_name: str):
         """
         Increase the growth level of your plant.
         """
@@ -385,7 +383,7 @@ class PlantCareCommands(utils.Cog):
         if ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).embed_links:
 
             # Make initial embed
-            embed = utils.Embed(use_random_colour=True, description=output_lines[0])
+            embed = vbu.Embed(use_random_colour=True, description=output_lines[0])
 
             # Add multipliers
             if len(output_lines) > 1:
@@ -417,17 +415,17 @@ class PlantCareCommands(utils.Cog):
         plant's data, or None.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             data = await db("DELETE FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2) RETURNING *", user_id, plant_name)
         if not data:
             return None
         return data[0]
 
-    @utils.command(aliases=['delete', 'deleteflower'], argument_descriptions=(
+    @vbu.command(aliases=['delete', 'deleteflower'], argument_descriptions=(
         "The plant that you want to delete.",
     ))
     @commands.bot_has_permissions(send_messages=True)
-    async def deleteplant(self, ctx: utils.Context, *, plant_name: str):
+    async def deleteplant(self, ctx: vbu.Context, *, plant_name: str):
         """
         Deletes your plant from the database.
         """
@@ -435,13 +433,13 @@ class PlantCareCommands(utils.Cog):
         # Make sure they want to
         m = await ctx.send(
             f"Are you sure you want to delete **{plant_name}** from your inventory?",
-            components=utils.MessageComponents.boolean_buttons(),
+            components=discord.ui.MessageComponents.boolean_buttons(),
         )
         try:
             check = lambda p: p.user.id == ctx.author.id and p.message.id == m.id
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
             await payload.ack()
-            await payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components())
+            await payload.message.edit(components=discord.ui.MessageComponents.boolean_buttons().disable_components())
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant deletion, {ctx.author.mention}.")
 
@@ -458,19 +456,19 @@ class PlantCareCommands(utils.Cog):
 
         return await ctx.send(f"Done - you've deleted your {data['plant_type'].replace('_', ' ')}.")
 
-    @utils.command(aliases=['rename'], argument_descriptions=(
+    @vbu.command(aliases=['rename'], argument_descriptions=(
         "The starting name of the plant that you want to rename.",
         "The ending name of the plant that you want to rename.",
     ))
     @commands.bot_has_permissions(send_messages=True)
-    async def renameplant(self, ctx: utils.Context, before: str = "", *, after: str = ""):
+    async def renameplant(self, ctx: vbu.Context, before: str = "", *, after: str = ""):
         """
         Gives a new name to your plant. Use "quotes" if your plant has a space in its name.
         """
 
         # Suggest a plant to rename if they didn't give one
         if not before:
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", ctx.author.id)
             if not rows:
                 return await ctx.send("You don't have any plants that you can rename!")
@@ -484,7 +482,7 @@ class PlantCareCommands(utils.Cog):
                 check = lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id and m.content.isdigit()
                 user_message = await self.bot.wait_for("message", check=check)
             except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!", ignore_error=True)
+                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!")
             plant_number = int(user_message.content)
 
             # Make sure it's valid
@@ -500,18 +498,18 @@ class PlantCareCommands(utils.Cog):
                 check = lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
                 user_message = await self.bot.wait_for("message", check=check)
             except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!", ignore_error=True)
+                return await ctx.send(f"Timed out waiting for you to give a plant, {ctx.author.mention}!")
             after = user_message.content
 
         # Make sure some names were provided
-        after = localutils.PlantType.validate_name(after)
+        after = utils.PlantType.validate_name(after)
         if not after:
-            raise utils.errors.MissingRequiredArgumentString("after")
+            raise vbu.errors.MissingRequiredArgumentString("after")
         if len(after) > 50 or len(after) == 0:
             return await ctx.send("That name is too long! Please give another one instead!")
 
         # See about changing the name
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
 
             # Make sure the given name exists
             plant_has_before_name = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", ctx.author.id, before)
@@ -537,7 +535,7 @@ class PlantCareCommands(utils.Cog):
         Returns a response string and whether or not the revive succeeded, as a tuple.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
 
             # See if they have enough revival tokens
             inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='revival_token'", user_id)
@@ -554,28 +552,27 @@ class PlantCareCommands(utils.Cog):
                 return f"Your **{plant_rows[0]['plant_name']}** plant isn't dead!", False
 
             # Revive the plant and remove a token
-            await db.start_transaction()
-            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", user_id)
-            await db(
-                """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
-                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config['plants']['water_cooldown'])
-            )
-            await db(
-                """INSERT INTO user_achievement_counts (user_id, revive_count) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET revive_count=user_achievement_counts.revive_count+excluded.revive_count""",
-                user_id,
-            )
-            await db.commit_transaction()
+            async with db.transaction() as trans:
+                await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='revival_token'", user_id)
+                await db(
+                    """UPDATE plant_levels SET plant_nourishment=1, last_water_time=$3,
+                    plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                    user_id, plant_name, dt.utcnow() - timedelta(**self.bot.config['plants']['water_cooldown'])
+                )
+                await db(
+                    """INSERT INTO user_achievement_counts (user_id, revive_count) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET revive_count=user_achievement_counts.revive_count+excluded.revive_count""",
+                    user_id,
+                )
 
         # And now we done
         return f"Revived **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D", True
 
-    @utils.command(argument_descriptions=(
+    @vbu.command(argument_descriptions=(
         "The name of the plant that you want to revive.",
     ))
     @commands.bot_has_permissions(send_messages=True)
-    async def revive(self, ctx: utils.Context, *, plant_name: str):
+    async def revive(self, ctx: vbu.Context, *, plant_name: str):
         """
         Use one of your revival tokens to be able to revive your plant.
         """
@@ -583,15 +580,15 @@ class PlantCareCommands(utils.Cog):
         response, success = await self.revive_plant_backend(ctx.author.id, plant_name)
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
-    @utils.command(aliases=['immortalise'])
+    @vbu.command(aliases=['immortalise'])
     @commands.bot_has_permissions(send_messages=True, add_reactions=True)
-    async def immortalize(self, ctx: utils.Context, *, plant_name: str):
+    async def immortalize(self, ctx: vbu.Context, *, plant_name: str):
         """
         Makes one of your plants immortal.
         """
 
         user_id = ctx.author.id
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
 
             # See if they have enough revival tokens
             inventory_rows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND item_name='immortal_plant_juice'", user_id)
@@ -613,13 +610,13 @@ class PlantCareCommands(utils.Cog):
                 "By making a plant immortal, you halve the amount of exp you get from it. "
                 "Are you sure this is something you want to do?"
             ),
-            components=utils.MessageComponents.boolean_buttons(),
+            components=discord.ui.MessageComponents.boolean_buttons(),
         )
         try:
             check = lambda p: p.user.id == ctx.author.id and p.message.id == m.id
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
             await payload.ack()
-            self.bot.loop.create_task(payload.message.edit(components=utils.MessageComponents.boolean_buttons().disable_components()))
+            self.bot.loop.create_task(payload.message.edit(components=discord.ui.MessageComponents.boolean_buttons().disable_components()))
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant immortality, {ctx.author.mention}.")
 
@@ -628,27 +625,26 @@ class PlantCareCommands(utils.Cog):
             return await payload.send("Alright, cancelled making your plant immortal :<")
 
         # Okay they're sure
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
 
             # Revive the plant and remove a token
-            await db.start_transaction()
-            await db("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='immortal_plant_juice'", user_id)
-            await db(
-                """UPDATE plant_levels SET immortal=true,
-                plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
-                user_id, plant_name
-            )
-            await db(
-                """INSERT INTO user_achievement_counts (user_id, immortalize_count) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET immortalize_count=user_achievement_counts.immortalize_count+excluded.immortalize_count""",
-                user_id,
-            )
-            await db.commit_transaction()
+            async with db.transaction() as trans:
+                await trans("UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND item_name='immortal_plant_juice'", user_id)
+                await trans(
+                    """UPDATE plant_levels SET immortal=true,
+                    plant_adoption_time=TIMEZONE('UTC', NOW()) WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)""",
+                    user_id, plant_name
+                )
+                await trans(
+                    """INSERT INTO user_achievement_counts (user_id, immortalize_count) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET immortalize_count=user_achievement_counts.immortalize_count+excluded.immortalize_count""",
+                    user_id,
+                )
 
         # And now we done
         return await payload.send(f"Immortalized **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D")
 
 
-def setup(bot:utils.Bot):
+def setup(bot: vbu.Bot):
     x = PlantCareCommands(bot)
     bot.add_cog(x)

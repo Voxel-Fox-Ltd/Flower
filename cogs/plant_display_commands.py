@@ -1,20 +1,19 @@
 import typing
 
 import discord
-from discord.ext import commands
-import voxelbotutils as utils
+from discord.ext import commands, vbu
 
-from cogs import localutils
+from cogs import utils
 
 
-class PlantDisplayCommands(utils.Cog):
+class PlantDisplayCommands(vbu.Cog):
 
-    @utils.command(aliases=['displayplant', 'show', 'display'], argument_descriptions=(
+    @vbu.command(aliases=['displayplant', 'show', 'display'], argument_descriptions=(
         "The user whose plant you want to display.",
         "The plant which you want to look at.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showplant(self, ctx: utils.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
+    async def showplant(self, ctx: vbu.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
         """
         Shows you your plant status.
         """
@@ -25,13 +24,13 @@ class PlantDisplayCommands(utils.Cog):
 
         # Get data from database
         user = user or ctx.author
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user.id, plant_name)
             if not plant_rows:
                 return await ctx.send(f"You have no plant named **{plant_name.capitalize()}**", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_utils = self.bot.get_cog("PlantDisplayvbu")
         if plant_rows:
             display_data = display_utils.get_display_data(plant_rows[0], user_id=user.id)
         else:
@@ -64,29 +63,29 @@ class PlantDisplayCommands(utils.Cog):
         # Send image
         image_data = display_utils.image_to_bytes(display_utils.get_plant_image(**display_data))
         file = discord.File(image_data, filename="plant.png")
-        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        embed = vbu.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @utils.command(hidden=True, argument_descriptions=(
+    @vbu.command(hidden=True, argument_descriptions=(
         "The user whose plants you want to show.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showallold(self, ctx: utils.Context, user: typing.Optional[discord.User]):
+    async def showallold(self, ctx: vbu.Context, user: typing.Optional[discord.User]):
         """
         Show you all of your plants.
         """
 
         # Get data from database
         user = user or ctx.author
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
             if not plant_rows:
                 return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
         await ctx.trigger_typing()
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_utils = self.bot.get_cog("PlantDisplayvbu")
         plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:
@@ -101,30 +100,30 @@ class PlantDisplayCommands(utils.Cog):
         image_to_send = display_utils.image_to_bytes(image)
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
-        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        embed = vbu.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @utils.command(aliases=['displayall'], argument_descriptions=(
+    @vbu.command(aliases=['displayall'], argument_descriptions=(
         "The user whose plants you want to display.",
     ))
-    @localutils.checks.has_premium()
+    @utils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showall(self, ctx: utils.Context, user: discord.User = None):
+    async def showall(self, ctx: vbu.Context, user: discord.User = None):
         """
         Show you all of your plants at once.
         """
 
         # Get data from database
         user = user or ctx.author
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
             if not plant_rows:
                 return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
         await ctx.trigger_typing()
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_utils = self.bot.get_cog("PlantDisplayvbu")
         plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:
@@ -139,11 +138,11 @@ class PlantDisplayCommands(utils.Cog):
         image_to_send = display_utils.image_to_bytes(image)
         text = f"Here are all of <@{user.id}>'s plants!"
         file = discord.File(image_to_send, filename="plant.png")
-        embed = utils.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
+        embed = vbu.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
 
-def setup(bot:utils.Bot):
+def setup(bot: vbu.Bot):
     x = PlantDisplayCommands(bot)
     bot.add_cog(x)

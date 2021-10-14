@@ -2,13 +2,12 @@ import json
 import random
 
 import discord
-from discord.ext import commands
-import voxelbotutils as utils
+from discord.ext import commands, vbu
 
 
-class InformationCommands(utils.Cog):
+class InformationCommands(vbu.Cog):
 
-    def __init__(self, bot: utils.Bot):
+    def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self._artist_info = None
 
@@ -21,11 +20,11 @@ class InformationCommands(utils.Cog):
         self._artist_info = data
         return data
 
-    @utils.command(argument_descriptions=(
+    @vbu.command(argument_descriptions=(
         "The name of the plant that you want to see the information for.",
     ))
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def herbiary(self, ctx: utils.Context, *, plant_name: str = None):
+    async def herbiary(self, ctx: vbu.Context, *, plant_name: str = None):
         """
         Get the information for a given plant.
         """
@@ -36,7 +35,7 @@ class InformationCommands(utils.Cog):
             for plant in self.bot.plants.values():
                 plant_list.append(plant.display_name.capitalize())
             plant_list.sort()
-            embed = utils.Embed(use_random_colour=True, description="\n".join(plant_list))
+            embed = vbu.Embed(use_random_colour=True, description="\n".join(plant_list))
             ctx.bot.set_footer_from_config(embed)
             return await ctx.send(embed=embed)
 
@@ -58,12 +57,12 @@ class InformationCommands(utils.Cog):
         description_list.append("")
 
         # Embed the data
-        with utils.Embed(use_random_colour=True) as embed:
+        with vbu.Embed(use_random_colour=True) as embed:
             embed.title = plant.display_name.capitalize()
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.gif")
             ctx.bot.set_footer_from_config(embed)
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_vbu = self.bot.get_cog("PlantDisplayvbu")
 
         # Make a gif of the stages
         pot_hue = random.randint(0, 360)
@@ -73,13 +72,13 @@ class InformationCommands(utils.Cog):
             if o not in added_display_stages:
                 display_levels.insert(0, int(i))
                 added_display_stages.append(o)
-        gif_frames = [display_utils.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
-        plant_image_bytes = display_utils.gif_to_bytes(*gif_frames, duration=1_000)
+        gif_frames = [display_vbu.get_plant_image(plant.name, i, "clay", pot_hue) for i in display_levels]
+        plant_image_bytes = display_vbu.gif_to_bytes(*gif_frames, duration=1_000)
         await ctx.send(embed=embed, file=discord.File(plant_image_bytes, filename="plant.gif"))
 
-    @utils.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def volunteer(self, ctx:utils.Context):
+    async def volunteer(self, ctx:vbu.Context):
         """
         Get the information for volunteering.
         """
@@ -105,7 +104,7 @@ class InformationCommands(utils.Cog):
             "Flower via the `{ctx.clean_prefix}suggest` command. That way I know where to change things, what to do to add new stuff, etcetc. If you want to "
             "discuss in more detail, I'm always around on [the support server](https://discord.gg/vfl)."
         ).format(ctx=ctx)
-        embed = utils.Embed(
+        embed = vbu.Embed(
             use_random_colour=True,
             description=VOLUNTEER_INFORMATION,
         )
@@ -118,6 +117,6 @@ class InformationCommands(utils.Cog):
             return await ctx.send("Sent you a DM!")
 
 
-def setup(bot:utils.Bot):
+def setup(bot: vbu.Bot):
     x = InformationCommands(bot)
     bot.add_cog(x)

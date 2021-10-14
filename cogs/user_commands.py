@@ -171,17 +171,16 @@ class UserCommands(vbu.Cog):
                 return await ctx.send(f"You don't have any of that item, {ctx.author.mention}! :c")
 
             # Move it from one user to the other
-            await db.start_transaction()
-            await db(
-                "UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)",
-                ctx.author.id, item_type.replace(' ', '_'),
-            )
-            await db(
-                """INSERT INTO user_inventory VALUES ($1, $2, 1) ON CONFLICT (user_id, item_name) DO UPDATE SET
-                amount=user_inventory.amount+excluded.amount""",
-                user.id, item_type.replace(' ', '_').lower()
-            )
-            await db.commit_transaction()
+            async with db.transaction() as trans:
+                await trans(
+                    "UPDATE user_inventory SET amount=user_inventory.amount-1 WHERE user_id=$1 AND LOWER(item_name)=LOWER($2)",
+                    ctx.author.id, item_type.replace(' ', '_'),
+                )
+                await trans(
+                    """INSERT INTO user_inventory VALUES ($1, $2, 1) ON CONFLICT (user_id, item_name) DO UPDATE SET
+                    amount=user_inventory.amount+excluded.amount""",
+                    user.id, item_type.replace(' ', '_').lower()
+                )
 
         # And now we done
         item_name = self.bot.items[item_type.replace(' ', '_').lower()].display_name
