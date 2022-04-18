@@ -365,6 +365,7 @@ class PlantCareCommands(vbu.Cog):
         "The plant that you want to water.",
     ))
     @commands.bot_has_permissions(send_messages=True)
+    @commands.defer()
     async def waterplant(self, ctx: vbu.Context, user: typing.Optional[discord.User], *, plant_name: str):
         """
         Increase the growth level of your plant.
