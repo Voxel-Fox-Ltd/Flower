@@ -206,7 +206,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
             embed.description += f"\nYou can't purchase new plants for another **{buy_plant_cooldown.clean}**.\n"
 
         # Add plants to the embed
-        available_plants = self.get_available_plants(author.id)
+        available_plants = await self.get_available_plants(author.id)
         for plant in sorted(available_plants.values()):
             text = plant.display_name.capitalize()
             disabled = not all([
