@@ -1,5 +1,5 @@
 import typing
-from datetime import datetime as dt, timedelta
+from datetime import timedelta
 
 import discord
 from discord.ext import commands, vbu
@@ -14,16 +14,28 @@ if typing.TYPE_CHECKING:
     )
 
 
-class UserCommands(vbu.Cog):
+class UserCommands(vbu.Cog[Bot]):
 
-    bot: Bot
-
-    @commands.command(aliases=['experience', 'exp', 'points', 'inv', 'bal', 'balance'], argument_descriptions=(
-        "The user who you want to check the inventory of.",
-    ))
+    @commands.command(
+        aliases=["experience", "exp", "points", "inv", "bal", "balance"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user who you want to check the inventory of.",
+                    type=discord.ApplicationCommandOptionType.user,
+                    required=False,
+                ),
+            ],
+        ),
+    )
     @commands.defer()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def inventory(self, ctx: vbu.Context, user: typing.Union[discord.Member, discord.User] = None):
+    async def inventory(
+            self,
+            ctx: vbu.Context,
+            user: typing.Union[discord.Member, discord.User] = None,
+            ):
         """
         Show you the inventory of a user.
         """
@@ -31,9 +43,18 @@ class UserCommands(vbu.Cog):
         # Get user info
         user = user or ctx.author
         async with vbu.Database() as db:
-            user_rows: UserSettingsRows = await db("SELECT * FROM user_settings WHERE user_id=$1", user.id)
-            plant_rows: PlantLevelsRows = await db("SELECT * FROM plant_levels WHERE user_id=$1", user.id)
-            user_inventory_rows: UserInventoryRows = await db("SELECT * FROM user_inventory WHERE user_id=$1 AND amount > 0", user.id)
+            user_rows: UserSettingsRows = await db(
+                "SELECT * FROM user_settings WHERE user_id=$1",
+                user.id,
+            )
+            plant_rows: PlantLevelsRows = await db(
+                "SELECT * FROM plant_levels WHERE user_id=$1",
+                user.id,
+            )
+            user_inventory_rows: UserInventoryRows = await db(
+                "SELECT * FROM user_inventory WHERE user_id=$1 AND amount > 0",
+                user.id,
+            )
 
         # Start our embed
         embed = vbu.Embed(use_random_colour=True, description="")
@@ -44,7 +65,12 @@ class UserCommands(vbu.Cog):
             exp_value = user_rows[0]['user_experience']
         else:
             exp_value = 0
-        embed.description += vbu.format("{0:pronoun,You have,{1.mention} has} **{2:,}** experience.\n", ctx.author == user, user, exp_value)
+        embed.description += vbu.format(
+            "{0:pronoun,You have,{1.mention} has} **{2:,}** experience.\n",
+            ctx.author == user,
+            user,
+            exp_value,
+        )
 
         # Format plant limit into a string
         if user_rows:
@@ -57,7 +83,9 @@ class UserCommands(vbu.Cog):
                     "{0:pronoun,You are,{1.mention} is} currently using "
                     "all of {0:pronoun,your,their} **{2}** available plant pots.\n"
                 ),
-                ctx.author == user, user, plant_limit,
+                ctx.author == user,
+                user,
+                plant_limit,
             )
         else:
             embed.description += vbu.format(
@@ -65,7 +93,10 @@ class UserCommands(vbu.Cog):
                     "{0:pronoun,You are,{1.mention} is} are currently using **{2}** of "
                     "{0:pronoun,your,their} **{3}** available plant pots.\n"
                 ),
-                ctx.author == user, user, len(plant_rows), plant_limit,
+                ctx.author == user,
+                user,
+                len(plant_rows),
+                plant_limit,
             )
 
         # Format inventory into a string
@@ -79,12 +110,26 @@ class UserCommands(vbu.Cog):
         # Return to user
         return await ctx.send(embed=embed)
 
-    @commands.command(aliases=['list'], argument_descriptions=(
-        "The user who you want to see the plants of.",
-    ))
+    @commands.command(
+        aliases=["list"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user who you want to see the plants of.",
+                    type=discord.ApplicationCommandOptionType.user,
+                    required=False,
+                ),
+            ],
+        ),
+    )
     @commands.defer()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def plants(self, ctx: vbu.Context, user: typing.Union[discord.Member, discord.User] = None):
+    async def plants(
+            self,
+            ctx: vbu.Context,
+            user: typing.Union[discord.Member, discord.User] = None,
+            ):
         """
         Shows you all the plants that a given user has.
         """
@@ -142,12 +187,31 @@ class UserCommands(vbu.Cog):
         # Return to user
         return await ctx.send(embed=embed)
 
-    @commands.command(argument_descriptions=(
-        "The user who you want to give the item to.",
-        "The item you want to give away.",
-    ))
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user who you want to give the item to.",
+                    type=discord.ApplicationCommandOptionType.user,
+                ),
+                discord.ApplicationCommandOption(
+                    name="item_type",
+                    description="The item you want to give away.",
+                    type=discord.ApplicationCommandOptionType.string,
+                    autocomplete=True,
+                ),
+            ],
+        ),
+    )
     @commands.bot_has_permissions(send_messages=True)
-    async def giveitem(self, ctx: vbu.Context, user: discord.Member, *, item_type: str):
+    async def giveitem(
+            self,
+            ctx: vbu.Context,
+            user: discord.Member,
+            *,
+            item_type: str,
+            ):
         """
         Send an item to another member.
         """
@@ -186,8 +250,15 @@ class UserCommands(vbu.Cog):
         item_name = self.bot.items[item_type.replace(' ', '_').lower()].display_name
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{item_name}** to {user.mention}!")
 
-    @commands.group(aliases=['key', 'access'], invoke_without_command=True)
-    async def keys(self, ctx: vbu.Context):
+    @commands.group(
+        aliases=["key", "access"],
+        invoke_without_command=True,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    async def keys(
+            self,
+            ctx: vbu.Context,
+            ):
         """
         The parent command for keys - allowing other users to access your garden.
         """
@@ -195,9 +266,16 @@ class UserCommands(vbu.Cog):
         if ctx.invoked_subcommand is None:
             return await ctx.send_help(ctx.command)
 
-    @keys.command(name='list', aliases=['show', 'holders'])
+    @keys.command(
+        name="list",
+        aliases=["show", "holders"],
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def key_list(self, ctx: vbu.Context):
+    async def key_list(
+            self,
+            ctx: vbu.Context,
+            ):
         """
         Shows all users who have a key to your garden.
         """
@@ -213,11 +291,25 @@ class UserCommands(vbu.Cog):
         embed.add_field("Key Holders", '\n'.join(sorted(embed_fields)), inline=False)
         return await ctx.send(embed=embed)
 
-    @keys.command(name='give', aliases=['add'], argument_descriptions=(
-        "The user who you want to give a key to.",
-    ))
+    @keys.command(
+        name="give",
+        aliases=["add"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user who you want to give a key to.",
+                    type=discord.ApplicationCommandOptionType.user,
+                ),
+            ],
+        ),
+    )
     @commands.bot_has_permissions(send_messages=True)
-    async def key_give(self, ctx: vbu.Context, user: discord.Member):
+    async def key_give(
+            self,
+            ctx: vbu.Context,
+            user: discord.Member,
+            ):
         """
         Give a key to your garden to another member.
         """
@@ -237,11 +329,25 @@ class UserCommands(vbu.Cog):
                 return await ctx.send("They already have a key.")
         return await ctx.send(f"Gave {user.mention} a key to your garden! They can now water your plants for you!")
 
-    @keys.command(name='revoke', aliases=['remove', 'take', 'delete'], argument_descriptions=(
-        "The user who you want to remove a key from.",
-    ))
+    @keys.command(
+        name="revoke",
+        aliases=["remove", "take", "delete"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user who you want to remove a key from.",
+                    type=discord.ApplicationCommandOptionType.user,
+                ),
+            ],
+        ),
+    )
     @commands.bot_has_permissions(send_messages=True)
-    async def key_revoke(self, ctx: vbu.Context, user: vbu.converters.UserID):
+    async def key_revoke(
+            self,
+            ctx: vbu.Context,
+            user: vbu.converters.UserID,
+            ):
         """
         Revoke a member's access to your garden
         """
@@ -261,6 +367,6 @@ class UserCommands(vbu.Cog):
         )
 
 
-def setup(bot:vbu.Bot):
+def setup(bot: vbu.Bot):
     x = UserCommands(bot)
     bot.add_cog(x)
