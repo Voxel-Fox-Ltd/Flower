@@ -283,5 +283,5 @@ class PlantDisplayUtils(vbu.Cog):
 
 
 def setup(bot:vbu.Bot):
-    x = PlantDisplayvbu(bot)
+    x = PlantDisplayUtils(bot)
     bot.add_cog(x)

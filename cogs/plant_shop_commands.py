@@ -677,7 +677,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 break
 
         # Get their plant images
-        display_vbu = self.bot.get_cog("PlantDisplayvbu")
+        display_vbu = self.bot.get_cog("PlantDisplayUtils")
         image_data = []
         plants_being_traded = [
             alive_plants[ctx.author.id][trade_plant_index[ctx.author.id]],

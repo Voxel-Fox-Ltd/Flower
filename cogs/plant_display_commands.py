@@ -30,7 +30,7 @@ class PlantDisplayCommands(vbu.Cog):
                 return await ctx.send(f"You have no plant named **{plant_name.capitalize()}**", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayvbu")
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
         if plant_rows:
             display_data = display_utils.get_display_data(plant_rows[0], user_id=user.id)
         else:
@@ -85,7 +85,7 @@ class PlantDisplayCommands(vbu.Cog):
         await ctx.trigger_typing()
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayvbu")
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
         plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:
@@ -123,7 +123,7 @@ class PlantDisplayCommands(vbu.Cog):
         await ctx.trigger_typing()
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayvbu")
+        display_utils = self.bot.get_cog("PlantDisplayUtils")
         plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:

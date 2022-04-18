@@ -62,7 +62,7 @@ class InformationCommands(vbu.Cog):
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.gif")
             ctx.bot.set_footer_from_config(embed)
-        display_vbu = self.bot.get_cog("PlantDisplayvbu")
+        display_vbu = self.bot.get_cog("PlantDisplayUtils")
 
         # Make a gif of the stages
         pot_hue = random.randint(0, 360)
