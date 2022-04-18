@@ -7,8 +7,9 @@ import discord
 from discord.ext import commands, vbu
 from asyncpg.exceptions import UniqueViolationError
 
+from cogs.utils.types.bot import Bot
+
 if typing.TYPE_CHECKING:
-    from cogs.utils.types.bot import Bot
     from cogs.utils.types.rows import (
         UserSettingsRows,
         PlantLevelsRows,
