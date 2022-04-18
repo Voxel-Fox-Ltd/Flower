@@ -1,7 +1,7 @@
 from discord.ext import tasks, vbu
 
 
-class Analytics(vbu.Cog):
+class PlantAnalytics(vbu.Cog):
 
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
@@ -24,5 +24,5 @@ class Analytics(vbu.Cog):
 
 
 def setup(bot: vbu.Bot):
-    x = Analytics(bot)
+    x = PlantAnalytics(bot)
     bot.add_cog(x)
