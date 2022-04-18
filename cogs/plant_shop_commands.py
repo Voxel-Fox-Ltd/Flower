@@ -13,9 +13,9 @@ import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
+from cogs.utils.types.bot import Bot
 
 if typing.TYPE_CHECKING:
-    from cogs.utils.types.bot import Bot
     from cogs.utils.types.rows import PlantLevelsRows, UserInventoryRows, UserSettingsRows
 
 
