@@ -486,41 +486,37 @@ class PlantShopCommands(vbu.Cog[Bot]):
             title="Plant Name",
             components=[
                 discord.ui.InputText(
+                    label="What name do you want to give your plant?",
+                    min_length=1,
+                    max_length=50,
                 ),
             ],
         )
         await payload.response.send_modal(modal)
         try:
-            payload = self.bot.wait_for(
+            payload: discord.Interaction[str] = await self.bot.wait_for(
                 "modal_submit",
+                timeout=60 * 30,
+                check=lambda i: i.custom_id == modal.custom_id
             )
-        await payload.send("What name do you want to give your plant?")
+            await payload.response.defer()
+        except asyncio.TimeoutError:
+            return
+        given_plant_name = payload.components[0].components[0].value
+        given_plant_name = utils.PlantType.validate_name(given_plant_name)
+        if len(given_plant_name) > 50 or len(given_plant_name) == 0:
+            return await payload.followup.send("That name is invalid! Please give another one instead!")
 
-        # while True:
-        #     try:
-        #         plant_name_message = await self.bot.wait_for(
-        #             "message",
-        #             check=lambda m: m.author.id == ctx.author.id and m.channel == ctx.channel and m.content,
-        #             timeout=120,
-        #         )
-        #     except asyncio.TimeoutError:
-        #         return await payload.send(f"Timed out asking for plant name {ctx.author.mention}.")
-        #     plant_name = utils.PlantType.validate_name(plant_name_message.content)
-        #     if len(plant_name) > 50 or len(plant_name) == 0:
-        #         await plant_name_message.reply("That name is too long! Please give another one instead!")
-        #     else:
-        #         break
-
-        # Save the enw plant to database
+        # Save the new plant to database
         async with vbu.Database() as db:
             plant_name_exists = await db(
                 "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
-                ctx.author.id, plant_name
+                ctx.author.id, given_plant_name
             )
             if plant_name_exists:
-                return await plant_name_message.reply(
+                return await payload.followup.reply(
                     (
-                        f"You've already used the name `{plant_name}` for one of your other plants - "
+                        f"You've already used the name `{given_plant_name}` for one of your other plants - "
                         "please run this command again to give a new one!"
                     ),
                     allowed_mentions=discord.AllowedMentions.none(),
@@ -531,7 +527,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 VALUES ($1, $2, $3, 0, $4, $1, TIMEZONE('UTC', NOW()), $5) ON
                 CONFLICT (user_id, plant_name) DO UPDATE
                 SET plant_nourishment=0, last_water_time=$4""",
-                ctx.author.id, plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
+                ctx.author.id, given_plant_name, plant_type.name, dt(2000, 1, 1), plant_pot_hue,
             )
             await db(
                 """UPDATE user_settings SET user_experience=user_settings.user_experience-$2,
@@ -544,7 +540,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
                 ctx.author.id, plant_type.name,
             )
-        await plant_name_message.reply(f"Planted your **{plant_type.display_name}** seeds!")
+        await payload.followup.reply(f"Planted your **{plant_type.display_name}** seeds!")
 
     @commands.command(
         aliases=['trade'],

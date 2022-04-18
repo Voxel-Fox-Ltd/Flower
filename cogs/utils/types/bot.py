@@ -1,7 +1,6 @@
 import typing
 
 from discord.ext import vbu
-from voxelbotutils.cogs.utils.types.config import BotConfig
 
 from cogs import utils
 
@@ -19,7 +18,7 @@ class _Plants(typing.TypedDict):
     guest_water_cooldown: dict
 
 
-class _BotConfig(BotConfig):
+class _BotConfig(vbu.types.BotConfig):
     plants: _Plants
 
 
