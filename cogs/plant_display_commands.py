@@ -10,12 +10,31 @@ from cogs import utils
 
 class PlantDisplayCommands(vbu.Cog):
 
-    @vbu.command(aliases=['displayplant', 'show', 'display'], argument_descriptions=(
-        "The user whose plant you want to display.",
-        "The plant which you want to look at.",
-    ))
+    @vbu.command(
+        aliases=['displayplant', 'show', 'display'],
+        # argument_descriptions=(
+        #     "The user whose plant you want to display.",
+        #     "The plant which you want to look at.",
+        # ),
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                # discord.ApplicationCommandOption(
+                #     name="user",
+                #     description="The user whose plant you want to see.",
+                #     type=discord.ApplicationCommandOptionType.user,
+                #     required=False,
+                # ),
+                discord.ApplicationCommandOption(
+                    name="plant_name",
+                    description="The plant that you want to see.",
+                    type=discord.ApplicationCommandOptionType.string,
+                ),
+
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showplant(self, ctx: vbu.Context, user: typing.Optional[discord.User], *, plant_name: str = None):
+    async def showplant(self, ctx: vbu.Context, user: discord.User = None, *, plant_name: str = None):
         """
         Shows you your plant status.
         """
@@ -25,11 +44,17 @@ class PlantDisplayCommands(vbu.Cog):
             return await ctx.invoke(self.bot.get_command("plants"), user)
 
         # Get data from database
-        user = user or ctx.author
+        user = user or ctx.author  # type: ignore
         async with vbu.Database() as db:
-            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)", user.id, plant_name)
+            plant_rows = await db(
+                "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
+                user.id, plant_name,
+            )
             if not plant_rows:
-                return await ctx.send(f"You have no plant named **{plant_name.capitalize()}**", allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False))
+                return await ctx.send(
+                    f"You have no plant named **{plant_name.capitalize()}**",
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
 
         # Filter into variables
         display_utils = self.bot.get_cog("PlantDisplayUtils")
@@ -69,46 +94,14 @@ class PlantDisplayCommands(vbu.Cog):
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @vbu.command(hidden=True, argument_descriptions=(
-        "The user whose plants you want to show.",
-    ))
-    @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showallold(self, ctx: vbu.Context, user: typing.Optional[discord.User]):
-        """
-        Show you all of your plants.
-        """
-
-        # Get data from database
-        user = user or ctx.author
-        async with vbu.Database() as db:
-            plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
-            if not plant_rows:
-                return await ctx.send(f"<@{user.id}> has no available plants.", allowed_mentions=discord.AllowedMentions(users=[ctx.author]))
-        await ctx.trigger_typing()
-
-        # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
-        plant_rows = display_utils.sort_plant_rows(plant_rows)
-        images = []
-        for plant_row in plant_rows:
-            if plant_row:
-                display_data = display_utils.get_display_data(plant_row, user_id=user.id)
-            else:
-                display_data = display_utils.get_display_data(None, user_id=user.id)
-            images.append(display_utils.get_plant_image(**display_data))
-
-        # Get our images
-        image = display_utils.compile_plant_images(*images)
-        image_to_send = display_utils.image_to_bytes(image)
-        text = f"Here are all of <@{user.id}>'s plants!"
-        file = discord.File(image_to_send, filename="plant.png")
-        embed = vbu.Embed(use_random_colour=True, description=text).set_image("attachment://plant.png")
-        ctx.bot.set_footer_from_config(embed)
-        await ctx.send(embed=embed, file=file)
-
-    @vbu.command(aliases=['displayall'], argument_descriptions=(
-        "The user whose plants you want to display.",
-    ))
+    @vbu.command(
+        aliases=['displayall'],
+        # argument_descriptions=(
+        #     "The user whose plants you want to display.",
+        # ),
+        application_command_meta=commands.ApplicationCommandMeta(
+        ),
+    )
     @utils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
     async def showall(self, ctx: vbu.Context, user: discord.User = None):

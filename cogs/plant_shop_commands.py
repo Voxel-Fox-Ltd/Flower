@@ -7,7 +7,8 @@ import glob
 import json
 import collections
 import random
-import typing
+import uuid
+from typing import TYPE_CHECKING, Union, Optional
 
 import discord
 from discord.ext import commands, vbu
@@ -15,8 +16,13 @@ from discord.ext import commands, vbu
 from cogs import utils
 from cogs.utils.types.bot import Bot
 
-if typing.TYPE_CHECKING:
-    from cogs.utils.types.rows import PlantLevelsRows, UserInventoryRows, UserSettingsRows
+if TYPE_CHECKING:
+    from cogs.utils.types import (
+        PlantLevelsRows,
+        UserInventoryRows,
+        UserSettingsRows,
+    )
+    from .information_commands import InformationCommands
 
 
 def strikethrough(text: str) -> str:
@@ -74,7 +80,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
         }
 
         # Reset the artist dict
-        cog = self.bot.get_cog("InformationCommands")
+        cog: InformationCommands = self.bot.get_cog("InformationCommands")  # type: ignore
         cog._artist_info = None
 
     @staticmethod
@@ -177,12 +183,12 @@ class PlantShopCommands(vbu.Cog[Bot]):
     async def get_shop_sendable(
             self,
             *,
-            author: typing.Union[discord.User, discord.Member],
+            author: Union[discord.User, discord.Member],
             user_experience: int,
             plant_level_rows: PlantLevelsRows,
             user_plant_limit: int,
             can_purchase_new_plants: bool,
-            buy_plant_cooldown: typing.Optional[vbu.TimeValue],
+            buy_plant_cooldown: Optional[vbu.TimeValue],
             user_has_premium: bool,
             ) -> dict:
         """"""
@@ -334,7 +340,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
         water_cooldown = timedelta(**self.bot.config['plants']['water_cooldown'])
         can_purchase_new_plants = dt.utcnow() > last_plant_shop_time + water_cooldown
         can_purchase_new_plants = can_purchase_new_plants or ctx.author.id in self.bot.owner_ids
-        buy_plant_cooldown: typing.Optional[vbu.TimeValue] = None
+        buy_plant_cooldown: Optional[vbu.TimeValue] = None
         if can_purchase_new_plants is False:
             buy_plant_cooldown = vbu.TimeValue(
                 ((last_plant_shop_time + water_cooldown) - dt.utcnow()).total_seconds()
@@ -515,7 +521,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 ctx.author.id, given_plant_name
             )
             if plant_name_exists:
-                return await payload.followup.reply(
+                return await payload.followup.send(
                     (
                         f"You've already used the name `{given_plant_name}` for one of your other plants - "
                         "please run this command again to give a new one!"
@@ -541,9 +547,10 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 plant_count=plant_achievement_counts.plant_count+excluded.plant_count""",
                 ctx.author.id, plant_type.name,
             )
-        await payload.followup.reply(f"Planted your **{plant_type.display_name}** seeds!")
+        await payload.followup.send(f"Planted your **{plant_type.display_name}** seeds!")
 
     @commands.command(
+        enabled=False,
         aliases=['trade'],
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
@@ -561,6 +568,9 @@ class PlantShopCommands(vbu.Cog[Bot]):
         """
         Trade a plant with a given user.
         """
+
+        if not ctx.author.id in self.bot.owner_ids:
+            return await ctx.send("This command has been temporarily disabled.")
 
         # Make sure they're not trading with the bot
         if user.id == self.bot.user.id:
@@ -591,15 +601,14 @@ class PlantShopCommands(vbu.Cog[Bot]):
             )
 
         # See if they want to trade
-        m = await ctx.send(
+        component_id = str(uuid.uuid4())
+        await ctx.send(
             f"{user.mention}, do you want to trade a plant with {ctx.author.mention}?",
             components=discord.ui.MessageComponents.boolean_buttons(),
         )
         try:
-            check = lambda p: p.message.id == m.id and p.user.id == user.id
-            payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
-            await payload.ack()
-            await payload.message.edit(components=discord.ui.MessageComponents.boolean_buttons().disable_components())
+            boolean_check = lambda p: p.user.id == user.id and p.component_id.startswith()
+            payload = await self.bot.wait_for("component_interaction", check=boolean_check, timeout=120)
         except asyncio.TimeoutError:
             try:
                 await ctx.send(
@@ -609,11 +618,12 @@ class PlantShopCommands(vbu.Cog[Bot]):
             except discord.HTTPException:
                 pass
             return
-        if payload.component.custom_id == "NO":
-            return await payload.send(
+        if payload.custom_id == "NO":
+            return await payload.response.send_message(
                 f"{user.mention} doesn't want to trade anything, {ctx.author.mention}! :c",
                 allowed_mentions=discord.AllowedMentions(users=[ctx.author]),
             )
+        await payload.response.defer_update()
 
         # Get their alive plants _again_
         async with vbu.Database() as db:
@@ -628,9 +638,9 @@ class PlantShopCommands(vbu.Cog[Bot]):
 
         # Make sure they both still have plants that are alive
         if not alive_plants[ctx.author.id]:
-            return await payload.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
+            return await payload.followup.send(f"You don't have any alive plants to trade, {ctx.author.mention}!")
         elif not alive_plants[user.id]:
-            return await payload.send(f"You don't have any alive plants to trade, {user.mention}!")
+            return await payload.followup.send(f"You don't have any alive plants to trade, {user.mention}!")
 
         # Format an embed
         embed = vbu.Embed(use_random_colour=True)
@@ -645,7 +655,10 @@ class PlantShopCommands(vbu.Cog[Bot]):
         )
 
         # Ask what they want to trade
-        await payload.send(f"What's the name of the plant that you'd like to trade, {ctx.author.mention} {user.mention}?", embed=embed)
+        await payload.followup.send(
+            f"Which plant would you like to trade?, {ctx.author.mention} {user.mention}?",
+            embed=embed,
+        )
         trade_plant_index = {ctx.author.id: None, user.id: None}
         while True:
             def check(m):
@@ -658,7 +671,7 @@ class PlantShopCommands(vbu.Cog[Bot]):
                 index_message = await self.bot.wait_for("message", check=check, timeout=30)
             except asyncio.TimeoutError:
                 try:
-                    await payload.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
+                    await payload.followup.send(f"Your trade request timed out, {ctx.author.mention} {user.mention}.")
                 except discord.HTTPException:
                     pass
                 return

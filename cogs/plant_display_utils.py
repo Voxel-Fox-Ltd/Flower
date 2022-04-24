@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import random
+from typing import Optional, TYPE_CHECKING
 
 from PIL import Image, ImageOps
 import numpy as np
@@ -9,6 +10,11 @@ import colorsys
 from discord.ext import vbu
 
 from cogs import utils
+
+if TYPE_CHECKING:
+    from cogs.utils.types import (
+        PlantLevelsRow,
+    )
 
 
 class PlantDisplayUtils(vbu.Cog):
@@ -35,7 +41,7 @@ class PlantDisplayUtils(vbu.Cog):
         return image_array
 
     @classmethod
-    def shift_image_hue(cls, image: Image, hue: int) -> Image:
+    def shift_image_hue(cls, image: Image.Image, hue: int) -> Image.Image:
         """
         Shift the hue of an image by a given amount.
         """
@@ -44,7 +50,7 @@ class PlantDisplayUtils(vbu.Cog):
         return Image.fromarray(cls._shift_hue(image_array, hue).astype('uint8'), 'RGBA')
 
     @staticmethod
-    def crop_image_to_content(image: Image) -> Image:
+    def crop_image_to_content(image: Image.Image) -> Image.Image:
         """
         Crop out any "wasted" transparent data from an image.
         """
@@ -58,16 +64,19 @@ class PlantDisplayUtils(vbu.Cog):
         return Image.fromarray(image_data_new, "RGBA")
 
     @staticmethod
-    def image_to_bytes(image: Image) -> io.BytesIO:
+    def image_to_bytes(image: Image.Image) -> io.BytesIO:
         image_to_send = io.BytesIO()
         image.save(image_to_send, "PNG")
         image_to_send.seek(0)
         return image_to_send
 
     @staticmethod
-    def gif_to_bytes(*images: Image, duration: int = 150) -> io.BytesIO:
+    def gif_to_bytes(*images: Image.Image, duration: int = 150) -> io.BytesIO:
         image_to_send = io.BytesIO()
-        max_size = [max([i.size[0] for i in images]), max([i.size[1] for i in images])]
+        max_size = (
+            max([i.size[0] for i in images]),
+            max([i.size[1] for i in images]),
+        )
         new_images = []
         for i in images:
             base = Image.new("RGBA", max_size, (0, 0, 0, 0))
@@ -77,7 +86,13 @@ class PlantDisplayUtils(vbu.Cog):
         image_to_send.seek(0)
         return image_to_send
 
-    def get_plant_image(self, plant_type: str, plant_nourishment: int, pot_type: str, pot_hue: int, crop_image: bool = True) -> Image:
+    def get_plant_image(
+            self,
+            plant_type: str,
+            plant_nourishment: int,
+            pot_type: str,
+            pot_hue: int,
+            crop_image: bool = True) -> Image.Image:
         """
         Get a BytesIO object containing the binary data of a given plant/pot item.
         """
@@ -91,20 +106,24 @@ class PlantDisplayUtils(vbu.Cog):
         file_folder = {False: "alive", True: "dead"}[plant_is_dead]
 
         # Set up the variables we need for later
-        plant_image: Image = None
-        plant_overlay_image: Image = None
-        plant_underlay_image: Image = None
+        plant_image: Optional[Image.Image] = None
+        plant_overlay_image: Optional[Image.Image] = None
+        plant_underlay_image: Optional[Image.Image] = None
 
         # Work out the
         if plant_nourishment != 0 and plant_type is not None:
             plant_level = self.bot.plants[plant_type].get_nourishment_display_level(plant_nourishment)
             plant_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}.png").convert("RGBA")
             try:
-                plant_overlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_overlay.png").convert("RGBA")
+                plant_overlay_image = Image.open(
+                    f"images/plants/{plant_type}/{file_folder}/{plant_level}_overlay.png"
+                ).convert("RGBA")
             except FileNotFoundError:
                 pass
             try:
-                plant_underlay_image = Image.open(f"images/plants/{plant_type}/{file_folder}/{plant_level}_underlay.png").convert("RGBA")
+                plant_underlay_image = Image.open(
+                    f"images/plants/{plant_type}/{file_folder}/{plant_level}_underlay.png"
+                ).convert("RGBA")
             except FileNotFoundError:
                 pass
 
@@ -172,7 +191,10 @@ class PlantDisplayUtils(vbu.Cog):
         return image
 
     @classmethod
-    def compile_plant_images(cls, *plants, add_flipping: bool = True):
+    def compile_plant_images(
+            cls,
+            *plants,
+            add_flipping: bool = True):
         """
         Add together some plant images.
         """
@@ -192,7 +214,7 @@ class PlantDisplayUtils(vbu.Cog):
         # Create the new image
         new_image = Image.new("RGBA", (total_width, max_height,))
         width_offset = 0
-        for index, image in enumerate(new_plants):
+        for _, image in enumerate(new_plants):
             new_image.paste(image, (width_offset, max_height - image.size[1],), image)
             width_offset += image.size[0]
 
@@ -252,16 +274,23 @@ class PlantDisplayUtils(vbu.Cog):
         return cls.crop_image_to_content(new_image)
 
     @staticmethod
-    def get_display_data(plant_row, user_id: int = None) -> dict:
+    def get_display_data(
+            plant_row: PlantLevelsRow,
+            user_id: int = None) -> dict:
         """
         Get the display data of a given plant and return it as a dict.
 
-        Args:
-            plant_row (dict): The row from the database continaing the data for the plant.
-            user_id (int, optional): An optional user ID for the display data, which gives the default colour for the plant pot.
+        Parameters
+        -----------
+        plant_row: dict
+            The row from the database continaing the data for the plant.
+        user_id: Optional[int]
+            An optional user ID for the display data, which gives the default colour for the plant pot.
 
-        Returns:
-            dict: A formatted dictionary of all the things that are necessary to display a plant.
+        Returns
+        --------
+        dict
+            A formatted dictionary of all the things that are necessary to display a plant.
         """
 
         plant_type = None
@@ -284,6 +313,6 @@ class PlantDisplayUtils(vbu.Cog):
         }
 
 
-def setup(bot:vbu.Bot):
+def setup(bot: vbu.Bot):
     x = PlantDisplayUtils(bot)
     bot.add_cog(x)

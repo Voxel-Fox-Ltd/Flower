@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import typing
+from typing import TYPE_CHECKING, Union
 from datetime import timedelta
 
 import discord
@@ -9,7 +9,7 @@ from asyncpg.exceptions import UniqueViolationError
 
 from cogs.utils.types.bot import Bot
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from cogs.utils.types.rows import (
         UserSettingsRows,
         PlantLevelsRows,
@@ -37,7 +37,7 @@ class UserCommands(vbu.Cog[Bot]):
     async def inventory(
             self,
             ctx: vbu.Context,
-            user: typing.Union[discord.Member, discord.User] = None,
+            user: Union[discord.Member, discord.User] = None,
             ):
         """
         Show you the inventory of a user.
@@ -131,7 +131,7 @@ class UserCommands(vbu.Cog[Bot]):
     async def plants(
             self,
             ctx: vbu.Context,
-            user: typing.Union[discord.Member, discord.User] = None,
+            user: Union[discord.Member, discord.User] = None,
             ):
         """
         Shows you all the plants that a given user has.
@@ -202,7 +202,7 @@ class UserCommands(vbu.Cog[Bot]):
                     name="item_type",
                     description="The item you want to give away.",
                     type=discord.ApplicationCommandOptionType.string,
-                    autocomplete=True,
+                    # autocomplete=True,
                 ),
             ],
         ),
@@ -213,8 +213,7 @@ class UserCommands(vbu.Cog[Bot]):
             ctx: vbu.Context,
             user: discord.Member,
             *,
-            item_type: str,
-            ):
+            item_type: str):
         """
         Send an item to another member.
         """
@@ -254,14 +253,13 @@ class UserCommands(vbu.Cog[Bot]):
         return await ctx.send(f"{ctx.author.mention}, sent 1x **{item_name}** to {user.mention}!")
 
     @commands.group(
-        aliases=["key", "access"],
+        aliases=["keys", "access"],
         invoke_without_command=True,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    async def keys(
+    async def key(
             self,
-            ctx: vbu.Context,
-            ):
+            ctx: vbu.Context):
         """
         The parent command for keys - allowing other users to access your garden.
         """
@@ -269,11 +267,12 @@ class UserCommands(vbu.Cog[Bot]):
         if ctx.invoked_subcommand is None:
             return await ctx.send_help(ctx.command)
 
-    @keys.command(
+    @key.command(
         name="list",
         aliases=["show", "holders"],
         application_command_meta=commands.ApplicationCommandMeta(),
     )
+    @commands.defer()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def key_list(
             self,
@@ -294,7 +293,7 @@ class UserCommands(vbu.Cog[Bot]):
         embed.add_field("Key Holders", '\n'.join(sorted(embed_fields)), inline=False)
         return await ctx.send(embed=embed)
 
-    @keys.command(
+    @key.command(
         name="give",
         aliases=["add"],
         application_command_meta=commands.ApplicationCommandMeta(
@@ -307,6 +306,7 @@ class UserCommands(vbu.Cog[Bot]):
             ],
         ),
     )
+    @commands.defer()
     @commands.bot_has_permissions(send_messages=True)
     async def key_give(
             self,
@@ -332,7 +332,7 @@ class UserCommands(vbu.Cog[Bot]):
                 return await ctx.send("They already have a key.")
         return await ctx.send(f"Gave {user.mention} a key to your garden! They can now water your plants for you!")
 
-    @keys.command(
+    @key.command(
         name="revoke",
         aliases=["remove", "take", "delete"],
         application_command_meta=commands.ApplicationCommandMeta(
@@ -345,6 +345,7 @@ class UserCommands(vbu.Cog[Bot]):
             ],
         ),
     )
+    @commands.defer()
     @commands.bot_has_permissions(send_messages=True)
     async def key_revoke(
             self,
@@ -370,6 +371,6 @@ class UserCommands(vbu.Cog[Bot]):
         )
 
 
-def setup(bot: vbu.Bot):
+def setup(bot):
     x = UserCommands(bot)
     bot.add_cog(x)
