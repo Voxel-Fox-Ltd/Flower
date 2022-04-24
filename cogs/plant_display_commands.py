@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import typing
+from typing import Optional
 
 import discord
 from discord.ext import commands, vbu
@@ -34,7 +34,7 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
         )
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showplant(self, ctx: vbu.Context, user: discord.User = None, *, plant_name: str = None):
+    async def showplant(self, ctx: vbu.Context, user: Optional[discord.User] = None, *, plant_name: str = None):
         """
         Shows you your plant status.
         """
@@ -104,7 +104,7 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
     )
     @utils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showall(self, ctx: vbu.Context, user: discord.User = None):
+    async def showall(self, ctx: vbu.Context, user: Optional[discord.User] = None):
         """
         Show you all of your plants at once.
         """
