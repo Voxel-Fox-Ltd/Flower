@@ -748,7 +748,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
             ),
         )
         try:
-            check = lambda p: p.user.id == ctx.author.id and p.component_id.startswith(component_id)
+            check = lambda p: p.user.id == ctx.author.id and p.custom_id.startswith(component_id)
             payload = await self.bot.wait_for("component_interaction", check=check, timeout=120)
         except asyncio.TimeoutError:
             return await ctx.send(f"Timed out waiting for you to confirm plant immortality, {ctx.author.mention}.")
