@@ -14,7 +14,6 @@ import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
-from cogs.utils.types.bot import Bot
 
 if TYPE_CHECKING:
     from cogs.utils.types import (
@@ -33,9 +32,9 @@ def strikethrough(text: str) -> str:
     return f"~~{text}~~"
 
 
-class PlantShopCommands(vbu.Cog[Bot]):
+class PlantShopCommands(vbu.Cog[utils.types.Bot]):
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: utils.types.Bot):
         super().__init__(bot)
 
         # Load up all the plants

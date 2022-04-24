@@ -8,7 +8,7 @@ from discord.ext import commands, vbu
 from cogs import utils
 
 
-class PlantDisplayCommands(vbu.Cog):
+class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
 
     @vbu.command(
         aliases=['displayplant', 'show', 'display'],

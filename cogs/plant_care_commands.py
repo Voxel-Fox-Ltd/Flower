@@ -12,7 +12,6 @@ from cogs import utils
 
 if TYPE_CHECKING:
     from cogs.utils.types import (
-        Bot,
         WaterPlantPayload,
         PlantLevelsRow,
         PlantLevelsRows,
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     )
 
 
-class PlantCareCommands(vbu.Cog[Bot]):
+class PlantCareCommands(vbu.Cog[utils.types.Bot]):
 
     TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot_client_id}/check"
 

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     )
 
 
-class PlantDisplayUtils(vbu.Cog):
+class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
 
     PLANT_SCALE_SIZE = 5
 

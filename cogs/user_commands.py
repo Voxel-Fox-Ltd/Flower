@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands, vbu
 from asyncpg.exceptions import UniqueViolationError
 
-from cogs.utils.types.bot import Bot
+from cogs import utils
 
 if TYPE_CHECKING:
     from cogs.utils.types.rows import (
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     )
 
 
-class UserCommands(vbu.Cog[Bot]):
+class UserCommands(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         aliases=["experience", "exp", "points", "inv", "bal", "balance"],
