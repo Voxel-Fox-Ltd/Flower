@@ -491,10 +491,12 @@ class PlantShopCommands(vbu.Cog[utils.types.Bot]):
         modal = discord.ui.Modal(
             title="Plant Name",
             components=[
-                discord.ui.InputText(
-                    label="What name do you want to give your plant?",
-                    min_length=1,
-                    max_length=50,
+                discord.ui.ActionRow(
+                    discord.ui.InputText(
+                        label="What name do you want to give your plant?",
+                        min_length=1,
+                        max_length=50,
+                    ),
                 ),
             ],
         )
