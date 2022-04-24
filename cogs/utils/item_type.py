@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class ItemType(object):
 
     def __init__(self, item_name:str, display_name:str, item_price:int, usage:str):

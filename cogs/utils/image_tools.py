@@ -7,6 +7,7 @@
 # There is a known issue with the Pillow library that messes up GIF transparency by replacing the
 # transparent pixels with black pixels (among other issues) when the GIF is saved using PIL.Image.save().
 # This code works around the issue and allows us to properly generate transparent GIFs.
+from __future__ import annotations
 
 from typing import Tuple, List, Union
 from collections import defaultdict
