@@ -275,8 +275,8 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
 
     @staticmethod
     def get_display_data(
-            plant_row: PlantLevelsRow,
-            user_id: int = None) -> dict:
+            plant_row: Optional[PlantLevelsRow],
+            user_id: Optional[int] = None) -> dict:
         """
         Get the display data of a given plant and return it as a dict.
 

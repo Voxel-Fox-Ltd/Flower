@@ -102,6 +102,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                 (user_id) DO UPDATE SET max_plant_lifetime=GREATEST(user_achievement_counts.max_plant_lifetime,
                 excluded.max_plant_lifetime) WHERE user_achievement_counts.user_id=excluded.user_id""",
             )
+
     @plant_death_timeout_loop.before_loop
     async def before_plant_death_timeout_loop(self):
         await self.bot.wait_until_ready()
@@ -419,6 +420,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                     type=discord.ApplicationCommandOptionType.string,
                     required=False,
                     description="The plant that you want to water.",
+                    autocomplete=True,
                 ),
             ],
         ),
@@ -506,6 +508,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                     name="plant_name",
                     type=discord.ApplicationCommandOptionType.string,
                     description="The plant that you want to delete.",
+                    autocomplete=True,
                 ),
             ],
         ),
@@ -549,7 +552,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
         # And respond
         return await interaction.followup.send(f"Done - you've deleted your {data['plant_type'].replace('_', ' ')}.")
 
-    @vbu.command(
+    @commands.command(
         aliases=['renameplant'],
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
@@ -557,6 +560,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                     name="before",
                     type=discord.ApplicationCommandOptionType.string,
                     description="The name of the plant that you want to rename.",
+                    autocomplete=True,
                 ),
                 discord.ApplicationCommandOption(
                     name="after",
@@ -678,6 +682,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                     name="plant_name",
                     description="The name of the plant that you want to revive.",
                     type=discord.ApplicationCommandOptionType.string,
+                    autocomplete=True,
                 ),
             ],
         ),
@@ -691,7 +696,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
         response, _ = await self.revive_plant_backend(ctx.author.id, plant_name)
         return await ctx.send(response, allowed_mentions=discord.AllowedMentions.none())
 
-    @vbu.command(
+    @commands.command(
         aliases=['immortalise'],
         application_command_meta=commands.ApplicationCommandMeta(
             name_localizations={
@@ -702,6 +707,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
                     name="plant_name",
                     description="The name of the plant that you want to immortalize.",
                     type=discord.ApplicationCommandOptionType.string,
+                    autocomplete=True,
                 ),
             ],
         ),
@@ -787,6 +793,12 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
         return await payload.followup.send(
             f"Immortalized **{plant_rows[0]['plant_name']}**, your {plant_rows[0]['plant_type'].replace('_', ' ')}! :D",
         )
+
+    immortalize.autocomplete(utils.autocomplete.plant_name_autocomplete)
+    water.autocomplete(utils.autocomplete.plant_name_autocomplete)
+    delete.autocomplete(utils.autocomplete.plant_name_autocomplete)
+    rename.autocomplete(utils.autocomplete.plant_name_autocomplete)
+    revive.autocomplete(utils.autocomplete.plant_name_autocomplete)
 
 def setup(bot: vbu.Bot):
     x = PlantCareCommands(bot)

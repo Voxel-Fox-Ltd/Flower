@@ -1,50 +1,52 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
 
+if TYPE_CHECKING:
+    from .plant_display_utils import PlantDisplayUtils
+
 
 class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
 
-    @vbu.command(
+    @commands.command(
         aliases=['displayplant', 'show', 'display'],
-        # argument_descriptions=(
-        #     "The user whose plant you want to display.",
-        #     "The plant which you want to look at.",
-        # ),
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
-                # discord.ApplicationCommandOption(
-                #     name="user",
-                #     description="The user whose plant you want to see.",
-                #     type=discord.ApplicationCommandOptionType.user,
-                #     required=False,
-                # ),
                 discord.ApplicationCommandOption(
                     name="plant_name",
                     description="The plant that you want to see.",
                     type=discord.ApplicationCommandOptionType.string,
+                    autocomplete=True,
                 ),
 
             ]
         )
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
-    async def showplant(self, ctx: vbu.Context, user: Optional[discord.User] = None, *, plant_name: str = None):
+    async def showplant(
+            self,
+            ctx: vbu.Context,
+            user: Optional[discord.User] = None,
+            *,
+            plant_name: Optional[str] = None):
         """
         Shows you your plant status.
         """
 
         # Make sure they gave a plant name
         if plant_name is None:
-            return await ctx.invoke(self.bot.get_command("plants"), user)
+            return await ctx.invoke(self.bot.get_command("plants"), user)  # type: ignore
+
+        # Fix up the user param
+        user = user or ctx.author  # type: ignore
+        assert user
 
         # Get data from database
-        user = user or ctx.author  # type: ignore
         async with vbu.Database() as db:
             plant_rows = await db(
                 "SELECT * FROM plant_levels WHERE user_id=$1 AND LOWER(plant_name)=LOWER($2)",
@@ -57,7 +59,7 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
                 )
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_utils: PlantDisplayUtils = self.bot.get_cog("PlantDisplayUtils")  # type: ignore
         if plant_rows:
             display_data = display_utils.get_display_data(plant_rows[0], user_id=user.id)
         else:
@@ -94,13 +96,9 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
-    @vbu.command(
+    @commands.command(
         aliases=['displayall'],
-        # argument_descriptions=(
-        #     "The user whose plants you want to display.",
-        # ),
-        application_command_meta=commands.ApplicationCommandMeta(
-        ),
+        application_command_meta=commands.ApplicationCommandMeta(),
     )
     @utils.checks.has_premium()
     @commands.bot_has_permissions(send_messages=True, embed_links=True, attach_files=True)
@@ -109,8 +107,11 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
         Show you all of your plants at once.
         """
 
+        # Fix up user param
+        user = user or ctx.author  # type: ignore
+        assert user
+
         # Get data from database
-        user = user or ctx.author
         async with vbu.Database() as db:
             plant_rows = await db("SELECT * FROM plant_levels WHERE user_id=$1 ORDER BY plant_name DESC", user.id)
             if not plant_rows:
@@ -118,7 +119,7 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
         await ctx.trigger_typing()
 
         # Filter into variables
-        display_utils = self.bot.get_cog("PlantDisplayUtils")
+        display_utils: PlantDisplayUtils = self.bot.get_cog("PlantDisplayUtils")  # type: ignore
         plant_rows = display_utils.sort_plant_rows(plant_rows)
         images = []
         for plant_row in plant_rows:
@@ -137,7 +138,9 @@ class PlantDisplayCommands(vbu.Cog[utils.types.Bot]):
         ctx.bot.set_footer_from_config(embed)
         await ctx.send(embed=embed, file=file)
 
+    showplant.autocomplete(utils.autocomplete.plant_name_autocomplete)
 
-def setup(bot: vbu.Bot):
+
+def setup(bot: utils.types.Bot):
     x = PlantDisplayCommands(bot)
     bot.add_cog(x)
