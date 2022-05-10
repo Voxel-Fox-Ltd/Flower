@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .types import PlantLevelsRows
 
 
-async def plant_name_autocomplete(ctx: commands.SlashContext, interaction: discord.Interaction) -> None:
+async def plant_name_autocomplete(cog: commands.Cog, ctx: commands.SlashContext, interaction: discord.Interaction) -> None:
     """
     Completes the name autocomplete for the plants of a given user.
     """
