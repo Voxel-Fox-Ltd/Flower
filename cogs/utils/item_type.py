@@ -3,7 +3,19 @@ from __future__ import annotations
 
 class ItemType(object):
 
-    def __init__(self, item_name:str, display_name:str, item_price:int, usage:str):
+    __slots__ = (
+        'name',
+        'display',
+        'price',
+        'usage',
+    )
+
+    def __init__(
+            self,
+            item_name: str,
+            display_name: str,
+            item_price: int,
+            usage: str):
         self.name = item_name
         self.display = display_name
         self.price = item_price
@@ -12,4 +24,3 @@ class ItemType(object):
     @property
     def display_name(self):
         return self.display
-        # return self.name.replace('_', ' ')

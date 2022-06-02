@@ -18,6 +18,7 @@ from PIL.Image import Image
 
 
 class TransparentAnimatedGifConverter(object):
+
     _PALETTE_SLOTSET = set(range(256))
 
     def __init__(self, img_rgba: Image, alpha_threshold: int = 0):
@@ -136,7 +137,8 @@ def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) 
         append_images=new_images[1:],
         duration=durations,
         disposal=2,  # Other disposals don't work
-        loop=0)
+        loop=0,
+    )
     return output_image, save_kwargs
 
 
