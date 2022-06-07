@@ -3,11 +3,11 @@ import random
 from datetime import datetime as dt, timedelta
 
 from aiohttp.web import Request, RouteTableDef, HTTPFound
-from voxelbotutils import web as webutils
 import aiohttp_session
 from aiohttp_jinja2 import template
+from discord.ext.vbu import web as webutils
 
-from cogs import localutils
+from cogs import utils
 
 
 routes = RouteTableDef()
@@ -78,7 +78,7 @@ async def flowers(request:Request):
     ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
     user_has_premium = False
     try:
-        user_has_premium = await localutils.checks.has_premium().predicate(ctx)
+        user_has_premium = await utils.checks.has_premium().predicate(ctx)
     except Exception:
         pass
 
@@ -195,7 +195,7 @@ async def donate(request:Request):
     ctx = webutils.WebContext(request.app['bots']['bot'], user_id)
     has_premium = False
     try:
-        await localutils.checks.has_premium().predicate(ctx)
+        await utils.checks.has_premium().predicate(ctx)
         has_premium = True
     except Exception:
         pass
