@@ -330,8 +330,8 @@ class PlantShopCommands(vbu.Cog[utils.types.Bot]):
         last_plant_shop_time: dt = dt(2000, 1, 1)
         plant_pot_hue: int = ctx.author.id % 360
         if user_rows:
-            user_experience = user_rows[0]['user_experience']
-            user_plant_limit = user_rows[0]['plant_limit']
+            user_experience = user_rows[0]['user_experience'] or user_experience
+            user_plant_limit = user_rows[0]['plant_limit'] or user_plant_limit
             last_plant_shop_time = user_rows[0]['last_plant_shop_time'] or dt(2000, 1, 1)
             plant_pot_hue = user_rows[0]['plant_pot_hue'] or ctx.author.id % 360
 
