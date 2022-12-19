@@ -11,7 +11,7 @@ from discord.ext import commands, tasks, vbu
 from cogs import utils
 
 if TYPE_CHECKING:
-    from cogs.utils.types import (
+    from .utils.types import (
         WaterPlantPayload,
         PlantLevelsRow,
         PlantLevelsRows,
@@ -36,7 +36,6 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
         return "https://top.gg/bot/{0}/vote".format(
             self.bot.config['oauth']['client_id'],
         )
-
 
     async def get_user_voted(
             self,
@@ -63,8 +62,12 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
             return False
 
         # Build our request
-        params = {"userId": user_id}
-        headers = {"Authorization": topgg_token}
+        params = {
+            "userId": user_id,
+        }
+        headers = {
+            "Authorization": topgg_token,
+        }
 
         # Make request
         get = {
@@ -184,8 +187,7 @@ class PlantCareCommands(vbu.Cog[utils.types.Bot]):
             new_nourishment_level: int = 0,
             new_user_experience: int = 0,
             voted_on_topgg: bool = False,
-            multipliers: Optional[List[WaterPlantMultiplier]] = None
-            ) -> WaterPlantPayload:
+            multipliers: Optional[List[WaterPlantMultiplier]] = None) -> WaterPlantPayload:
         """
         Return a JSON-friendly dict of a relevant information
         for having watered a plant.
