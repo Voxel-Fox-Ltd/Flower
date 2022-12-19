@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 
-class ItemType(object):
+__all__ = (
+    'ItemType',
+)
+
+
+class ItemType:
 
     __slots__ = (
         'name',
@@ -22,5 +27,5 @@ class ItemType(object):
         self.usage = usage
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         return self.display

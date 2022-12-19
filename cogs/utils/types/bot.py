@@ -7,6 +7,11 @@ from discord.ext import vbu
 from cogs import utils
 
 
+__all__ = (
+    'Bot',
+)
+
+
 class _Plants(typing.TypedDict):
     non_subscriber_plant_cap: int
     hard_plant_cap: int

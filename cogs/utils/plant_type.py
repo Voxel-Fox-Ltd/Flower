@@ -6,7 +6,12 @@ import math
 from typing import Optional
 
 
-class PlantType(object):
+__all__ = (
+    'PlantType',
+)
+
+
+class PlantType:
     """
     A data type containing the data for any given plant type.
     """
@@ -45,16 +50,25 @@ class PlantType(object):
             available: bool,
             artist: str,
             stages: Optional[int] = None,
-            plant_level: Optional[int] = None,
             nourishment_display_levels: Optional[dict] = None,
-            available_variants: Optional[dict] = None):
+            available_variants: Optional[dict] = None,
+            **kwargs):
         self.name: str = name
         self.available_variants: Optional[dict] = available_variants
         self.nourishment_display_levels: dict = (
-            nourishment_display_levels if nourishment_display_levels
-            else self.calculate_display_for_stages(stages or 0)
+            nourishment_display_levels
+            if
+                nourishment_display_levels
+            else
+                self.calculate_display_for_stages(stages or 0)
         )
-        self.stages: int = stages if stages else len(nourishment_display_levels or [])
+        self.stages: int = (
+            stages
+            if
+                stages
+            else
+                len(nourishment_display_levels or [])
+        )
         self.soil_hue: int = soil_hue
         self.visible: bool = visible  # If this item can appear in the herbiary
         self.available: bool = available  # If this item can appear in new users' shops
@@ -95,7 +109,10 @@ class PlantType(object):
         Gets a random amount of experience.
         """
 
-        return random.randint(self.experience_gain['minimum'], self.experience_gain['maximum'])
+        return random.randint(
+            self.experience_gain['minimum'],
+            self.experience_gain['maximum'],
+        )
 
     def get_available_variants(self, _: Optional[int] = None) -> int:
         """

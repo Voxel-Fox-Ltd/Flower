@@ -7,19 +7,27 @@ if TYPE_CHECKING:
     from .types import PlantLevelsRows
 
 
-async def plant_name_autocomplete(cog: commands.Cog, ctx: commands.SlashContext, interaction: discord.Interaction) -> None:
+__all__ = (
+    'plant_name_autocomplete',
+)
+
+
+async def plant_name_autocomplete(
+        cog: commands.Cog,
+        ctx: commands.SlashContext,
+        interaction: discord.Interaction) -> None:
     """
     Completes the name autocomplete for the plants of a given user.
     """
 
     # Get the valid user ID
-    user_id: int = interaction.user.id  # type: ignore
+    user_id: int = interaction.user.id
 
     # Get the options
-    options: List[discord.ApplicationCommandInteractionDataOption] = interaction.options  # type: ignore
+    options: List[discord.ApplicationCommandInteractionDataOption]
+    options = interaction.options  # type: ignore
     if options[0].focused:
-        # The current option is the plant name
-        pass
+        pass  # The current option is the plant name
     else:
         # This option MAY be a user
         option = options[0]
@@ -29,7 +37,14 @@ async def plant_name_autocomplete(cog: commands.Cog, ctx: commands.SlashContext,
     # Get the user's plants
     async with vbu.Database() as db:
         rows: PlantLevelsRows = await db.call(
-            """SELECT * FROM plant_levels WHERE user_id=$1""",
+            """
+            SELECT
+                *
+            FROM
+                plant_levels
+            WHERE
+                user_id = $1
+            """,
             user_id,
         )
 

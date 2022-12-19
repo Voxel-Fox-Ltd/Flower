@@ -3,6 +3,12 @@ from __future__ import annotations
 from typing import List, TypedDict
 
 
+__all__ = (
+    'WaterPlantMultiplier',
+    'WaterPlantPayload',
+)
+
+
 class WaterPlantMultiplier(TypedDict):
     multiplier: float
     text: str
