@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
+from cogs.utils import types
 
 if TYPE_CHECKING:
     import io
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from cogs.plant_display_utils import PlantDisplayUtils
 
 
-class InformationCommands(vbu.Cog[utils.types.Bot]):
+class InformationCommands(vbu.Cog[types.Bot]):
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -148,6 +149,6 @@ class InformationCommands(vbu.Cog[utils.types.Bot]):
     #         return await ctx.send("Sent you a DM!")
 
 
-def setup(bot: vbu.Bot):
+def setup(bot: types.Bot):
     x = InformationCommands(bot)
     bot.add_cog(x)
