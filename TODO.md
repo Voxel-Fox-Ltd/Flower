@@ -5,8 +5,6 @@ the bot.
 
 ## Commands
 
-- [ ] water [plant]
-    - Water your plants
 - [ ] exp <user?>
     - Show your (or others') exp
 - [ ] inventory <user?>
@@ -20,8 +18,11 @@ the bot.
 - [ ] shop
     - Show the shop
 
+- [ ] water [plant]
+    - Water your plants
 - [ ] deleteplant [plant]
     - Delete a plant
+
 - [ ] revive
     - Show a dropdown of plants
     - Revive a dead plant

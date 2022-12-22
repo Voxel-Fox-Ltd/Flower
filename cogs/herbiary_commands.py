@@ -13,18 +13,21 @@ if TYPE_CHECKING:
 
     from PIL import Image
 
-    from .utils import types
     from .plant_display_utils import PlantDisplayUtils
+    from .utils.types import (
+        Bot,
+        ArtistInfo,
+    )
 
 
-class InformationCommands(vbu.Cog[types.Bot]):
+class HerbiaryCommands(vbu.Cog[Bot]):
 
-    def __init__(self, bot: types.Bot):
+    def __init__(self, bot: Bot):
         super().__init__(bot)
-        self._artist_info: Dict[str, types.ArtistInfo] = {}
+        self._artist_info: Dict[str, ArtistInfo] = {}
 
     @property
-    def artist_info(self) -> Dict[str, types.ArtistInfo]:
+    def artist_info(self) -> Dict[str, ArtistInfo]:
         """
         Get the artist info for each of the people. Caches if this is the
         first read, returns cached if not.
@@ -41,7 +44,7 @@ class InformationCommands(vbu.Cog[types.Bot]):
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
-                    name="plant_name",
+                    name="plant",
                     description=(
                         "The name of the plant that you want to see the "
                         "information for."
@@ -56,16 +59,16 @@ class InformationCommands(vbu.Cog[types.Bot]):
             self,
             ctx: vbu.SlashContext,
             *,
-            plant_name: Optional[str] = None):
+            plant: Optional[str] = None):
         """
         Get the information for a given plant.
         """
 
         # See if a name was given
-        if plant_name is None:
+        if plant is None:
             plant_list = list()
-            for plant in self.bot.plants.values():
-                plant_list.append(plant.display_name.capitalize())
+            for plant_object in self.bot.plants.values():
+                plant_list.append(plant_object.display_name.capitalize())
             plant_list.sort()
             embed = vbu.Embed(
                 use_random_colour=True,
@@ -75,19 +78,19 @@ class InformationCommands(vbu.Cog[types.Bot]):
             return await ctx.interaction.response.send_message(embed=embed)
 
         # See if the given name is valid
-        plant_name = plant_name.replace(' ', '_').lower()
-        if plant_name not in self.bot.plants:
+        plant = plant.replace(' ', '_').lower()
+        if plant not in self.bot.plants:
             return await ctx.interaction.response.send_message(
                 "There's no plant with that name.",
                 allowed_mentions=discord.AllowedMentions.none()
             )
-        plant = self.bot.plants[plant_name]
+        plant_object = self.bot.plants[plant]
 
         # Work out our artist info to be displayed
         description_list = []
-        artist_info = self.artist_info.get(plant.artist, {}).copy()
+        artist_info = self.artist_info.get(plant_object.artist, {}).copy()
         discord_id: str | None = artist_info.pop('discord', None)  # pyright: ignore
-        description_list.append(f"**Artist `{plant.artist}`**")
+        description_list.append(f"**Artist `{plant_object.artist}`**")
         if discord_id:
             description_list.append(f"Discord: <@{discord_id}> (`{discord_id}`)")
         for i, o in sorted(artist_info.items()):
@@ -96,7 +99,7 @@ class InformationCommands(vbu.Cog[types.Bot]):
 
         # Embed the data
         with vbu.Embed(use_random_colour=True) as embed:
-            embed.title = plant.display_name.capitalize()
+            embed.title = plant_object.display_name.capitalize()
             embed.description = '\n'.join(description_list)
             embed.set_image("attachment://plant.gif")
             ctx.bot.set_footer_from_config(embed)
@@ -108,12 +111,12 @@ class InformationCommands(vbu.Cog[types.Bot]):
         pot_hue: int = random.randint(0, 360)  # Get a random colour
         display_levels: List[int] = []  # All display stages
         added_display_stages: List[int] = []  # All unique display stages
-        for i, o in plant.nourishment_display_levels.items():
+        for i, o in plant_object.nourishment_display_levels.items():
             if o not in added_display_stages:
                 display_levels.insert(0, int(i))
                 added_display_stages.append(o)
         gif_frames: List[Image.Image] = [
-            display_vbu.get_plant_image(plant.name, i, "clay", pot_hue)
+            display_vbu.get_plant_image(plant_object.name, i, "clay", pot_hue)
             for i in display_levels
         ]
         plant_image_bytes: io.BytesIO = display_vbu.gif_to_bytes(
@@ -131,6 +134,6 @@ class InformationCommands(vbu.Cog[types.Bot]):
         )
 
 
-def setup(bot: types.Bot):
-    x = InformationCommands(bot)
+def setup(bot: Bot):
+    x = HerbiaryCommands(bot)
     bot.add_cog(x)
