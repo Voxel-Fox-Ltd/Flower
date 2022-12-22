@@ -12,19 +12,19 @@ There are a few available plants in Flower, with more being added regularly. Tak
 
 There's just a few commands available within Flower, all of which can be run from your DMs.
 
-* `p.shop`
+* `/shop`
     * Run this to get new plants and more plant pots. After you run this you'll be shown a menu of things you can buy - simply say the name of the item you want.
-* `p.water [plant name]`
+* `/water [plant name]`
     * Run this to water your plant.
-* `p.show <user> [plant name]`
+* `/show <user> [plant name]`
     * Show what one of someone's plants looks like.
-* `p.deleteplant [plant name]`
+* `/deleteplant [plant name]`
     * Delete one of your plants.
-* `p.exp <user>`
+* `/exp <user>`
     * See how much experience someone has.
-* `p.revive [plant name]`
+* `/revive [plant name]`
     * Revives one of your dead plants.
-* `p.immortalize [plant name]`
+* `/immortalize [plant name]`
     * Make one of your plants immortal. This halves your exp, but makes sure it never dies.
 
 ## I'm good at pixel art!

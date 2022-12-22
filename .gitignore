@@ -1,6 +1,8 @@
 __pycache__/
 config/config.toml
 config/website.toml
+_*.py
+!__*.py
 
 images/plants/*/*/*.png
 images/plants/_*/
