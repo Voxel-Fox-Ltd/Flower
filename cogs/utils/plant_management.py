@@ -5,10 +5,56 @@ from discord.ext import commands, vbu
 from cogs import utils
 
 
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
+
+
+if __debug__:
+    _poedit = lambda x: x
+
+    # TRANSLATORS: Command name. Must be lowercase.
+    _poedit("rename")
+    # TRANSLATORS: Command description.
+    _poedit("Rename one of your plants.")
+    # TRANSLATORS: Name of an option in a command.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The plant that you want to rename.")
+    # TRANSLATORS: Name of an option in a command.
+    _poedit("new_name")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The new name for the plant.")
+
+    # TRANSLATORS: Command name. Must be lowercase.
+    _poedit("immortalize")
+    # TRANSLATORS: Command description.
+    _poedit("Immortalize one of your plants.")
+    # TRANSLATORS: Name of an option in a command.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The plant that you want to immortalize.")
+
+    # TRANSLATORS: Command name. Must be lowercase.
+    _poedit("delete")
+    # TRANSLATORS: Command description.
+    _poedit("Delete one of your plants.")
+    # TRANSLATORS: Name of an option in a command.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The plant that you want to delete.")
+
+
 class PlantManagement(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "rename")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Rename one of your plants.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="plant",
@@ -16,16 +62,33 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
                     autocomplete=True,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The plant that you want to rename.")
+                        for i in discord.Locale
+                    },
                 ),
                 discord.ApplicationCommandOption(
                     name="new_name",
                     description="The new name for the plant.",
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
+                    name_localizations={
+                        i: _t(i, "new_name")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The new name for the plant.")
+                        for i in discord.Locale
+                    },
                 ),
             ]
         )
     )
+    @vbu.i18n("profile")
     async def rename(
             self,
             ctx: vbu.SlashContext,
@@ -77,6 +140,14 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "delete")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Delete one of your plants.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="plant",
@@ -84,6 +155,14 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
                     autocomplete=True,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The plant that you want to delete.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
@@ -93,7 +172,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ctx: vbu.SlashContext,
             plant: str):
         """
-        Delete a one of your plants.
+        Delete one of your plants.
         """
 
         async with vbu.Database() as db:
@@ -133,6 +212,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
         )
 
     @vbu.Cog.listener("on_component_interaction")
+    @vbu.i18n("flower")
     @vbu.checks.interaction_filter(start="DELETEPLANT")
     async def on_delete_button_pressed(
             self,
@@ -177,6 +257,14 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "immortalize")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Immortalize one of your plants.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="plant",
@@ -184,10 +272,19 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
                     autocomplete=True,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The plant that you want to immortalize.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
     )
+    @vbu.i18n("flower")
     async def immortalize(
             self,
             ctx: vbu.SlashContext,
@@ -259,6 +356,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
         )
 
     @vbu.Cog.listener("on_component_interaction")
+    @vbu.i18n("flower")
     @vbu.checks.interaction_filter(start="IMMORTALIZEPLANT")
     async def on_immortalize_button_pressed(
             self,
