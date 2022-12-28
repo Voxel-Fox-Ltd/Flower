@@ -27,7 +27,7 @@ the bot.
 - [ ] waterall
     - [ ] Water all of the plants
 
-- [ ] deleteplant [plant]
+- [x] deleteplant [plant]
     - [ ] Delete a plant
 - [ ] revive
     - [ ] Show a dropdown of plants
