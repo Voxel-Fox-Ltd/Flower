@@ -104,6 +104,19 @@ class UserInventory:
             }
         )
 
+    async def update(self, db: vbu.Database, **kwargs):
+        """
+        Update the amounts of specific items in the user inventory. This is a
+        change rather than a set operation, eg ``amount += x`` rather than
+        ``amount = x``.
+        """
+
+        for item_name, amount in kwargs.items():
+            item = self.get(item_name)
+            item.amount += amount
+            self.items[item_name] = item
+        await self.save(db)
+
     async def save(self, db: vbu.Database) -> None:
         """
         Save the user inventory object to the database.

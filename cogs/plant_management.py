@@ -88,7 +88,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ]
         )
     )
-    @vbu.i18n("profile")
+    @vbu.i18n("flower")
     async def rename(
             self,
             ctx: vbu.SlashContext,
@@ -390,10 +390,39 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     components=None,
                 )
 
+            # Make sure the plant isn't dead
+            if plant_object.is_dead:
+                return await interaction.response.edit_message(
+                    content=_("Your plant **{name}** is dead.")
+                        .format(name=plant_name),
+                    components=None,
+                )
+
+            # Make sure the user still has the right amount of immortal plant juice
+            user_inventory = await utils.UserInventory.fetch_by_id(
+                db,
+                interaction.user.id,
+            )
+            if user_inventory.get("immortal_plant_juice").amount < 1:
+                shop_command_mention: str = self.bot.get_command("shop").mention  # pyright: ignore
+                return await interaction.response.edit_message(
+                    content=_(
+                        "You don't have any immortal plant juice. You can get "
+                        "some from the {shop_command_mention}."
+                    ).format(shop_command_mention=shop_command_mention),
+                    components=None,
+                )
+
             # Immortalize the plant
             await plant_object.update(
                 db,
                 immortal=True,
+            )
+
+            # Update the inventory
+            await user_inventory.update(
+                db,
+                immortal_plant_juice=-1,
             )
 
         # And tell the user
