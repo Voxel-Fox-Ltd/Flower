@@ -32,7 +32,7 @@ the bot.
 - [ ] revive
     - [ ] Show a dropdown of plants
     - [ ] Revive a dead plant
-- [ ] immortalize
+- [x] immortalize
     - [ ] Show a dropdown of plants
     - [ ] Make a plant immortal
 - [x] rename [plant] [name]

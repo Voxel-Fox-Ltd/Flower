@@ -96,7 +96,7 @@ class UserPlant:
             AND
                 plant_name = $2
             """,
-            user_id, plant_name,
+            user_id, plant_name.strip(),
             type=PlantLevelsRow,
         )
         if not plant:

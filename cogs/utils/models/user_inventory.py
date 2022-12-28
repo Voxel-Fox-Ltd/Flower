@@ -14,11 +14,21 @@ __all__ = (
 )
 
 
+ITEM_DISPLAY_NAMES: dict[str, str] = {
+    "refresh_token": "Refresh Token",
+    "immortal_plant_juice": "Immortal Plant Juice",
+}
+
+
 @dataclass
 class UserInventoryItem:
     user_id: int
     name: str
     amount: int
+
+    @property
+    def display_name(self):
+        return ITEM_DISPLAY_NAMES.get(self.name, self.name)
 
 
 @dataclass
@@ -53,7 +63,7 @@ class UserInventory:
         """
 
         return self.items.get(
-            item_name,
+            item_name.lower(),
             UserInventoryItem(
                 self.user_id,
                 item_name,
@@ -85,7 +95,7 @@ class UserInventory:
         return cls(
             user_id=user_id,
             items={
-                row['item_name']: UserInventoryItem(
+                row['item_name'].lower(): UserInventoryItem(
                     user_id=user_id,
                     name=row['item_name'],
                     amount=row['amount'],
