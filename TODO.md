@@ -35,6 +35,8 @@ the bot.
 - [ ] immortalize
     - [ ] Show a dropdown of plants
     - [ ] Make a plant immortal
+- [x] rename [plant] [name]
+    - [ ] Rename a plant
 
 - [x] herbiary <plant?>
     - [ ] Show a list of all plants if no plant given
