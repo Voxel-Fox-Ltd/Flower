@@ -29,7 +29,7 @@ the bot.
 
 - [x] deleteplant [plant]
     - [ ] Delete a plant
-- [ ] revive
+- [x] revive
     - [ ] Show a dropdown of plants
     - [ ] Revive a dead plant
 - [x] immortalize

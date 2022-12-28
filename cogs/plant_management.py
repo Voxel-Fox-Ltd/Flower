@@ -42,6 +42,15 @@ if __debug__:
     # TRANSLATORS: Description of a command option.
     _poedit("The plant that you want to delete.")
 
+    # TRANSLATORS: Command name. Must be lowercase.
+    _poedit("revive")
+    # TRANSLATORS: Command description.
+    _poedit("Bring one of your dead plants back to life.")
+    # TRANSLATORS: Name of an option in a command. Must be lowercase.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The plant that you want to revive.")
+
 
 class PlantManagement(vbu.Cog[utils.types.Bot]):
 
@@ -428,6 +437,160 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
         # And tell the user
         await interaction.response.edit_message(
             content=_("Successfully immortalized your plant."),
+            components=None,
+        )
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "revive")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Bring one of your dead plants back to life.")
+                for i in discord.Locale
+            },
+            options=[
+                discord.ApplicationCommandOption(
+                    name="plant",
+                    description="The plant that you want to revive.",
+                    type=discord.ApplicationCommandOptionType.string,
+                    required=True,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The plant that you want to revive.")
+                        for i in discord.Locale
+                    },
+                ),
+            ],
+        ),
+    )
+    @vbu.i18n("flower")
+    async def revive(
+            self,
+            ctx: vbu.SlashContext,
+            plant: str):
+        """
+        Bring one of your dead plants back to life.
+        """
+
+        # Get the plant they want to revive
+        async with vbu.Database() as db:
+            plant_object = await utils.UserPlant.fetch_by_name(
+                db,
+                ctx.author.id,
+                plant,
+            )
+        if not plant_object:
+            return await ctx.interaction.response.send_message(
+                _("You don't have a plant named **{plant}**.")
+                    .format(plant=plant),
+                ephemeral=True,
+            )
+
+        # Make sure the plant isn't already alive
+        if not plant_object.is_dead:
+            return await ctx.interaction.response.send_message(
+                _("Your plant **{name}** isn't dead.")
+                    .format(name=plant),
+                ephemeral=True,
+            )
+
+        # Ask them if they're sure
+        return await ctx.interaction.response.send_message(
+            _("Are you sure you want to revive your plant **{name}**?")
+                .format(name=plant),
+            components=discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label=_("Yes"),
+                        style=discord.ButtonStyle.green,
+                        custom_id=f"REVIVEPLANT {plant} 1",
+                    ),
+                    discord.ui.Button(
+                        label=_("No"),
+                        style=discord.ButtonStyle.red,
+                        custom_id=f"REVIVEPLANT {plant} 0",
+                    ),
+                ),
+            ),
+            ephemeral=True,
+        )
+
+    @vbu.Cog.listener("on_component_interaction")
+    @vbu.i18n("flower")
+    @vbu.checks.interaction_filter(start="REVIVEPLANT")
+    async def on_revive_button_pressed(
+            self,
+            interaction: discord.ComponentInteraction,
+            plant: str,
+            revive: Literal["1", "0"]):
+        """
+        Listens for a plant revive button being pressed.
+        """
+
+        # See if they clicked to not revive
+        if revive == "0":
+            return await interaction.response.edit_message(
+                content=_("Alright, not reviving your plant."),
+                components=None,
+            )
+
+        # Get the plant from the database
+        async with vbu.Database() as db:
+            plant_object = await utils.UserPlant.fetch_by_name(
+                db,
+                interaction.user.id,
+                plant,
+            )
+            if not plant_object:
+                return await interaction.response.edit_message(
+                    content=_("You don't have a plant named **{plant}**.")
+                        .format(plant=plant),
+                    components=None,
+                )
+
+            # Make sure the plant is still dead
+            if not plant_object.is_dead:
+                return await interaction.response.edit_message(
+                    content=_("Your plant **{name}** isn't dead.")
+                        .format(name=plant),
+                    components=None,
+                )
+
+            # Make sure the user still has a revival token
+            user_inventory = await utils.UserInventory.fetch_by_id(
+                db,
+                interaction.user.id,
+            )
+            if user_inventory.get("revival_token").amount < 1:
+                shop_command_mention: str = self.bot.get_command("shop").mention
+                return await interaction.response.edit_message(
+                    content=_(
+                        "You don't have any revival tokens. You can get "
+                        "some from the {shop_command_mention}."
+                    ).format(shop_command_mention=shop_command_mention),
+                    components=None,
+                )
+
+            # Revive the plant
+            await plant_object.update(
+                db,
+                nourishment=0,
+            )
+
+            # Update the inventory
+            await user_inventory.update(
+                db,
+                revival_token=-1,
+            )
+
+        # Tell them it's done
+        await interaction.response.edit_message(
+            content=_("Successfully revived your plant."),
             components=None,
         )
 
