@@ -6,6 +6,7 @@ from typing_extensions import Self
 
 from discord.ext import vbu
 
+from .plant import Plant
 from ..types import PlantLevelsRow
 
 
@@ -18,6 +19,20 @@ class UserPlant:
     """
     A representation of a user's plant from the database.
     """
+
+    __slots__ = (
+        'user_id',
+        'name',
+        'type',
+        'variant',
+        'nourishment',
+        'last_water_time',
+        'original_owner_id',
+        'pot_hue',
+        'adoption_time',
+        'notification_sent',
+        'immortal',
+    )
 
     def __init__(
             self,
@@ -33,16 +48,31 @@ class UserPlant:
             notification_sent: bool = False,
             immortal: bool = False):
         self.user_id: int = user_id
-        self.plant_name: str = plant_name
-        self.plant_type: str = plant_type
-        self.plant_variant: int = plant_variant
-        self.plant_nourishment: int = plant_nourishment
+        self.name: str = plant_name
+        self.type: str = plant_type
+        self.variant: int = plant_variant
+        self.nourishment: int = plant_nourishment
         self.last_water_time: dt = last_water_time
         self.original_owner_id: int = original_owner_id
-        self.plant_pot_hue: int = plant_pot_hue
-        self.plant_adoption_time: dt = plant_adoption_time
+        self.pot_hue: int = plant_pot_hue
+        self.adoption_time: dt = plant_adoption_time
         self.notification_sent: bool = notification_sent
         self.immortal: bool = immortal
+
+    @property
+    def is_dead(self) -> bool:
+        """
+        Returns whether or not the plant is dead.
+        """
+
+        return (
+            self.nourishment <= 0
+            and not self.immortal
+        )
+
+    @property
+    def plant(self) -> Plant:
+        return Plant.all_plants[self.type]
 
     @classmethod
     async def fetch_by_name(
@@ -109,14 +139,14 @@ class UserPlant:
                 plant_name = $2
             """,
             self.user_id,
-            self.plant_name,
-            self.plant_type,
-            self.plant_variant,
-            self.plant_nourishment,
+            self.name,
+            self.type,
+            self.variant,
+            self.nourishment,
             self.last_water_time,
             self.original_owner_id,
-            self.plant_pot_hue,
-            self.plant_adoption_time,
+            self.pot_hue,
+            self.adoption_time,
             self.notification_sent,
             self.immortal,
         )
@@ -138,5 +168,5 @@ class UserPlant:
             AND
                 plant_name = $2
             """,
-            self.user_id, self.plant_name,
+            self.user_id, self.name,
         )

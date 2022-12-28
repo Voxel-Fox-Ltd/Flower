@@ -19,7 +19,7 @@ the bot.
 - [ ] shop
     - [ ] Show the shop
 
-- [ ] water [plant]
+- [x] water [plant]
     - [ ] Water the plant if timeout is over,
     - [ ] if it's not watered,
     - [ ] and if it's not dead

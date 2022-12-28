@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import re
 import math
-from typing import Optional
+from typing import ClassVar, Optional
 
 
 __all__ = (
@@ -29,17 +29,17 @@ class Plant:
     required_experience = 0
     experience_gain = {"maximum": 700, "minimum": 300}
     max_nourishment_level = 21
+    all_plants: ClassVar[dict[str, 'Plant']] = {}
 
     __slots__ = (
         'name',
-        'available_variants',
-        'nourishment_display_levels',
-        'stages',
         'soil_hue',
         'visible',
         'available',
         'artist',
-        'image_data',
+        'stages',
+        'nourishment_display_levels',
+        'available_variants',
     )
 
     def __init__(
@@ -73,6 +73,7 @@ class Plant:
         self.visible: bool = visible  # If this item can appear in the herbiary
         self.available: bool = available  # If this item can appear in new users' shops
         self.artist: str = artist
+        self.all_plants[self.name] = self
 
     @staticmethod
     def calculate_display_for_stages(stages:int) -> dict:
@@ -109,7 +110,7 @@ class Plant:
 
     def get_experience(self) -> int:
         """
-        Gets a random amount of experience.
+        Get an amount of experience to be gained when this plant is watered.
         """
 
         return random.randint(

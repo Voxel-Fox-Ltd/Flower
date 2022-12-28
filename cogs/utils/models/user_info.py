@@ -13,7 +13,7 @@ class UserInfo:
         'user_id',
         'plant_limit',
         'pot_type',
-        'user_experience',
+        'experience',
         'last_plant_shop_time',
         '_plant_pot_hue',
         'has_premium',
@@ -35,7 +35,7 @@ class UserInfo:
         self.user_id = user_id
         self.plant_limit = plant_limit
         self.pot_type = pot_type
-        self.user_experience = user_experience
+        self.experience = user_experience
         self.last_plant_shop_time = last_plant_shop_time
         self._plant_pot_hue = plant_pot_hue
         self.has_premium = has_premium
@@ -75,3 +75,64 @@ class UserInfo:
         if not record:
             return cls(user_id=user_id)
         return cls(**record[0])
+
+    async def update(
+            self,
+            db: vbu.Database,
+            **kwargs) -> None:
+        """
+        Update this user info object in the database.
+        """
+
+        for i, o in kwargs.items():
+            setattr(self, i, o)
+        await db.call(
+            """
+            INSERT INTO
+                user_info
+                (
+                    user_id,
+                    plant_limit,
+                    pot_type,
+                    user_experience,
+                    last_plant_shop_time,
+                    plant_pot_hue,
+                    has_premium,
+                    premium_expiry_time,
+                    premium_subscription_delete_url
+                )
+            VALUES
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5,
+                    $6,
+                    $7,
+                    $8,
+                    $9
+                )
+            ON CONFLICT
+                (user_id)
+            DO UPDATE
+            SET
+                plant_limit = excluded.plant_limit,
+                pot_type = excluded.pot_type,
+                user_experience = excluded.user_experience,
+                last_plant_shop_time = excluded.last_plant_shop_time,
+                plant_pot_hue = excluded.plant_pot_hue,
+                has_premium = excluded.has_premium,
+                premium_expiry_time = excluded.premium_expiry_time,
+                premium_subscription_delete_url = excluded.premium_subscription_delete_url
+            """,
+            self.user_id,
+            self.plant_limit,
+            self.pot_type,
+            self.experience,
+            self.last_plant_shop_time,
+            self.plant_pot_hue,
+            self.has_premium,
+            self.premium_expiry_time,
+            self.premium_subscription_delete_url,
+        )
