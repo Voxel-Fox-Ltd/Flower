@@ -1,3 +1,6 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
+
 CREATE TABLE IF NOT EXISTS guild_settings(
     guild_id BIGINT PRIMARY KEY,
     prefix VARCHAR(30)
@@ -36,17 +39,17 @@ CREATE TABLE IF NOT EXISTS channel_list(
 
 
 CREATE TABLE IF NOT EXISTS plant_levels(
-    user_id BIGINT,
-    plant_name VARCHAR(50),
-    plant_type VARCHAR(20),
-    plant_variant SMALLINT DEFAULT 0,
-    plant_nourishment SMALLINT,
-    last_water_time TIMESTAMP,
-    original_owner_id BIGINT,
-    plant_pot_hue SMALLINT,
-    plant_adoption_time TIMESTAMP,
-    notification_sent BOOLEAN DEFAULT TRUE,
-    immortal BOOLEAN DEFAULT FALSE,
+    user_id BIGINT NOT NULL,
+    plant_name CITEXT NOT NULL,
+    plant_type TEXT NOT NULL,
+    plant_variant SMALLINT NOT NULL DEFAULT 0,
+    plant_nourishment SMALLINT NOT NULL,
+    last_water_time TIMESTAMP NOT NULL,
+    original_owner_id BIGINT NOT NULL,
+    plant_pot_hue SMALLINT NOT NULL,
+    plant_adoption_time TIMESTAMP NOT NULL,
+    notification_sent BOOLEAN NOT NULL DEFAULT TRUE,
+    immortal BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (user_id, plant_name)
 );
 

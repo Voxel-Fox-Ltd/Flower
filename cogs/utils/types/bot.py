@@ -30,6 +30,6 @@ class _BotConfig(vbu.types.BotConfig):
 
 
 class Bot(vbu.Bot):
-    plants: typing.Dict[str, utils.PlantType]
-    items: typing.Dict[str, utils.ItemType]
+    plants: typing.Dict[str, utils.Plant]
+    items: typing.Dict[str, utils.Item]
     config: _BotConfig

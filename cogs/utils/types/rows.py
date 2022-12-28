@@ -6,11 +6,8 @@ from datetime import datetime as dt
 
 __all__ = (
     'UserSettingsRow',
-    'UserSettingsRows',
     'PlantLevelsRow',
-    'PlantLevelsRows',
     'UserInventoryRow',
-    'UserInventoryRows',
 )
 
 
@@ -26,9 +23,6 @@ class UserSettingsRow(typing.TypedDict):
     premium_subscription_delete_url: str
 
 
-UserSettingsRows = typing.List[UserSettingsRow]
-
-
 class PlantLevelsRow(typing.TypedDict):
     user_id: int
     plant_name: str
@@ -42,12 +36,8 @@ class PlantLevelsRow(typing.TypedDict):
     notification_sent: bool
     immortal: bool
 
-PlantLevelsRows = typing.List[PlantLevelsRow]
-
 
 class UserInventoryRow(typing.TypedDict):
     user_id: int
     item_name: str
     amount: int
-
-UserInventoryRows = typing.List[UserInventoryRow]

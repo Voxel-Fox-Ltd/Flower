@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands, vbu
 
 if TYPE_CHECKING:
-    from .types import PlantLevelsRows
+    from .types import PlantLevelsRow
 
 
 __all__ = (
@@ -36,7 +36,7 @@ async def plant_name_autocomplete(
 
     # Get the user's plants
     async with vbu.Database() as db:
-        rows: PlantLevelsRows = await db.call(
+        rows = await db.call(
             """
             SELECT
                 *
@@ -46,6 +46,7 @@ async def plant_name_autocomplete(
                 user_id = $1
             """,
             user_id,
+            type=PlantLevelsRow,
         )
 
     # Return autocomplete

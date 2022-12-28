@@ -2,11 +2,11 @@ from __future__ import annotations
 
 
 __all__ = (
-    'ItemType',
+    'Item',
 )
 
 
-class ItemType:
+class Item:
 
     __slots__ = (
         'name',

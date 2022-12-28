@@ -7,11 +7,11 @@ from typing import Optional
 
 
 __all__ = (
-    'PlantType',
+    'Plant',
 )
 
 
-class PlantType:
+class Plant:
     """
     A data type containing the data for any given plant type.
     """
@@ -80,7 +80,10 @@ class PlantType:
         Work out which stages should level up a plant display level.
         """
 
-        return {str(i): math.ceil((i * stages) / 20) for i in range(1, 21)}
+        return {
+            str(i): math.ceil((i * stages) / 20)
+            for i in range(1, 21)
+        }
 
     def __str__(self):
         return f"<Plant {self.name}>"
@@ -113,13 +116,6 @@ class PlantType:
             self.experience_gain['minimum'],
             self.experience_gain['maximum'],
         )
-
-    def get_available_variants(self, _: Optional[int] = None) -> int:
-        """
-        Tells you how many variants are available for a given growth stage.
-        """
-
-        return 1
 
     def get_nourishment_display_level(self, nourishment: int) -> int:
         """
