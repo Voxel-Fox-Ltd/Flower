@@ -1,14 +1,9 @@
-from typing import TYPE_CHECKING, Optional, cast
+from typing import Optional, cast
 
 import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
-
-if TYPE_CHECKING:
-    from .utils.types import (
-        Bot,
-    )
 
 
 _t = lambda i, x: vbu.translation(i, "flower").gettext(x)
@@ -36,7 +31,7 @@ if __debug__:
     _poedit("The user to get inventory of.")
 
 
-class UserInfoCommands(vbu.Cog[Bot]):
+class UserInfoCommands(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
@@ -159,6 +154,6 @@ class UserInfoCommands(vbu.Cog[Bot]):
         )
 
 
-def setup(bot: Bot):
+def setup(bot: utils.types.Bot):
     x = UserInfoCommands(bot)
     bot.add_cog(x)
