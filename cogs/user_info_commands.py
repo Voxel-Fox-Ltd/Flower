@@ -11,16 +11,57 @@ if TYPE_CHECKING:
     )
 
 
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
+
+
+if __debug__:
+    _poedit = lambda x: x
+
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("experience")
+    # TRANSLATORS: Description for a command.
+    _poedit("Get the amount of experience you have.")
+    # TRANSLATORS: Name of a command option. Must be lowercase.
+    _poedit("user")
+    # TRANSLATORS: Description for a command option.
+    _poedit("The user to get info about.")
+
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("inventory")
+    # TRANSLATORS: Description for a command.
+    _poedit("Get the inventory of a user.")
+    # TRANSLATORS: Name of a command option. Must be lowercase.
+    _poedit("user")
+    # TRANSLATORS: Description for a command option.
+    _poedit("The user to get inventory of.")
+
+
 class UserInfoCommands(vbu.Cog[Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "experience")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Get the amount of experience you have.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="user",
                     description="The user to get info about.",
                     type=discord.ApplicationCommandOptionType.user,
                     required=False,
+                    name_localizations={
+                        i: _t(i, "user")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The user to get info about.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
@@ -45,23 +86,39 @@ class UserInfoCommands(vbu.Cog[Bot]):
         # Send the experience
         if user.id == ctx.author.id:
             message = _("You have {experience} experience.").format(
-                experience=user_object.user_experience,
+                experience=user_object.experience,
             )
         else:
             message = _("{user} has {experience} experience.").format(
                 user=user.mention,
-                experience=user_object.user_experience,
+                experience=user_object.experience,
             )
         await ctx.interaction.response.send_message(message)
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "inventory")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Get the inventory of a user.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="user",
                     description="The user to get inventory of.",
                     type=discord.ApplicationCommandOptionType.user,
                     required=False,
+                    name_localizations={
+                        i: _t(i, "user")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The user to get inventory of.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),

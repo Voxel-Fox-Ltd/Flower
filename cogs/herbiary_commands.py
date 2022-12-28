@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 import discord
 from discord.ext import commands, vbu
 
-
 if TYPE_CHECKING:
     import io
 
@@ -17,6 +16,25 @@ if TYPE_CHECKING:
     from .utils.types import (
         Bot,
         ArtistInfo,
+    )
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
+
+
+if __debug__:
+    _poedit = lambda x: x
+
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("herbiary")
+    # TRANSLATORS: Description of a command.
+    _poedit("Get the information for a given plant.")
+    # TRANSLATORS: Name of a command option. Must be lowercase.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit(
+        "The name of the plant that you want to see "
+        "the information for."
     )
 
 
@@ -42,6 +60,14 @@ class HerbiaryCommands(vbu.Cog[Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "herbiary")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Get the information for a given plant.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="plant",
@@ -51,10 +77,24 @@ class HerbiaryCommands(vbu.Cog[Bot]):
                     ),
                     type=discord.ApplicationCommandOptionType.string,
                     required=False,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(
+                            i, (
+                                "The name of the plant that you want to see "
+                                "the information for."
+                            )
+                        )
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
     )
+    @vbu.i18n("flower")
     async def herbiary(
             self,
             ctx: vbu.SlashContext,
@@ -81,7 +121,7 @@ class HerbiaryCommands(vbu.Cog[Bot]):
         plant = plant.replace(' ', '_').lower()
         if plant not in self.bot.plants:
             return await ctx.interaction.response.send_message(
-                "There's no plant with that name.",
+                _("There's no plant with that name."),
                 allowed_mentions=discord.AllowedMentions.none()
             )
         plant_object = self.bot.plants[plant]

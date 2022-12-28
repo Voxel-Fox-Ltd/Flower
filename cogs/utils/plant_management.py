@@ -15,11 +15,11 @@ if __debug__:
     _poedit("rename")
     # TRANSLATORS: Command description.
     _poedit("Rename one of your plants.")
-    # TRANSLATORS: Name of an option in a command.
+    # TRANSLATORS: Name of an option in a command. Must be lowercase.
     _poedit("plant")
     # TRANSLATORS: Description of a command option.
     _poedit("The plant that you want to rename.")
-    # TRANSLATORS: Name of an option in a command.
+    # TRANSLATORS: Name of an option in a command. Must be lowercase.
     _poedit("new_name")
     # TRANSLATORS: Description of a command option.
     _poedit("The new name for the plant.")
@@ -28,7 +28,7 @@ if __debug__:
     _poedit("immortalize")
     # TRANSLATORS: Command description.
     _poedit("Immortalize one of your plants.")
-    # TRANSLATORS: Name of an option in a command.
+    # TRANSLATORS: Name of an option in a command. Must be lowercase.
     _poedit("plant")
     # TRANSLATORS: Description of a command option.
     _poedit("The plant that you want to immortalize.")
@@ -37,7 +37,7 @@ if __debug__:
     _poedit("delete")
     # TRANSLATORS: Command description.
     _poedit("Delete one of your plants.")
-    # TRANSLATORS: Name of an option in a command.
+    # TRANSLATORS: Name of an option in a command. Must be lowercase.
     _poedit("plant")
     # TRANSLATORS: Description of a command option.
     _poedit("The plant that you want to delete.")
