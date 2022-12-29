@@ -147,11 +147,16 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
         embed.description = "\n".join(sorted(description_list))
 
         # And send
-        await ctx.interaction.response.send_message(
-            embeds=[
-                embed,
-            ],
-        )
+        if not description_list:
+            await ctx.interaction.response.send_message(
+                _("This inventory is empty :("),
+            )
+        else:
+            await ctx.interaction.response.send_message(
+                embeds=[
+                    embed,
+                ],
+            )
 
 
 def setup(bot: utils.types.Bot):

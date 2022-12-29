@@ -83,7 +83,7 @@ class UserInventory:
         inventory_rows = await db.call(
             """
             SELECT
-                name, amount
+                item_name, amount
             FROM
                 user_inventory
             WHERE

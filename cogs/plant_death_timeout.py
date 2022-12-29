@@ -39,7 +39,7 @@ class PlantDeathTimeout(vbu.Cog[utils.types.Bot]):
                 RETURNING
                     *
                 """,
-                timedelta(**self.bot.config['plants']['death_timeout']),
+                utils.constants.DEATH_TIMEOUT,
             )
 
             # Add counter for plant dying

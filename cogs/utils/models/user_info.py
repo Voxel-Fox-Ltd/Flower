@@ -6,6 +6,8 @@ from typing_extensions import Self
 
 from discord.ext import vbu
 
+from ..types import UserSettingsRow
+
 
 class UserInfo:
 
@@ -66,11 +68,12 @@ class UserInfo:
             SELECT
                 *
             FROM
-                user_info
+                user_settings
             WHERE
                 user_id = $1
             """,
             user_id,
+            type=UserSettingsRow,
         )
         if not record:
             return cls(user_id=user_id)

@@ -26,9 +26,9 @@ REFRESH_TOKEN_PRICE = 10_000
 IMMORTAL_PLANT_JUICE_PRICE = 1_000
 """The price of a bottle of immortal plant juice."""
 
-DEATH_TIMEOUT = {
-    "days": 3,
-}
+DEATH_TIMEOUT = timedelta(
+    days=3,
+)
 """The amount of time a plant can go without being watered before it dies."""
 
 WATER_COOLDOWN = timedelta(
