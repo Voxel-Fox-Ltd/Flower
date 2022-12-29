@@ -66,7 +66,7 @@ class UserPlant:
         """
 
         return (
-            self.nourishment <= 0
+            self.nourishment < 0
             and not self.immortal
         )
 
