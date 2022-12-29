@@ -106,6 +106,8 @@ class HerbiaryCommands(vbu.Cog[utils.types.Bot]):
         if plant is None:
             plant_list = list()
             for plant_object in self.bot.plants.values():
+                if plant_object.available is False or plant_object.visible is False:
+                    continue
                 plant_list.append(plant_object.display_name.capitalize())
             plant_list.sort()
             embed = vbu.Embed(
