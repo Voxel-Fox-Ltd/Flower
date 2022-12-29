@@ -143,7 +143,9 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
         for item in inv_object.items.values():
             if item.amount <= 0:
                 continue
-            description_list.append(f"{item.name.title()}: {item.amount}\n")
+            description_list.append(
+                f"**{item.display_name.capitalize()}**: {item.amount}"
+            )
         embed.description = "\n".join(sorted(description_list))
 
         # And send

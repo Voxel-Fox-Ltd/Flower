@@ -39,12 +39,12 @@ class UserPlant:
             user_id: int,
             plant_name: str,
             plant_type: str,
-            plant_variant: int,
-            plant_nourishment: int,
-            last_water_time: dt,
-            original_owner_id: int,
-            plant_pot_hue: int,
-            plant_adoption_time: dt,
+            plant_variant: int = 0,
+            plant_nourishment: int = 0,
+            last_water_time: Optional[dt] = None,
+            original_owner_id: Optional[int] = None,
+            plant_pot_hue: int = 0,
+            plant_adoption_time: Optional[dt] = None,
             notification_sent: bool = False,
             immortal: bool = False):
         self.user_id: int = user_id
@@ -52,10 +52,10 @@ class UserPlant:
         self.type: str = plant_type
         self.variant: int = plant_variant
         self.nourishment: int = plant_nourishment
-        self.last_water_time: dt = last_water_time
-        self.original_owner_id: int = original_owner_id
+        self.last_water_time: dt = last_water_time or dt.utcnow()
+        self.original_owner_id: int = original_owner_id or user_id
         self.pot_hue: int = plant_pot_hue
-        self.adoption_time: dt = plant_adoption_time
+        self.adoption_time: dt = plant_adoption_time or dt.utcnow()
         self.notification_sent: bool = notification_sent
         self.immortal: bool = immortal
 
@@ -105,9 +105,36 @@ class UserPlant:
         # Return the plant object
         return cls(**plant[0])
 
+    @classmethod
+    async def fetch_all_by_user_id(
+            cls,
+            db: vbu.Database,
+            user_id: int) -> list[Self]:
+        """
+        Get a user's plant from the database.
+        """
+
+        # Get the plant from the database
+        plant = await db.call(
+            """
+            SELECT
+                *
+            FROM
+                plant_levels
+            WHERE
+                user_id = $1
+            """,
+            user_id,
+            type=PlantLevelsRow,
+        )
+        return [
+            cls(**p)
+            for p in plant
+        ]
+
     async def update(
             self,
-            db: vbu.Database,
+            db: vbu.Database | vbu.DatabaseTransaction,
             **kwargs):
         """
         Update the plant in the database.
@@ -119,24 +146,50 @@ class UserPlant:
         # Update the plant in the database
         await db.call(
             """
-            UPDATE
+            INSERT INTO
                 plant_levels
+                (
+                    user_id,
+                    plant_name,
+                    plant_type,
+                    plant_variant,
+                    plant_nourishment,
+                    last_water_time,
+                    original_owner_id,
+                    plant_pot_hue,
+                    plant_adoption_time,
+                    notification_sent,
+                    immortal
+                )
+            VALUES
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    $5,
+                    $6,
+                    $7,
+                    $8,
+                    $9,
+                    $10,
+                    $11
+                )
+            ON CONFLICT
+                (user_id, plant_name)
+            DO UPDATE
             SET
-                user_id = $1,
-                plant_name = $2,
-                plant_type = $3,
-                plant_variant = $4,
-                plant_nourishment = $5,
-                last_water_time = $6,
-                original_owner_id = $7,
-                plant_pot_hue = $8,
-                plant_adoption_time = $9,
-                notification_sent = $10,
-                immortal = $11
-            WHERE
-                user_id = $1
-            AND
-                plant_name = $2
+                user_id = excluded.user_id,
+                plant_name = excluded.plant_name,
+                plant_type = excluded.plant_type,
+                plant_variant = excluded.plant_variant,
+                plant_nourishment = excluded.plant_nourishment,
+                last_water_time = excluded.last_water_time,
+                original_owner_id = excluded.original_owner_id,
+                plant_pot_hue = excluded.plant_pot_hue,
+                plant_adoption_time = excluded.plant_adoption_time,
+                notification_sent = excluded.notification_sent,
+                immortal = excluded.immortal
             """,
             self.user_id,
             self.name,

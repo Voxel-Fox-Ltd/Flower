@@ -14,12 +14,6 @@ __all__ = (
 )
 
 
-ITEM_DISPLAY_NAMES: dict[str, str] = {
-    "refresh_token": "Refresh Token",
-    "immortal_plant_juice": "Immortal Plant Juice",
-}
-
-
 @dataclass
 class UserInventoryItem:
     user_id: int
@@ -28,7 +22,7 @@ class UserInventoryItem:
 
     @property
     def display_name(self):
-        return ITEM_DISPLAY_NAMES.get(self.name, self.name)
+        return self.name.replace("_", " ")
 
 
 @dataclass
@@ -74,7 +68,7 @@ class UserInventory:
     @classmethod
     async def fetch_by_id(
             cls,
-            db: vbu.Database,
+            db: vbu.Database | vbu.DatabaseTransaction,
             user_id: int) -> Self:
         """
         Fetch a user inventory object by user ID.
@@ -104,7 +98,10 @@ class UserInventory:
             }
         )
 
-    async def update(self, db: vbu.Database, **kwargs):
+    async def update(
+            self,
+            db: vbu.Database | vbu.DatabaseTransaction,
+            **kwargs):
         """
         Update the amounts of specific items in the user inventory. This is a
         change rather than a set operation, eg ``amount += x`` rather than
@@ -115,7 +112,10 @@ class UserInventory:
             item = self.get(item_name)
             item.amount += amount
             self.items[item_name] = item
-        await self.save(db)
+        if isinstance(db, vbu.DatabaseTransaction):
+            await self._save(db)
+        else:
+            await self.save(db)
 
     async def save(self, db: vbu.Database) -> None:
         """
@@ -123,30 +123,33 @@ class UserInventory:
         """
 
         async with db.transaction(commit_on_exit=False) as transaction:
-            await transaction.execute_many(
-                """
-                INSERT INTO
-                    user_inventory
-                    (
-                        user_id,
-                        name,
-                        amount
-                    )
-                VALUES
-                    (
-                        $1,
-                        $2,
-                        $3
-                    )
-                ON CONFLICT
-                    (user_id, name)
-                DO UPDATE
-                SET
-                    amount = excluded.amount
-                """,
-                [
-                    (self.user_id, item.name, item.amount)
-                    for item in self.items.values()
-                ]
-            )
+            await self._save(transaction)
             await transaction.commit()
+
+    async def _save(self, db: vbu.Database | vbu.DatabaseTransaction) -> None:
+        await db.execute_many(
+            """
+            INSERT INTO
+                user_inventory
+                (
+                    user_id,
+                    item_name,
+                    amount
+                )
+            VALUES
+                (
+                    $1,
+                    $2,
+                    $3
+                )
+            ON CONFLICT
+                (user_id, item_name)
+            DO UPDATE
+            SET
+                amount = excluded.amount
+            """,
+            *[
+                (self.user_id, item.name, item.amount)
+                for item in self.items.values()
+            ]
+        )

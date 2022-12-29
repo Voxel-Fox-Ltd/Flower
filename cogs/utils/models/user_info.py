@@ -57,7 +57,7 @@ class UserInfo:
     @classmethod
     async def fetch_by_id(
             cls,
-            db: vbu.Database,
+            db: vbu.Database | vbu.DatabaseTransaction,
             user_id: int) -> Self:
         """
         Fetch a user info object by user ID.
@@ -81,7 +81,7 @@ class UserInfo:
 
     async def update(
             self,
-            db: vbu.Database,
+            db: vbu.Database | vbu.DatabaseTransaction,
             **kwargs) -> None:
         """
         Update this user info object in the database.
@@ -92,7 +92,7 @@ class UserInfo:
         await db.call(
             """
             INSERT INTO
-                user_info
+                user_settings
                 (
                     user_id,
                     plant_limit,
