@@ -5,9 +5,6 @@ from discord.ext import commands, vbu
 from cogs import utils
 
 
-_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
-
-
 if __debug__:
     _poedit = lambda x: x
 
@@ -50,6 +47,9 @@ if __debug__:
     _poedit("plant")
     # TRANSLATORS: Description of a command option.
     _poedit("The plant that you want to revive.")
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
 
 
 class PlantManagement(vbu.Cog[utils.types.Bot]):

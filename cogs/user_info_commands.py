@@ -6,9 +6,6 @@ from discord.ext import commands, vbu
 from cogs import utils
 
 
-_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
-
-
 if __debug__:
     _poedit = lambda x: x
 
@@ -29,6 +26,9 @@ if __debug__:
     _poedit("user")
     # TRANSLATORS: Description for a command option.
     _poedit("The user to get inventory of.")
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
 
 
 class UserInfoCommands(vbu.Cog[utils.types.Bot]):

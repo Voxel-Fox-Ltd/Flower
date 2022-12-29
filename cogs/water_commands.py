@@ -10,6 +10,22 @@ from discord.ext import commands, vbu
 from cogs import utils
 
 
+if __debug__:
+    _poedit = lambda x: x
+
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("water")
+    # TRANSLATORS: Description of a command.
+    _poedit("Water one of your plants.")
+    # TRANSLATORS: Name of a command option. Must be lowercase.
+    _poedit("plant")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The plant to water.")
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
+
+
 class WaterPlantMultiplier(TypedDict):
     multiplier: float
     text: str
@@ -79,6 +95,14 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "water")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Water one of your plants.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="plant",
@@ -86,6 +110,14 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
                     autocomplete=True,
+                    name_localizations={
+                        i: _t(i, "plant")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The plant to water.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
