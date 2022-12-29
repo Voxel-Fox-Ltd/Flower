@@ -160,8 +160,8 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 wait_time = discord.utils.format_dt(timeout_time, "R")
                 return await ctx.interaction.response.send_message(
                     _(
-                        "You can't water that plant yet! Please wait "
-                        "{wait_time} before trying again."
+                        "You can't water that plant yet! Please try again "
+                        "{wait_time}."
                     ).format(wait_time=wait_time),
                     ephemeral=True,
                 )
@@ -278,14 +278,14 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             description_lines.append(
                 _(
                     "You pour water into your plant's soil, gaining you "
-                    "{experience} experience."
+                    "**{experience}** experience."
                 ).format(experience=gained_experience)
             )
         else:
             description_lines.append(
                 _(
                     "You pour water into your plant's soil, gaining you "
-                    "~~{original_experience}~~ {experience} experience."
+                    "~~{original_experience}~~ **{experience}** experience."
                 ).format(
                     original_experience=original_gained_experience,
                     experience=gained_experience,
