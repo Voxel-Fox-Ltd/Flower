@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 import random
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from PIL import Image, ImageOps
 import numpy as np
@@ -11,15 +11,8 @@ from discord.ext import vbu
 
 from cogs import utils
 
-if TYPE_CHECKING:
-    from cogs.utils.types import (
-        PlantLevelsRow,
-        UserPlantDisplayData,
-        Bot,
-    )
 
-
-class PlantDisplayUtils(vbu.Cog[Bot]):
+class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
 
     PLANT_SCALE_SIZE = 5
 
@@ -31,7 +24,7 @@ class PlantDisplayUtils(vbu.Cog[Bot]):
         self._available_plants = None
 
     @staticmethod
-    def sort_plant_rows(rows: list[PlantLevelsRow]) -> list[PlantLevelsRow]:
+    def sort_plant_rows(rows: list[utils.types.PlantLevelsRow]) -> list[utils.types.PlantLevelsRow]:
         return sorted(
             rows,
             key=lambda i: (
@@ -269,7 +262,7 @@ class PlantDisplayUtils(vbu.Cog[Bot]):
 
         # Work out which of our images to flip
         new_plants = []
-        for index, image in enumerate(plants):
+        for _, image in enumerate(plants):
             if add_flipping:
                 if random.randint(0, 1):
                     image = ImageOps.mirror(image)
@@ -373,8 +366,8 @@ class PlantDisplayUtils(vbu.Cog[Bot]):
 
     @staticmethod
     def get_display_data(
-            plant_row: Optional[PlantLevelsRow],
-            user_id: Optional[int] = None) -> UserPlantDisplayData:
+            plant_row: Optional[utils.types.PlantLevelsRow],
+            user_id: Optional[int] = None) -> utils.types.UserPlantDisplayData:
         """
         Get the display data of a given plant and return it as a dict.
 
@@ -413,6 +406,6 @@ class PlantDisplayUtils(vbu.Cog[Bot]):
         }
 
 
-def setup(bot: Bot):
+def setup(bot: utils.types.Bot):
     x = PlantDisplayUtils(bot)
     bot.add_cog(x)

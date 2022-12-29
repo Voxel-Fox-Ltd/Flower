@@ -1,6 +1,6 @@
 __pycache__/
-config/config.toml
-config/website.toml
+config/*.toml
+!config/*.example.toml
 _*.py
 !__*.py
 

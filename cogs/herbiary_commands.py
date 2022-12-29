@@ -7,16 +7,14 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 import discord
 from discord.ext import commands, vbu
 
+from cogs import utils
+
 if TYPE_CHECKING:
     import io
 
     from PIL import Image
 
     from .plant_display_utils import PlantDisplayUtils
-    from .utils.types import (
-        Bot,
-        ArtistInfo,
-    )
 
 
 _t = lambda i, x: vbu.translation(i, "flower").gettext(x)
@@ -38,14 +36,14 @@ if __debug__:
     )
 
 
-class HerbiaryCommands(vbu.Cog[Bot]):
+class HerbiaryCommands(vbu.Cog[utils.types.Bot]):
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: utils.types.Bot):
         super().__init__(bot)
-        self._artist_info: Dict[str, ArtistInfo] = {}
+        self._artist_info: Dict[str, utils.types.ArtistInfo] = {}
 
     @property
-    def artist_info(self) -> Dict[str, ArtistInfo]:
+    def artist_info(self) -> Dict[str, utils.types.ArtistInfo]:
         """
         Get the artist info for each of the people. Caches if this is the
         first read, returns cached if not.
@@ -174,6 +172,6 @@ class HerbiaryCommands(vbu.Cog[Bot]):
         )
 
 
-def setup(bot: Bot):
+def setup(bot: utils.types.Bot):
     x = HerbiaryCommands(bot)
     bot.add_cog(x)
