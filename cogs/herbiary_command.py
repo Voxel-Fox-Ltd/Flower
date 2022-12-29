@@ -17,9 +17,6 @@ if TYPE_CHECKING:
     from .plant_display_utils import PlantDisplayUtils
 
 
-_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
-
-
 if __debug__:
     _poedit = lambda x: x
 
@@ -34,6 +31,9 @@ if __debug__:
         "The name of the plant that you want to see "
         "the information for."
     )
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
 
 
 class HerbiaryCommands(vbu.Cog[utils.types.Bot]):
