@@ -9,6 +9,7 @@ from discord.ext import vbu
 
 from .plant import Plant
 from ..types import PlantLevelsRow
+from ..constants import WATER_COOLDOWN
 
 
 __all__ = (
@@ -84,6 +85,13 @@ class UserPlant:
         return (
             self.nourishment < 0
             and not self.immortal
+        )
+
+    @property
+    def is_waterable(self) -> bool:
+        return (
+            self.last_water_time + WATER_COOLDOWN
+            < dt.utcnow()
         )
 
     @property

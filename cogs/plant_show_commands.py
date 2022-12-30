@@ -90,6 +90,8 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             files=[image_file],
         )
 
+    show.autocomplete(utils.autocomplete.get_plant_name_autocomplete())  # pyright: ignore
+
 
 def setup(bot: utils.types.Bot):
     x = PlantShowCommands(bot)

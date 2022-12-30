@@ -301,6 +301,8 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             embeds=[embed],
         )
 
+    water.autocomplete(utils.autocomplete.get_plant_name_autocomplete(is_waterable=True))  # pyright: ignore
+
 
 def setup(bot: utils.types.Bot):
     x = WaterCommands(bot)

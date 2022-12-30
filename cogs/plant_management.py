@@ -456,6 +456,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     description="The plant that you want to revive.",
                     type=discord.ApplicationCommandOptionType.string,
                     required=True,
+                    autocomplete=True,
                     name_localizations={
                         i: _t(i, "plant")
                         for i in discord.Locale
@@ -593,6 +594,11 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             content=_("Successfully revived your plant."),
             components=None,
         )
+
+    rename.autocomplete(utils.autocomplete.get_plant_name_autocomplete())  # pyright: ignore
+    delete.autocomplete(utils.autocomplete.get_plant_name_autocomplete())  # pyright: ignore
+    revive.autocomplete(utils.autocomplete.get_plant_name_autocomplete(is_dead=True))  # pyright: ignore
+    immortalize.autocomplete(utils.autocomplete.get_plant_name_autocomplete(immortal=False))  # pyright: ignore
 
 
 def setup(bot: utils.types.Bot):
