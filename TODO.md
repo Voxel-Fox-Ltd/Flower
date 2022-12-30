@@ -10,13 +10,13 @@ the bot.
 - [x] inventory <user?>
     - [ ] Show your (or others') inventory
 
-- [ ] show <user?>
+- [x] show <user?>
     - [ ] Give a dropdown of the user's plants
     - [ ] Show an image of the plant
 - [ ] showall <user?>
     - [ ] Show all of the plants
 
-- [ ] shop
+- [x] shop
     - [ ] Show the shop
 
 - [x] water [plant]
