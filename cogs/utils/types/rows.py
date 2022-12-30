@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import TypedDict, Optional, Literal
 from datetime import datetime as dt
 
@@ -25,6 +26,7 @@ class UserSettingsRow(TypedDict):
 
 
 class PlantLevelsRow(TypedDict):
+    id: uuid.UUID
     user_id: int
     plant_name: str
     plant_type: str

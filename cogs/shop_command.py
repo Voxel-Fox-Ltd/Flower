@@ -342,6 +342,7 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
 
             # All seems well and good; add the plant to the user's list :)
             new_plant = utils.UserPlant(
+                id=None,
                 user_id=interaction.user.id,
                 plant_type=plant_type,
                 plant_name=plant_name,

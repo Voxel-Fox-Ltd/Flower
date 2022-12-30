@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
 CREATE TABLE IF NOT EXISTS guild_settings(
@@ -20,25 +21,8 @@ CREATE TABLE IF NOT EXISTS user_settings(
 );
 
 
-CREATE TABLE IF NOT EXISTS role_list(
-    guild_id BIGINT,
-    role_id BIGINT,
-    key VARCHAR(50),
-    value VARCHAR(50),
-    PRIMARY KEY (guild_id, role_id, key)
-);
-
-
-CREATE TABLE IF NOT EXISTS channel_list(
-    guild_id BIGINT,
-    channel_id BIGINT,
-    key VARCHAR(50),
-    value VARCHAR(50),
-    PRIMARY KEY (guild_id, channel_id, key)
-);
-
-
 CREATE TABLE IF NOT EXISTS plant_levels(
+    id UUID NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id BIGINT NOT NULL,
     plant_name CITEXT NOT NULL,
     plant_type TEXT NOT NULL,
@@ -50,7 +34,7 @@ CREATE TABLE IF NOT EXISTS plant_levels(
     plant_adoption_time TIMESTAMP NOT NULL,
     notification_sent BOOLEAN NOT NULL DEFAULT TRUE,
     immortal BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (user_id, plant_name)
+    UNIQUE (user_id, plant_name)
 );
 
 

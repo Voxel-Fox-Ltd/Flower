@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime as dt
 from typing import Optional
 from typing_extensions import Self
@@ -21,6 +22,7 @@ class UserPlant:
     """
 
     __slots__ = (
+        '_id',
         'user_id',
         'name',
         'type',
@@ -36,6 +38,7 @@ class UserPlant:
 
     def __init__(
             self,
+            id: Optional[uuid.UUID],
             user_id: int,
             plant_name: str,
             plant_type: str,
@@ -47,6 +50,7 @@ class UserPlant:
             plant_adoption_time: Optional[dt] = None,
             notification_sent: bool = False,
             immortal: bool = False):
+        self.id = id  # pyright: ignore
         self.user_id: int = user_id
         self.name: str = plant_name
         self.type: str = plant_type
@@ -58,6 +62,18 @@ class UserPlant:
         self.adoption_time: dt = plant_adoption_time or dt.utcnow()
         self.notification_sent: bool = notification_sent
         self.immortal: bool = immortal
+
+    @property
+    def id(self) -> str:
+        if self._id is None:
+            self._id = uuid.uuid4()
+        return str(self._id)
+
+    @id.setter
+    def id(self, value: uuid.UUID | str | None):
+        if isinstance(value, str):
+            value = uuid.UUID(value)
+        self._id = value
 
     @property
     def is_dead(self) -> bool:
@@ -149,6 +165,7 @@ class UserPlant:
             INSERT INTO
                 plant_levels
                 (
+                    id,
                     user_id,
                     plant_name,
                     plant_type,
@@ -173,10 +190,11 @@ class UserPlant:
                     $8,
                     $9,
                     $10,
+                    $12,
                     $11
                 )
             ON CONFLICT
-                (user_id, plant_name)
+                (id)
             DO UPDATE
             SET
                 user_id = excluded.user_id,
@@ -191,6 +209,7 @@ class UserPlant:
                 notification_sent = excluded.notification_sent,
                 immortal = excluded.immortal
             """,
+            self.id,
             self.user_id,
             self.name,
             self.type,
@@ -217,9 +236,7 @@ class UserPlant:
             DELETE FROM
                 plant_levels
             WHERE
-                user_id = $1
-            AND
-                plant_name = $2
+                id = $1
             """,
-            self.user_id, self.name,
+            self.id,
         )
