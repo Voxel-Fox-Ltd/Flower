@@ -12,8 +12,8 @@ the bot.
 
 - [x] show [plant]
     - [x] Show an image of the plant
-- [ ] showother [user] [plant]
-    - [ ] Show an image of the plant
+- [x] showother [user] [plant]
+    - [x] Show an image of the plant
 - [x] showall
     - [x] Show all of the plants
 

@@ -21,6 +21,24 @@ if __debug__:
     # Description of a command option.
     _poedit("The plant that you want to see.")
 
+    # Name of a command. Must be lowercase.
+    _poedit("showother")
+    # Command description.
+    _poedit("Take a look at one of someone else's plants.")
+    # Name of a command option. Must be lowercase.
+    _poedit("user")
+    # Description of a command option.
+    _poedit("The user whose plants you want to see.")
+    # Name of a command option. Must be lowercase.
+    _poedit("plant")
+    # Description of a command option.
+    _poedit("The plant that you want to see.")
+
+    # Name of a command. Must be lowercase.
+    _poedit("showall")
+    # Command description.
+    _poedit("Show all of your plants at once.")
+
 
 _t = lambda i, x: vbu.translation(i, "flower").gettext(x)
 
@@ -56,22 +74,89 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
         Take a look at one of your plants.
         """
 
+        await self.show_plant(
+            ctx.interaction,  # pyright: ignore
+            ctx.interaction.user,  # pyright: ignore
+            plant,
+        )
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "showother")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Take a look at one of someone else's plants.")
+                for i in discord.Locale
+            },
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user whose plants you want to see.",
+                    type=discord.ApplicationCommandOptionType.user,
+                    required=True,
+                ),
+                discord.ApplicationCommandOption(
+                    name="plant",
+                    description="The plant that you want to see.",
+                    type=discord.ApplicationCommandOptionType.string,
+                    autocomplete=True,
+                    required=True,
+                ),
+            ],
+        ),
+    )
+    @vbu.i18n("flower")
+    async def showother(
+            self,
+            ctx: vbu.SlashContext,
+            user: discord.User,
+            plant: str):
+        """
+        Take a look at one of someone else's plants.
+        """
+
+        await self.show_plant(
+            ctx.interaction,  # pyright: ignore
+            user,
+            plant,
+        )
+
+    async def show_plant(
+            self,
+            interaction: discord.CommandInteraction,
+            user: discord.User,
+            plant_name: str):
+        """
+        Show a plant via the given interaction.
+        """
+
         # Get the plant that they want to look at
         async with vbu.Database() as db:
             user_plant = await utils.UserPlant.fetch_by_name(
                 db,
-                ctx.author.id,
-                plant,
+                user.id,
+                plant_name,
             )
             if user_plant is None:
-                return await ctx.interaction.response.send_message(
-                    _("You have no plant named **{plant}**")
-                        .format(plant=plant.capitalize()),
+                if user.id == interaction.user.id:
+                    message = (
+                        _("You have no plant named **{plant}**.")
+                        .format(plant=plant_name)
+                    )
+                else:
+                    message = (
+                        _("{user} has no plant named **{plant}**.")
+                        .format(user=user.mention, plant=plant_name)
+                    )
+                return await interaction.response.send_message(
+                    message,
                     ephemeral=True,
                 )
 
         # Defer so we can perform our intensive display operation
-        await ctx.interaction.response.defer()
+        await interaction.response.defer()
 
         # Get our image
         image = utils.PlantDisplayUtils.get_plant_image(
@@ -90,7 +175,7 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
         )
         embed.set_image(url="attachment://plant.png")
         self.bot.set_footer_from_config(embed)
-        await ctx.interaction.followup.send(
+        await interaction.followup.send(
             embeds=[embed],
             files=[image_file],
         )
@@ -156,6 +241,7 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
         )
 
     show.autocomplete(utils.autocomplete.get_plant_name_autocomplete())  # pyright: ignore
+    showother.autocomplete(utils.autocomplete.get_plant_name_autocomplete())  # pyright: ignore
 
 
 def setup(bot: utils.types.Bot):

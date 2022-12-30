@@ -38,8 +38,7 @@ def get_plant_name_autocomplete(**filters):
         else:
             option = options[0]
             if option.type == discord.ApplicationCommandOptionType.user:
-                if interaction.resolved.users:
-                    user_id = list(interaction.resolved.users.values())[0].id
+                user_id = int(option.value)  # pyright: ignore
             current_name = options[1].value  # pyright: ignore
 
         # Get the user's plants
