@@ -155,42 +155,29 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
         # And done
         return available_plants
 
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta(
-            name_localizations={
-                i: _t(i, "shop")
-                for i in discord.Locale
-            },
-            description_localizations={
-                i: _t(i, "Opens the shop.")
-                for i in discord.Locale
-            },
-        ),
-    )
-    @vbu.i18n("flower")
-    async def shop(self, ctx: vbu.SlashContext):
+    async def get_shop_components(
+            self,
+            db: vbu.Database,
+            interaction: discord.Interaction):
         """
-        Opens the shop.
+        Get the components that should be present for a user's shop.
         """
 
-        # Open a db connection so we can get some data
-        async with vbu.Database() as db:
+        # Get the user's information
+        user_info = await utils.UserInfo.fetch_by_id(
+            db,
+            interaction.user.id,
+        )
+        user_plants = await utils.UserPlant.fetch_all_by_user_id(
+            db,
+            interaction.user.id,
+        )
 
-            # Get the user's information
-            user_info = await utils.UserInfo.fetch_by_id(
-                db,
-                ctx.author.id,
-            )
-            user_plants = await utils.UserPlant.fetch_all_by_user_id(
-                db,
-                ctx.author.id,
-            )
-
-            # Get what plants they have available
-            available_plants = await self.get_user_available_plants(
-                db,
-                ctx.author.id,
-            )
+        # Get what plants they have available
+        available_plants = await self.get_user_available_plants(
+            db,
+            interaction.user.id,
+        )
 
         # Get what items the bot has available
         available_items = self.bot.items.copy()
@@ -217,14 +204,49 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 )
             )
 
+        # Add the plant pot to the item buttons
+        if user_info.plant_limit < utils.constants.HARD_PLANT_CAP:
+            plant_pot_price = self.get_points_for_plant_pot(user_info.plant_limit)
+            item_buttons.insert(
+                0,
+                discord.ui.Button(
+                    label=f"Plant pot (${plant_pot_price:,})",
+                    style=discord.ButtonStyle.secondary,
+                    custom_id="GETITEM plant_pot",
+                    disabled=plant_pot_price > user_info.experience,
+                )
+            )
+
         # Present a list of buttons for them
-        components = discord.ui.MessageComponents(
+        return discord.ui.MessageComponents(
             discord.ui.ActionRow(*plant_buttons),
             discord.ui.ActionRow(*item_buttons),
         )
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "shop")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Opens the shop.")
+                for i in discord.Locale
+            },
+        ),
+    )
+    @vbu.i18n("flower")
+    async def shop(self, ctx: vbu.SlashContext):
+        """
+        Opens the shop.
+        """
+
+        async with vbu.Database() as db:
+            components = await self.get_shop_components(db, ctx.interaction)
         await ctx.interaction.response.send_message(
             _("What would you like to get from your shop?"),
             components=components,
+            ephemeral=True,
         )
 
     @vbu.Cog.listener("on_component_interaction")
@@ -247,7 +269,9 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 interaction.user.id,
             )
             if len(user_plants) >= utils.constants.HARD_PLANT_CAP:
-                await interaction.response.send_message(
+                components = await self.get_shop_components(db, interaction)
+                await interaction.response.edit_message(components=components)
+                await interaction.followup.send(
                     _("You have no more available pots!"),
                     ephemeral=True,
                 )
@@ -259,7 +283,9 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 interaction.user.id,
             )
             if len(user_plants) >= user_info.plant_limit:
-                await interaction.response.send_message(
+                components = await self.get_shop_components(db, interaction)
+                await interaction.response.edit_message(components=components)
+                await interaction.followup.send(
                     _("You have no more available pots!"),
                     ephemeral=True,
                 )
@@ -310,7 +336,9 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 interaction.user.id,
             )
             if len(user_plants) >= utils.constants.HARD_PLANT_CAP:
-                await interaction.response.send_message(
+                components = await self.get_shop_components(db, interaction)
+                await interaction.response.edit_message(components=components)
+                await interaction.followup.send(
                     _("You have no more available pots!"),
                     ephemeral=True,
                 )
@@ -322,7 +350,9 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 interaction.user.id,
             )
             if len(user_plants) >= user_info.plant_limit:
-                await interaction.response.send_message(
+                components = await self.get_shop_components(db, interaction)
+                await interaction.response.edit_message(components=components)
+                await interaction.followup.send(
                     _("You have no more available pots!"),
                     ephemeral=True,
                 )
@@ -351,8 +381,13 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             )
             await new_plant.update(db)
 
+            # Get the new components
+            components = await self.get_shop_components(db, interaction)
+
         # Tell the user it's been done
-        await interaction.response.send_message(
+        await interaction.response.defer_update()
+        await interaction.edit_original_message(components=components)
+        await interaction.followup.send(
             _("You have successfully bought a new plant!"),
             ephemeral=True,
         )
@@ -369,7 +404,14 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
         """
 
         # Get the item from the cache
-        item_object = self.bot.items[item_name]
+        if item_name == "plant_pot":
+            item_object = utils.Item(
+                item_name="plant_pot",
+                display_name="plant pot",
+                item_price=0,
+            )
+        else:
+            item_object = self.bot.items[item_name]
 
         # See if the user has enough experience to buy it
         async with vbu.Database() as db:
@@ -377,8 +419,12 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                 db,
                 interaction.user.id,
             )
+            if item_object.name == "plant_pot":
+                item_object.price = self.get_points_for_plant_pot(user_info.plant_limit)
             if user_info.experience < item_object.price:
-                await interaction.response.send_message(
+                components = await self.get_shop_components(db, interaction)
+                await interaction.response.edit_message(components=components)
+                await interaction.followup.send(
                     _("You don't have enough experience to buy that!"),
                     ephemeral=True,
                 )
@@ -386,24 +432,35 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
 
             # They do - start a transaction, reduce the user's experience, and
             # add the item to the user via the inventory object
-            async with db.transaction() as trans:
+            if item_object.name == "plant_pot":
                 await user_info.update(
-                    trans,
+                    db,
                     experience=user_info.experience - item_object.price,
+                    plant_limit=user_info.plant_limit + 1,
                 )
-                user_inventory = await utils.UserInventory.fetch_by_id(
-                    trans,
-                    interaction.user.id,
-                )
-                await user_inventory.update(
-                    trans,
-                    **{
-                        item_object.name: 1,
-                    },
-                )
+            else:
+                async with db.transaction() as trans:
+                    await user_info.update(
+                        trans,
+                        experience=user_info.experience - item_object.price,
+                    )
+                    user_inventory = await utils.UserInventory.fetch_by_id(
+                        trans,
+                        interaction.user.id,
+                    )
+                    await user_inventory.update(
+                        trans,
+                        **{
+                            item_object.name: 1,
+                        },
+                    )
+
+            # Get new shop components
+            components = await self.get_shop_components(db, interaction)
 
         # Tell the user they got one successfully
-        await interaction.response.send_message(
+        await interaction.response.edit_message(components=components)
+        await interaction.followup.send(
             _("You have successfully bought a new item!"),
             ephemeral=True,
         )
