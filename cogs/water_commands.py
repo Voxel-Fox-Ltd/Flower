@@ -294,7 +294,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         if multipliers:
             description_lines.append("")
         for multiplier in multipliers:
-            description_lines.append(multiplier["text"])
+            description_lines.append(f"**{multiplier['multiplier']}** - {multiplier['text']}")
         embed.description = "\n".join(description_lines)
         self.bot.set_footer_from_config(embed)
         await ctx.interaction.followup.send(
