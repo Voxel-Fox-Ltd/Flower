@@ -138,7 +138,7 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
 
         # Build an embed
         embed = vbu.Embed(
-            title=_("Inventory"),
+            # title=_("Inventory"),
             use_random_colour=True,
         )
         embed.set_author_to_user(user)  # pyright: ignore
@@ -176,6 +176,42 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
 
         # Send the embed
         await ctx.interaction.response.send_message(embeds=[embed])
+
+    @commands.context_command(
+        name="Get user inventory",
+        description="Get the inventory of a user.",
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "Get user inventory")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Get the inventory of a user.")
+                for i in discord.Locale
+            },
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user to get inventory of.",
+                    type=discord.ApplicationCommandOptionType.user,
+                    required=True,
+                    name_localizations={
+                        i: _t(i, "user")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The user to get the inventory of.")
+                        for i in discord.Locale
+                    },
+                ),
+            ],
+        ),
+    )
+    async def inventory_context_command(
+            self,
+            ctx: vbu.SlashContext,
+            user: discord.User):
+        return await self.inventory(ctx, user=user)
 
 
 def setup(bot: utils.types.Bot):
