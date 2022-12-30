@@ -6,14 +6,14 @@ the bot.
 ## Commands
 
 - [x] exp <user?>
-    - [ ] Show your (or others') exp
+    - Removed in favour of inventory command
 - [x] inventory <user?>
     - [ ] Show your (or others') inventory
 
 - [x] show <user?>
     - [ ] Give a dropdown of the user's plants
     - [ ] Show an image of the plant
-- [ ] showall <user?>
+- [x] showall <user?>
     - [ ] Show all of the plants
 
 - [x] shop

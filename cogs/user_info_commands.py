@@ -133,12 +133,12 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
 
         # Get the inventory and plants
         async with vbu.Database() as db:
+            user_info = await utils.UserInfo.fetch_by_id(db, user.id)
             inv_object = await utils.UserInventory.fetch_by_id(db, user.id)
             user_plants = await utils.UserPlant.fetch_all_by_user_id(db, user.id)
 
         # Build an embed
         embed = vbu.Embed(
-            # title=_("Inventory"),
             use_random_colour=True,
         )
         embed.set_author_to_user(user)  # pyright: ignore
@@ -159,12 +159,14 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
             )
 
         # Get the user's items
-        item_list: list[str] = []
+        item_list: list[str] = [
+            f"\N{BULLET} **Experience**: ${user_info.experience:,}"
+        ]
         for item in inv_object.items.values():
             if item.amount <= 0:
                 continue
             item_list.append(
-                f"\N{BULLET} **{item.display_name.capitalize()}**: {item.amount}"
+                f"\N{BULLET} **{item.display_name.capitalize()}**: {item.amount:,}"
             )
         item_string = "\n".join(sorted(item_list))
         if item_string:
