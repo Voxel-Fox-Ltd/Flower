@@ -255,7 +255,7 @@ class PlantDisplayUtils:
     @classmethod
     def compile_plant_images(
             cls,
-            *plants,
+            plants: list[Image.Image],
             add_flipping: bool = True):
         """
         Add together some plant images.

@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 import discord
 from discord.ext import vbu, commands
 
 from cogs import utils
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 
 if __debug__:
@@ -84,6 +89,66 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             use_random_colour=True,
         )
         embed.set_image(url="attachment://plant.png")
+        self.bot.set_footer_from_config(embed)
+        await ctx.interaction.followup.send(
+            embeds=[embed],
+            files=[image_file],
+        )
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "showall")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Show all of your plants at once.")
+                for i in discord.Locale
+            },
+        )
+    )
+    @vbu.i18n("flower")
+    async def showall(self, ctx: vbu.SlashContext):
+        """
+        Show all of your plants at once.
+        """
+
+        # Get some user information
+        async with vbu.Database() as db:
+
+            # See if the user has premium
+            user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
+            if not user_info.has_premium:
+                return await ctx.interaction.response.send_message(
+                    _("You need to have premium to use this command."),
+                    ephemeral=True,
+                )
+
+            # Get all of their plants
+            user_plants = await utils.UserPlant.fetch_all_by_user_id(
+                db,
+                ctx.author.id,
+            )
+
+        # Defer so we can perform our intensive display operation
+        await ctx.interaction.response.defer()
+
+        # Get our image
+        images: list[Image.Image] = []
+        for p in user_plants:
+            images.append(utils.PlantDisplayUtils.get_plant_image(
+                p.plant,
+                p.nourishment,
+                "clay",
+                p.pot_hue,
+            ))
+        compiled = utils.PlantDisplayUtils.compile_plant_images(images)
+        image_bytes = utils.PlantDisplayUtils.image_to_bytes(compiled)
+        image_file = discord.File(image_bytes, filename="plants.png")
+
+        # Send them their plant in an embed
+        embed = vbu.Embed(use_random_colour=True)
+        embed.set_image(url="attachment://plants.png")
         self.bot.set_footer_from_config(embed)
         await ctx.interaction.followup.send(
             embeds=[embed],
