@@ -157,10 +157,10 @@ class HerbiaryCommands(vbu.Cog[utils.types.Bot]):
                 added_display_stages.append(o)
         gif_frames: List[Image.Image] = [
             display_vbu.get_plant_image(plant_object.name, i, "clay", pot_hue)
-            for i in display_levels
+            for i in [0, *display_levels]
         ]
         plant_image_bytes: io.BytesIO = display_vbu.gif_to_bytes(
-            *gif_frames,
+            *gif_frames[::-1],
             duration=1_000,
         )
 
