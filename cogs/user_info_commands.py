@@ -131,34 +131,51 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
         user = user or ctx.author  # pyright: ignore - recast
         user = cast(discord.Member, user)
 
-        # Get the inventory
+        # Get the inventory and plants
         async with vbu.Database() as db:
             inv_object = await utils.UserInventory.fetch_by_id(db, user.id)
+            user_plants = await utils.UserPlant.fetch_all_by_user_id(db, user.id)
 
         # Build an embed
         embed = vbu.Embed(
             title=_("Inventory"),
+            use_random_colour=True,
         )
-        description_list: list[str] = []
+        embed.set_author_to_user(user)  # pyright: ignore
+
+        # Get the user's plants
+        plant_list: list[str] = []
+        for plant in user_plants:
+            plant_list.append(f"\N{BULLET} **{plant.name}**")
+            plant_list.append(f"\u2003\N{BULLET} {plant.plant.display_name}")
+            formatted_adoption = discord.utils.format_dt(plant.adoption_time, "R")
+            plant_list.append(f"\u2003\N{BULLET} adopted {formatted_adoption}")
+        plant_string = "\n".join(plant_list)
+        if plant_string:
+            embed.add_field(
+                name=_("Plants"),
+                value=plant_string,
+                inline=False,
+            )
+
+        # Get the user's items
+        item_list: list[str] = []
         for item in inv_object.items.values():
             if item.amount <= 0:
                 continue
-            description_list.append(
-                f"**{item.display_name.capitalize()}**: {item.amount}"
+            item_list.append(
+                f"\N{BULLET} **{item.display_name.capitalize()}**: {item.amount}"
             )
-        embed.description = "\n".join(sorted(description_list))
+        item_string = "\n".join(sorted(item_list))
+        if item_string:
+            embed.add_field(
+                name=_("Items"),
+                value=item_string,
+                inline=False,
+            )
 
-        # And send
-        if not description_list:
-            await ctx.interaction.response.send_message(
-                _("This inventory is empty :("),
-            )
-        else:
-            await ctx.interaction.response.send_message(
-                embeds=[
-                    embed,
-                ],
-            )
+        # Send the embed
+        await ctx.interaction.response.send_message(embeds=[embed])
 
 
 def setup(bot: utils.types.Bot):
