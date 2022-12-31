@@ -198,8 +198,8 @@ class UserPlant:
                     $8,
                     $9,
                     $10,
-                    $12,
-                    $11
+                    $11,
+                    $12
                 )
             ON CONFLICT
                 (id)
