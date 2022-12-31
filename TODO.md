@@ -46,6 +46,6 @@ the bot.
     - [ ] Trade a plant to another user
     - [ ] Other user must specify another plant to trade
     - [ ] Both users must accept the trade
-- [ ] giveitem [user]
-    - [ ] Show a dropdown of the user's items
-    - [ ] Give an item to another user
+- [x] giveitem [user]
+    - [x] Show a dropdown of the user's items
+    - [x] Give an item to another user

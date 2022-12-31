@@ -66,6 +66,7 @@ class TradeCommands(vbu.Cog[utils.types.Bot]):
                     ),
                 ),
             ),
+            ephemeral=True,
         )
 
     @vbu.Cog.listener("on_component_interaction")
