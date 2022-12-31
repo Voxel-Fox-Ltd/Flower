@@ -56,7 +56,10 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
         generate_new = True
         if plant_shop_rows:
             now = dt.utcnow()
-            last_shop = plant_shop_rows[0]['last_shop_timestamp']
+            last_shop = (
+                plant_shop_rows[0]['last_shop_timestamp']
+                or dt(2000, 1, 1)
+            )
             generate_new = (
                 (last_shop.year, last_shop.month)
                 != (now.year, now.month)
@@ -463,6 +466,69 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
         await interaction.followup.send(
             _("You have successfully bought a new item!"),
             ephemeral=True,
+        )
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "refreshshop")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, (
+                    "Use one of your refresh tokens to give you a new set of "
+                    "shop items."
+                ))
+                for i in discord.Locale
+            },
+        ),
+    )
+    @vbu.i18n()
+    async def refreshshop(
+            self,
+            ctx: vbu.SlashContext):
+        """
+        Use one of your refresh tokens to give you a new set of shop items.
+        """
+
+        # Get the user's inventory
+        async with vbu.Database() as db:
+            user_inventory = await utils.UserInventory.fetch_by_id(
+                db,
+                ctx.author.id,
+            )
+
+        # See if they have any refresh tokens
+        if user_inventory.get("refresh_token").amount <= 0:
+            await ctx.interaction.response.send_message(
+                _("You don't have any refresh tokens!"),
+                ephemeral=True,
+            )
+            return
+
+        # They do - start a transaction, reduce the user's refresh tokens, and
+        # add the new items to the shop
+        async with vbu.Database() as db:
+            async with db.transaction() as trans:
+                await user_inventory.update(
+                    trans,
+                    refresh_token=-1,
+                )
+                await trans.call(
+                    """
+                    UPDATE
+                        user_available_plants
+                    SET
+                        last_shop_timestamp = '2000-01-01 00:00:00'
+                    WHERE
+                        user_id = $1
+                    """,
+                    ctx.interaction.user.id,
+                )
+
+        # Tell them we've done it
+        await ctx.interaction.response.send_message(
+            _("You have successfully refreshed your shop!"),
         )
 
 
