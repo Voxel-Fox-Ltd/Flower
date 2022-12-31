@@ -142,7 +142,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                 name=new_name,
             )
         await ctx.interaction.response.send_message(
-            _("Successfully renamed your plant to {name}.")
+            _("Successfully renamed your plant to **{name}**.")
                 .format(name=new_name),
             ephemeral=True,
         )

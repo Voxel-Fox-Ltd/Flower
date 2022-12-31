@@ -14,11 +14,32 @@ __all__ = (
 )
 
 
-@dataclass
 class UserInventoryItem:
-    user_id: int
-    name: str
-    amount: int
+
+    __slots__ = (
+        'user_id',
+        'name',
+        '_amount',
+    )
+
+    def __init__(
+            self,
+            user_id: int,
+            name: str,
+            amount: int):
+        self.user_id = user_id
+        self.name = name
+        self._amount = amount
+
+    @property
+    def amount(self) -> int:
+        if self._amount < 0:
+            return 0
+        return self._amount
+
+    @amount.setter
+    def amount(self, value: int):
+        self._amount = value
 
     @property
     def display_name(self):
