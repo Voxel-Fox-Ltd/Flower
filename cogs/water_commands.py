@@ -22,6 +22,11 @@ if __debug__:
     # TRANSLATORS: Description of a command option.
     _poedit("The plant to water.")
 
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("waterall")
+    # TRANSLATORS: Description of a command.
+    _poedit("Water all of your plants.")
+
 
 _t = lambda i, x: vbu.translation(i, "flower").gettext(x)
 
@@ -96,6 +101,67 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
             name_localizations={
+                i: _t(i, "waterall")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Water all of your plants.")
+                for i in discord.Locale
+            },
+        ),
+    )
+    @vbu.i18n("flower")
+    async def waterall(
+            self,
+            ctx: vbu.SlashContext):
+        """
+        Water all of your plants.
+        """
+
+        # Open db so we can get information
+        async with vbu.Database() as db:
+
+            # Make sure the user is a premium subscriber
+            user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
+            if not user_info.has_premium:
+                return await ctx.send(
+                    _(
+                        "You need to be a premium subscriber to use this "
+                        "command. "
+                    ),
+                    ephemeral=True,
+                )
+
+            # Get all of the user's plants
+            all_plants = await utils.UserPlant.fetch_all_by_user_id(
+                db,
+                ctx.author.id,
+            )
+
+        # See which ones we can water
+        waterable: list[utils.UserPlant] = []
+        for plant in all_plants:
+            if plant.is_waterable:
+                waterable.append(plant)
+
+        # If there aren't any waterable ones, then just tell them we're
+        # continuing on
+        if not waterable:
+            return await ctx.interaction.response.send_message(
+                _(
+                    "You don't have any plants that need watering right now!"
+                ),
+                ephemeral=True,
+            )
+
+        # Otherwise loop through and run the water command for each of the
+        # plants
+        for plant in waterable:
+            await self.water(ctx, plant)
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
                 i: _t(i, "water")
                 for i in discord.Locale
             },
@@ -126,22 +192,25 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
     async def water(
             self,
             ctx: vbu.SlashContext,
-            plant: str):
+            plant: str | utils.UserPlant):
         """
         Water one of your plants.
         """
 
         # Get a plant object associated with the plant name they gave
         async with vbu.Database() as db:
-            user_plant = await utils.UserPlant.fetch_by_name(
-                db,
-                ctx.author.id,
-                plant,
-            )
-            if user_plant is None:
-                return await ctx.interaction.response.send_message(
-                    _("You don't have a plant with that name!")
+            if isinstance(plant, str):
+                user_plant = await utils.UserPlant.fetch_by_name(
+                    db,
+                    ctx.author.id,
+                    plant,
                 )
+                if user_plant is None:
+                    return await ctx.interaction.response.send_message(
+                        _("You don't have a plant with that name!")
+                    )
+            else:
+                user_plant = plant
             user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
 
         # Make sure the plant isn't dead
@@ -167,7 +236,8 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 )
 
         # Defer so we can do some more intensive stuff now
-        await ctx.interaction.response.defer()
+        if not ctx.interaction.response.is_done():
+            await ctx.interaction.response.defer()
 
         # Set up original original data before we morph it with calculations
         original_gained_experience: int = user_plant.plant.get_experience()
@@ -291,8 +361,8 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                     experience=gained_experience,
                 )
             )
-        if multipliers:
-            description_lines.append("")
+        # if multipliers:
+        #     description_lines.append("")
         for multiplier in multipliers:
             description_lines.append(f"**{multiplier['multiplier']}** - {multiplier['text']}")
         embed.description = "\n".join(description_lines)

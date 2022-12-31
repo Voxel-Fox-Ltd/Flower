@@ -25,8 +25,8 @@ the bot.
     - [x] if it's not watered,
     - [x] and if it's not dead
     - [x] Give the user exp
-- [ ] waterall
-    - [ ] Water all of the plants
+- [x] waterall
+    - [x] Water all of the plants
 
 - [x] deleteplant [plant]
     - [x] Delete a plant
