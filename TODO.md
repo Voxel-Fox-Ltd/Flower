@@ -19,6 +19,8 @@ the bot.
 
 - [x] shop
     - [x] Show the shop
+- [x] refreshshop
+    - [x] Refresh the shop
 
 - [x] water [plant]
     - [x] Water the plant if timeout is over,
@@ -27,6 +29,11 @@ the bot.
     - [x] Give the user exp
 - [x] waterall
     - [x] Water all of the plants
+- [ ] waterother [user] [plant]
+    - [ ] Water another user's plant if their timeout is over,
+    - [ ] and if it's not dead,
+    - [ ] and if they have a key to the user's garden.
+    - [ ] Give both users exp.
 
 - [x] deleteplant [plant]
     - [x] Delete a plant
@@ -49,3 +56,8 @@ the bot.
 - [x] giveitem [user]
     - [x] Show a dropdown of the user's items
     - [x] Give an item to another user
+
+- [x] key give [user]
+- [x] key remove
+    - [x] Give you a dropdown of users who currently have keys to your garden
+    so as to remove them.
