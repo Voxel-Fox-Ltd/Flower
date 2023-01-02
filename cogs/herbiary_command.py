@@ -114,7 +114,7 @@ class HerbiaryCommands(vbu.Cog[utils.types.Bot]):
                 use_random_colour=True,
                 description="\n".join(plant_list),
             )
-            ctx.bot.set_footer_from_config(embed)
+            self.bot.set_footer_from_config(embed)
             return await ctx.interaction.response.send_message(embed=embed)
 
         # See if the given name is valid

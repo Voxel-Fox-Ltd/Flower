@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from typing import Optional, TypedDict, cast
+from typing import Optional, TypedDict
 from datetime import datetime as dt, timedelta
 
 import discord
@@ -497,7 +497,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             plant_name=user_plant.name,
         )
         description_lines: list[str] = []
-        if original_gained_experience == gained_experience:
+        if not multipliers:
             description_lines.append(
                 _(
                     "You pour water into your plant's soil, gaining you "
@@ -515,12 +515,17 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 )
             )
         for multiplier in multipliers:
-            description_lines.append(f"**{multiplier['multiplier']}** - {multiplier['text']}")
+            description_lines.append(
+                f"**{multiplier['multiplier']}** - {multiplier['text']}"
+            )
         embed.description = "\n".join(description_lines)
         self.bot.set_footer_from_config(embed)
         return embed
 
-    water.autocomplete(utils.autocomplete.get_plant_name_autocomplete(is_waterable=True))  # pyright: ignore
+    water.autocomplete(
+        utils
+        .autocomplete
+        .get_plant_name_autocomplete(is_waterable=True))  # pyright: ignore
 
 
 def setup(bot: utils.types.Bot):
