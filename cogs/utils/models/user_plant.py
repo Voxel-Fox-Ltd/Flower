@@ -90,8 +90,8 @@ class UserPlant:
     @property
     def is_waterable(self) -> bool:
         return (
-            self.last_water_time + WATER_COOLDOWN
-            < dt.utcnow()
+            self.last_water_time + WATER_COOLDOWN < dt.utcnow()
+            or self.nourishment == 0
         )
 
     @property
