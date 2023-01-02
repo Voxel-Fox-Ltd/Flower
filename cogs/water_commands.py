@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import asyncio
 
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, cast
 from datetime import datetime as dt, timedelta
 
 import discord
@@ -156,8 +157,72 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
 
         # Otherwise loop through and run the water command for each of the
         # plants
+        embeds: list[discord.Embed] = []
         for plant in waterable:
-            await self.water(ctx, plant)
+            if (e := await self.water_plant(ctx.interaction, plant)):
+                embeds.append(e)
+        while embeds:
+            await ctx.interaction.followup.send(
+                embeds=embeds[:10],
+            )
+            embeds = embeds[10:]
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    description="The user whose plants you want to water.",
+                    type=discord.ApplicationCommandOptionType.user,
+                    required=True,
+                ),
+                discord.ApplicationCommandOption(
+                    name="plant",
+                    description="The plant to water.",
+                    type=discord.ApplicationCommandOptionType.string,
+                    required=True,
+                    autocomplete=True,
+                ),
+            ],
+        ),
+    )
+    async def waterother(
+            self,
+            ctx: vbu.SlashContext,
+            user: discord.User,
+            plant: str):
+        """
+        Water someone else's plant.
+        """
+
+        # Make sure they have key access to the pinged user's garden
+        async with vbu.Database() as db:
+            rows = await db.call(
+                """
+                SELECT
+                    *
+                FROM
+                    user_garden_access
+                WHERE
+                    garden_access = $1
+                AND
+                    garden_owner = $2
+                """,
+                ctx.interaction.user.id,
+                user.id,
+            )
+        if not rows:
+            return await ctx.send(
+                (
+                    _("You don't have access to {user}'s garden!")
+                    .format(user=user.mention)
+                ),
+                ephemeral=True,
+            )
+
+        # Try and water the given plant :)
+        if (embed := await self.water_plant(ctx.interaction, plant, user=user)):
+            return await ctx.interaction.response.send_message(embed=embed)
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
@@ -197,47 +262,127 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         Water one of your plants.
         """
 
-        # Get a plant object associated with the plant name they gave
+        if (embed := await self.water_plant(ctx.interaction, plant)):
+            return await ctx.interaction.response.send_message(embed=embed)
+
+    async def water_plant(
+            self,
+            interaction: discord.Interaction,
+            plant: str | utils.UserPlant,
+            *,
+            user: discord.User | None = None) -> discord.Embed | None:
+        """
+        Water a plant.
+
+        This method takes an interaction object (which will be responded to
+        within the method), the plant to water (as either a string of the
+        plant's name, or a plant object), and optionally a user whose plant
+        you want to water (used for when the person watering the plant is not
+        the owner of the plant).
+        """
+
+        # Assign a user var
+        waterer: discord.User = interaction.user  # pyright: ignore
+        target: discord.User = user or waterer
+
+        # Open db to get some user information
         async with vbu.Database() as db:
+
+            # Get a plant object associated with the plant name they gave
+            user_plant: utils.UserPlant | None = None
             if isinstance(plant, str):
                 user_plant = await utils.UserPlant.fetch_by_name(
                     db,
-                    ctx.author.id,
+                    target.id,
                     plant,
                 )
-                if user_plant is None:
-                    return await ctx.interaction.response.send_message(
-                        _("You don't have a plant with that name!")
-                    )
             else:
                 user_plant = plant
-            user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
+
+            # Get the user info associated with both the waterer and the
+            # target user so that we can update them later
+            waterer_info: utils.UserInfo | None = None
+            target_info: utils.UserInfo | None = None
+            if user_plant is not None:
+                waterer_info = await utils.UserInfo.fetch_by_id(db, waterer.id)
+                target_info = waterer_info
+                if waterer != target:
+                    target_info = await utils.UserInfo.fetch_by_id(db, target.id)
+
+        # Make sure we have a plant that exists
+        if user_plant is None:
+            if waterer == target:
+                await interaction.response.send_message(
+                    _("You don't have a plant with that name!"),
+                    ephemeral=True,
+                )
+            else:
+                await interaction.response.send_message(
+                    (
+                        _("{user} doesn't have a plant with that name!")
+                        .format(user=target.mention)
+                    ),
+                    ephemeral=True,
+                )
+            return None
+
+        # Past this point we have certain guarentees; these are all here for
+        # the type checker
+        assert user_plant is not None
+        assert waterer_info is not None
+        assert target_info is not None
+
+        # Meanwhile, this guarentee I actually want to be sure of
+        # This will make sure we can't pass in _someone else's_ plant to
+        # be watered
+        if user_plant.user_id != target.id:
+            raise AssertionError
 
         # Make sure the plant isn't dead
         if user_plant.is_dead:
-            return await ctx.interaction.response.send_message(
-                _("You sadly pour water into the soil of your deat plant.")
-            )
+            if waterer == target:
+                await interaction.response.send_message(
+                    _("You sadly pour water into the soil of your dead plant."),
+                    ephemeral=True,
+                )
+            else:
+                await interaction.response.send_message(
+                    (
+                        _(
+                            "You sadly pour water into the soil of {user}'s "
+                            "dead plant."
+                        )
+                        .format(user=target.mention)
+                    ),
+                    ephemeral=True,
+                )
+            return None
 
         # See if the timeout for watering has passed
+        cooldown = (
+            utils.constants.WATER_COOLDOWN
+            if waterer == target
+            else utils.constants.KEYHOLDER_WATER_COOLDOWN
+        )
         if user_plant.last_water_time is not None:
             timeout_time = (
                 user_plant.last_water_time
-                + utils.constants.WATER_COOLDOWN
+                + cooldown
             )
             if timeout_time > dt.utcnow():
                 wait_time = discord.utils.format_dt(timeout_time, "R")
-                return await ctx.interaction.response.send_message(
+                await interaction.response.send_message(
                     _(
                         "You can't water that plant yet! Please try again "
                         "{wait_time}."
                     ).format(wait_time=wait_time),
                     ephemeral=True,
                 )
+                return None
 
         # Defer so we can do some more intensive stuff now
-        if not ctx.interaction.response.is_done():
-            await ctx.interaction.response.defer()
+        if not interaction.response.is_done():
+            await interaction.response.defer()
 
         # Set up original original data before we morph it with calculations
         original_gained_experience: int = user_plant.plant.get_experience()
@@ -245,7 +390,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         multipliers: list[WaterPlantMultiplier] = []
 
         # Plant multiplier - premium subscriber
-        if user_info.has_premium:
+        if waterer_info.has_premium:
             multipliers.append(
                 {
                     "multiplier": 2.0,
@@ -257,7 +402,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         last_water_delta = (
             dt.utcnow()
             - user_plant.last_water_time
-            - utils.constants.WATER_COOLDOWN
+            - cooldown
         )
         if last_water_delta <= timedelta(seconds=30):
             multipliers.append(
@@ -271,11 +416,14 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             )
 
         # Plant multiplier - got from a trade
-        if user_plant.original_owner_id != ctx.author.id:
+        if user_plant.original_owner_id != user_plant.user_id:
             multipliers.append(
                 {
                     "multiplier": 1.1,
-                    "text": _("You got this plant from a trade!"),
+                    "text": _(
+                        "This plant has been traded away from its original "
+                        "owner!"
+                    ),
                 },
             )
 
@@ -283,7 +431,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         user_voted_api_request: bool = False
         try:
             user_voted_api_request = await asyncio.wait_for(
-                self.get_user_voted(ctx.author.id),
+                self.get_user_voted(interaction.user.id),
                 timeout=2.0,
             )
         except asyncio.TimeoutError:
@@ -333,9 +481,9 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 ),
                 last_water_time=dt.utcnow(),
             )
-            await user_info.update(
+            await waterer_info.update(
                 db,
-                experience=user_info.experience + gained_experience,
+                experience=waterer_info.experience + gained_experience,
             )
 
         # Send the response
@@ -361,15 +509,11 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                     experience=gained_experience,
                 )
             )
-        # if multipliers:
-        #     description_lines.append("")
         for multiplier in multipliers:
             description_lines.append(f"**{multiplier['multiplier']}** - {multiplier['text']}")
         embed.description = "\n".join(description_lines)
         self.bot.set_footer_from_config(embed)
-        await ctx.interaction.followup.send(
-            embeds=[embed],
-        )
+        return embed
 
     water.autocomplete(utils.autocomplete.get_plant_name_autocomplete(is_waterable=True))  # pyright: ignore
 

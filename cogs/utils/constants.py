@@ -10,7 +10,7 @@ __all__ = (
     'DEATH_TIMEOUT',
     'WATER_COOLDOWN',
     'NOTIFICATION_TIME',
-    'GUEST_WATER_COOLDOWN',
+    'KEYHOLDER_WATER_COOLDOWN',
 )
 
 
@@ -41,7 +41,7 @@ NOTIFICATION_TIME = timedelta(
 )
 """The amount of time before a plant dies that a notification will be sent."""
 
-GUEST_WATER_COOLDOWN = timedelta(
+KEYHOLDER_WATER_COOLDOWN = timedelta(
     minutes=60,
 )
 """The amount of time a guest has to wait wait before they can water a plant again."""
