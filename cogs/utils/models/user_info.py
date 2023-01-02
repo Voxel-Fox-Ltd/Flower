@@ -37,8 +37,8 @@ class UserInfo:
         self.user_id = user_id
         self.plant_limit = plant_limit
         self.pot_type = pot_type
-        self.experience = user_experience
-        self.last_plant_shop_time = last_plant_shop_time
+        self.experience = user_experience or 0
+        self.last_plant_shop_time = last_plant_shop_time or dt(2000, 1, 1)
         self._plant_pot_hue = plant_pot_hue
         self.has_premium = has_premium
         self.premium_expiry_time = premium_expiry_time

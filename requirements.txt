@@ -1,3 +1,5 @@
 novus[vbu,speed]
 pillow
 numpy
+typing_extensions
+asyncpg
