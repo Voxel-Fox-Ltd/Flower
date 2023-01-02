@@ -212,7 +212,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 user.id,
             )
         if not rows:
-            return await ctx.send(
+            return await ctx.interaction.response.send_message(
                 (
                     _("You don't have access to {user}'s garden!")
                     .format(user=user.mention)
@@ -222,7 +222,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
 
         # Try and water the given plant :)
         if (embed := await self.water_plant(ctx.interaction, plant, user=user)):
-            return await ctx.interaction.response.send_message(embed=embed)
+            return await ctx.interaction.followup.send(embed=embed)
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
@@ -263,7 +263,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         """
 
         if (embed := await self.water_plant(ctx.interaction, plant)):
-            return await ctx.interaction.response.send_message(embed=embed)
+            return await ctx.interaction.followup.send(embed=embed)
 
     async def water_plant(
             self,
