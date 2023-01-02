@@ -67,6 +67,9 @@ the bot.
 
 - [x] Death count
 - [x] Max plant lifetime
-- [x] Adopted plant count (by plant)
+- [-] Adopted plant count (by plant)
 - [x] Item give count
 - [x] Plant water count
+- [ ] Plant trade count
+- [ ] Plant revive count
+- [ ] Plant immortalize count

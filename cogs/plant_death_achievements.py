@@ -1,3 +1,4 @@
+import collections
 from datetime import timedelta
 
 from discord.ext import vbu, tasks
@@ -38,38 +39,6 @@ class PlantDeathTimeout(vbu.Cog[utils.types.Bot]):
             """,
             utils.constants.DEATH_TIMEOUT,
             type=utils.types.PlantLevelsRow,
-        )
-
-    @staticmethod
-    async def update_plant_death_count(
-            db: vbu.Database,
-            row: utils.types.PlantLevelsRow) -> None:
-        """
-        Update the plant's death count.
-        """
-
-        await db.call(
-            """
-            INSERT INTO
-                plant_achievement_counts
-                (
-                    user_id,
-                    plant_type,
-                    plant_death_count
-                )
-            VALUES
-                (
-                    $1,
-                    $2,
-                    1
-                )
-            ON CONFLICT
-                (user_id, plant_type)
-            DO UPDATE
-            SET
-                plant_death_count = plant_death_count + excluded.plant_death_count
-            """,
-            row['user_id'], row['plant_type'],
         )
 
     @staticmethod
@@ -123,11 +92,19 @@ class PlantDeathTimeout(vbu.Cog[utils.types.Bot]):
         async with vbu.Database() as db:
 
             # Kill any dead plants
-            dead_plants = await self.kill_plants(db)
+            new_dead_plants = await self.kill_plants(db)
 
-            # Add counter for plant dying
-            for row in dead_plants:
-                await self.update_plant_death_count(db, row)
+            # Update plant death count
+            user_death_count: dict[int, int] = collections.defaultdict(int)
+            for plant in new_dead_plants:
+                user_death_count[plant['user_id']] += 1
+            for user_id, death_count in user_death_count.items():
+                await utils.achievements.update_achievement_count(
+                    db,
+                    user_id,
+                    utils.achievements.Achievement.deaths,
+                    death_count,
+                )
 
             # Update max plant lifetime
             await self.update_max_plant_lifetime(db)

@@ -17,5 +17,4 @@ __all__ = (
     'PlantDisplayUtils',
     'Achievement',
     'update_achievement_count',
-    'update_plant_achievement_count',
 )

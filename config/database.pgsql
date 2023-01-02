@@ -71,20 +71,13 @@ CREATE TABLE IF NOT EXISTS blacklisted_suggestion_users(
 );
 
 
-CREATE TABLE IF NOT EXISTS plant_achievement_counts(
-    user_id BIGINT,
-    plant_type VARCHAR(20),
-    plant_count SMALLINT DEFAULT 0,
-    plant_death_count SMALLINT DEFAULT 0,
-    max_plant_nourishment SMALLINT DEFAULT 0,
-    PRIMARY KEY (user_id, plant_type)
-);
-
-
 CREATE TABLE IF NOT EXISTS user_achievement_counts(
     user_id BIGINT PRIMARY KEY,
     trade_count SMALLINT DEFAULT 0,
     revive_count SMALLINT DEFAULT 0,
     immortalize_count SMALLINT DEFAULT 0,
-    max_plant_lifetime INTERVAL DEFAULT INTERVAL '0 seconds'
+    max_plant_lifetime INTERVAL DEFAULT INTERVAL '0 seconds',
+    water_count SMALLINT DEFAULT 0,
+    give_count SMALLINT DEFAULT 0,
+    death_count SMALLINT DEFAULT 0
 );
