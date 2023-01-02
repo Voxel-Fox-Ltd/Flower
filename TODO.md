@@ -33,7 +33,8 @@ the bot.
     - [x] Water another user's plant if their timeout is over,
     - [x] and if it's not dead,
     - [x] and if they have a key to the user's garden.
-    - [ ] Give both users exp.
+    - [-] Give both users exp.
+        - Nah idc any more
 
 - [x] deleteplant [plant]
     - [x] Delete a plant

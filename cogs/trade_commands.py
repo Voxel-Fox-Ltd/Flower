@@ -3,17 +3,48 @@ from discord.ext import vbu, commands
 
 from cogs import utils
 
+if __debug__:
+    _poedit = lambda x: x
+
+    # TRANSLATORS: Name of a command. Must be lowercase.
+    _poedit("giveitem")
+    # TRANSLATORS: Description of a command.
+    _poedit("Give one of your items to another user.")
+    # TRANSLATORS: Name of a command option. Must be lowercase.
+    _poedit("user")
+    # TRANSLATORS: Description of a command option.
+    _poedit("The user who you want to give items to.")
+
+
+_t = lambda i, x: vbu.translation(i, "flower").gettext(x)
+
 
 class TradeCommands(vbu.Cog[utils.types.Bot]):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
+            name_localizations={
+                i: _t(i, "giveitem")
+                for i in discord.Locale
+            },
+            description_localizations={
+                i: _t(i, "Give one of your items to another user.")
+                for i in discord.Locale
+            },
             options=[
                 discord.ApplicationCommandOption(
                     name="user",
                     description="The user who you want to give items to.",
                     type=discord.ApplicationCommandOptionType.user,
                     required=True,
+                    name_localizations={
+                        i: _t(i, "user")
+                        for i in discord.Locale
+                    },
+                    description_localizations={
+                        i: _t(i, "The user who you want to give items to.")
+                        for i in discord.Locale
+                    },
                 ),
             ],
         ),
