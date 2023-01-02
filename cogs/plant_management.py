@@ -176,6 +176,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @vbu.i18n("flower")
     async def delete(
             self,
             ctx: vbu.SlashContext,
