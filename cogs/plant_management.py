@@ -423,15 +423,19 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                 )
 
             # Immortalize the plant
-            await plant_object.update(
+            async with db.transaction() as trans:
+                await plant_object.update(
+                    trans,
+                    immortal=True,
+                )
+                await user_inventory.update(
+                    trans,
+                    immortal_plant_juice=-1,
+                )
+            await utils.update_achievement_count(
                 db,
-                immortal=True,
-            )
-
-            # Update the inventory
-            await user_inventory.update(
-                db,
-                immortal_plant_juice=-1,
+                interaction.user.id,
+                utils.Achievement.immortalizes,
             )
 
         # And tell the user
@@ -578,15 +582,19 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                 )
 
             # Revive the plant
-            await plant_object.update(
+            async with db.transaction() as trans:
+                await plant_object.update(
+                    trans,
+                    nourishment=0,
+                )
+                await user_inventory.update(
+                    trans,
+                    revival_token=-1,
+                )
+            await utils.update_achievement_count(
                 db,
-                nourishment=0,
-            )
-
-            # Update the inventory
-            await user_inventory.update(
-                db,
-                revival_token=-1,
+                interaction.user.id,
+                utils.Achievement.revives,
             )
 
         # Tell them it's done

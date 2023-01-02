@@ -71,5 +71,5 @@ the bot.
 - [x] Item give count
 - [x] Plant water count
 - [ ] Plant trade count
-- [ ] Plant revive count
-- [ ] Plant immortalize count
+- [x] Plant revive count
+- [x] Plant immortalize count
