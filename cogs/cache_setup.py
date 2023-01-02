@@ -1,6 +1,7 @@
 import os
 import glob
 import json
+import asyncio
 
 from cogs import utils
 
@@ -53,6 +54,9 @@ def setup(bot: utils.types.Bot):
             item_price=utils.constants.IMMORTAL_PLANT_JUICE_PRICE,
         ),
     }
+
+    # Cache application command IDs
+    asyncio.create_task(bot.load_application_command_ids())
 
 
 def teardown(bot: utils.types.Bot):
