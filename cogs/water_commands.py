@@ -485,6 +485,11 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 db,
                 experience=waterer_info.experience + gained_experience,
             )
+            await utils.update_achievement_count(
+                db,
+                waterer.id,
+                utils.Achievement.waters,
+            )
 
         # Send the response
         embed = vbu.Embed(use_random_colour=True)

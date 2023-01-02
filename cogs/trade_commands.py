@@ -109,6 +109,11 @@ class TradeCommands(vbu.Cog[utils.types.Bot]):
             async with db.transaction() as trans:
                 await user_inventory.update(trans, **{item_key: -1})
                 await given_inventory.update(trans, **{item_key: 1})
+            await utils.update_achievement_count(
+                db,
+                interaction.user.id,
+                utils.Achievement.gives,
+            )
 
         # Send a message
         await interaction.response.defer_update()
@@ -117,7 +122,7 @@ class TradeCommands(vbu.Cog[utils.types.Bot]):
             item=item.name,
         )
         try:
-            await interaction.channel.send(message)
+            await interaction.channel.send(message)  # pyright: ignore
         except discord.HTTPException:
             await interaction.followup.send(message)
 

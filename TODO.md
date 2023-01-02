@@ -29,10 +29,10 @@ the bot.
     - [x] Give the user exp
 - [x] waterall
     - [x] Water all of the plants
-- [ ] waterother [user] [plant]
-    - [ ] Water another user's plant if their timeout is over,
-    - [ ] and if it's not dead,
-    - [ ] and if they have a key to the user's garden.
+- [x] waterother [user] [plant]
+    - [x] Water another user's plant if their timeout is over,
+    - [x] and if it's not dead,
+    - [x] and if they have a key to the user's garden.
     - [ ] Give both users exp.
 
 - [x] deleteplant [plant]
@@ -61,3 +61,11 @@ the bot.
 - [x] key remove
     - [x] Give you a dropdown of users who currently have keys to your garden
     so as to remove them.
+
+## Achievements
+
+- [x] Death count
+- [x] Max plant lifetime
+- [x] Adopted plant count (by plant)
+- [x] Item give count
+- [x] Plant water count

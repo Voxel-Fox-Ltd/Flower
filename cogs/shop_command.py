@@ -384,6 +384,13 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             )
             await new_plant.update(db)
 
+            # Update achievements
+            await utils.update_plant_achievement_count(
+                db,
+                interaction.user.id,
+                new_plant.plant,
+            )
+
             # Get the new components
             components = await self.get_shop_components(db, interaction)
 
@@ -483,7 +490,7 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
-    @vbu.i18n()
+    @vbu.i18n("flower")
     async def refreshshop(
             self,
             ctx: vbu.SlashContext):

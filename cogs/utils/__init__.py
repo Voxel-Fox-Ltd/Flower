@@ -2,6 +2,7 @@ from . import checks, types, autocomplete, constants
 from .image_tools import *
 from .models import *
 from .display import *
+from .achievements import *
 
 
 __all__ = (
@@ -14,4 +15,7 @@ __all__ = (
     'Plant',
     'UserInfo',
     'PlantDisplayUtils',
+    'Achievement',
+    'update_achievement_count',
+    'update_plant_achievement_count',
 )
