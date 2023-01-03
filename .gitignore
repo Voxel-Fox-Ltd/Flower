@@ -3,6 +3,7 @@ config/*.toml
 !config/*.example.toml
 _*.py
 !__*.py
+*.mo
 
 images/plants/*/*/*.png
 images/plants/_*/

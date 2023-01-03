@@ -129,7 +129,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
                 return await ctx.send(
                     _(
                         "You need to be a premium subscriber to use this "
-                        "command. "
+                        "command."
                     ),
                     ephemeral=True,
                 )
