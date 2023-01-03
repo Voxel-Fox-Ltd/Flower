@@ -531,8 +531,8 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
         )
 
     @vbu.Cog.listener("on_component_interaction")
-    @vbu.i18n("flower")
     @vbu.checks.interaction_filter(start="REVIVEPLANT")
+    @vbu.i18n("flower")
     async def on_revive_button_pressed(
             self,
             interaction: discord.ComponentInteraction,
