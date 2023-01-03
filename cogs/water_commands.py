@@ -111,6 +111,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def waterall(
             self,
@@ -186,6 +187,8 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
+    @vbu.i18n("flower")
     async def waterother(
             self,
             ctx: vbu.SlashContext,
@@ -253,6 +256,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def water(
             self,
@@ -265,6 +269,7 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         if (embed := await self.water_plant(ctx.interaction, plant)):
             return await ctx.interaction.followup.send(embed=embed)
 
+    @vbu.i18n("flower")
     async def water_plant(
             self,
             interaction: discord.Interaction,

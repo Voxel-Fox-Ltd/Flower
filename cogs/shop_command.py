@@ -238,6 +238,7 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def shop(self, ctx: vbu.SlashContext):
         """
@@ -483,6 +484,7 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def refreshshop(
             self,

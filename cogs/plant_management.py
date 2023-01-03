@@ -97,6 +97,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ]
         )
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def rename(
             self,
@@ -176,6 +177,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def delete(
             self,
@@ -294,6 +296,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def immortalize(
             self,
@@ -474,6 +477,7 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def revive(
             self,

@@ -61,6 +61,7 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def experience(
             self,
@@ -118,6 +119,7 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def inventory(
             self,

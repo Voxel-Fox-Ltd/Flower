@@ -44,6 +44,7 @@ class KeyCommands(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
+    @commands.is_slash_command()
     async def key(self, _: vbu.SlashContext):
         """
         A parent group for the key commands.
@@ -79,6 +80,7 @@ class KeyCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def key_give(
             self,
@@ -137,6 +139,7 @@ class KeyCommands(vbu.Cog[utils.types.Bot]):
             },
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def key_remove(
             self,

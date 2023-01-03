@@ -65,6 +65,7 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def show(
             self,
@@ -107,6 +108,7 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             ],
         ),
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def showother(
             self,
@@ -192,6 +194,7 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             },
         )
     )
+    @commands.is_slash_command()
     @vbu.i18n("flower")
     async def showall(self, ctx: vbu.SlashContext):
         """
