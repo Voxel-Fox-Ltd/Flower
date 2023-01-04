@@ -211,12 +211,12 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     discord.ui.Button(
                         label=_("Yes"),
                         style=discord.ButtonStyle.green,
-                        custom_id=f"DELETEPLANT {plant} 1",
+                        custom_id=f"DELETEPLANT 1 {plant}",
                     ),
                     discord.ui.Button(
                         label=_("No"),
                         style=discord.ButtonStyle.red,
-                        custom_id=f"DELETEPLANT {plant} 0",
+                        custom_id=f"DELETEPLANT 0 {plant}",
                     ),
                 ),
             ),
@@ -229,17 +229,19 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
     async def on_delete_button_pressed(
             self,
             interaction: discord.ComponentInteraction,
-            plant_name: str,
-            delete: Literal["1", "0"]):
+            delete: Literal["1", "0"],
+            *plant_list: str):
         """
         Delete a plant if the delete plant button is pressed.
         """
+
+        plant = " ".join(plant_list)
 
         # See if we want to delete the plant
         if delete == "0":
             await interaction.response.edit_message(
                 content=_("Not deleting your plant **{name}**.")
-                    .format(name=plant_name),
+                    .format(name=plant),
                 components=None,
             )
             return
@@ -249,12 +251,12 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
             plant_object = await utils.UserPlant.fetch_by_name(
                 db,
                 interaction.user.id,
-                plant_name,
+                plant,
             )
             if not plant_object:
                 return await interaction.response.edit_message(
                     content=_("You don't have a plant named **{plant}**.")
-                        .format(plant=plant_name),
+                        .format(plant=plant),
                     components=None,
                 )
 
@@ -518,12 +520,12 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     discord.ui.Button(
                         label=_("Yes"),
                         style=discord.ButtonStyle.green,
-                        custom_id=f"REVIVEPLANT {plant} 1",
+                        custom_id=f"REVIVEPLANT 1 {plant}",
                     ),
                     discord.ui.Button(
                         label=_("No"),
                         style=discord.ButtonStyle.red,
-                        custom_id=f"REVIVEPLANT {plant} 0",
+                        custom_id=f"REVIVEPLANT 0 {plant}",
                     ),
                 ),
             ),
@@ -536,11 +538,13 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
     async def on_revive_button_pressed(
             self,
             interaction: discord.ComponentInteraction,
-            plant: str,
-            revive: Literal["1", "0"]):
+            revive: Literal["1", "0"],
+            *plant_list: str):
         """
         Listens for a plant revive button being pressed.
         """
+
+        plant = " ".join(plant_list)
 
         # See if they clicked to not revive
         if revive == "0":
