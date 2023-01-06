@@ -329,7 +329,15 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
             .components[0]  # pyright: ignore (actionrow)
             .components[0]  # (inputtext)
             .value
+            .strip()
         )
+
+        # Make sure they actually gave a name
+        if len(plant_name) < 1:
+            return await interaction.response.send_message(
+                _("The name you gave isn't valid! Please give another one."),
+                ephemeral=True,
+            )
 
         # Open a database connection to do some checks.
         async with vbu.Database() as db:
