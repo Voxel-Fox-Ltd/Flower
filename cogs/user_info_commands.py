@@ -148,10 +148,17 @@ class UserInfoCommands(vbu.Cog[utils.types.Bot]):
         # Get the user's plants
         plant_list: list[str] = []
         for plant in user_plants:
-            plant_list.append(f"\N{BULLET} **{plant.name}**")
+            name_row = f"\N{BULLET} **{plant.name}**"
+            if plant.is_dead:
+                name_row += " :("
+            plant_list.append(name_row)
             plant_list.append(f"\u2003\N{BULLET} {plant.plant.display_name}")
-            formatted_adoption = discord.utils.format_dt(plant.adoption_time, "R")
-            plant_list.append(f"\u2003\N{BULLET} adopted {formatted_adoption}")
+            if not plant.is_dead:
+                formatted_adoption = discord.utils.format_dt(plant.adoption_time, "R")
+                plant_list.append(f"\u2003\N{BULLET} adopted {formatted_adoption}")
+                formatted_watered = discord.utils.format_dt(plant.last_water_time, "R")
+                plant_list.append(f"\u2003\N{BULLET} last watered {formatted_watered}")
+
         plant_string = "\n".join(plant_list)
         if plant_string:
             embed.add_field(
