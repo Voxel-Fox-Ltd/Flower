@@ -66,6 +66,13 @@ class TradeCommands(vbu.Cog[utils.types.Bot]):
                 ephemeral=True,
             )
 
+        # Make sure the user isn't a bot
+        if user.bot:
+            return await ctx.interaction.response.send_message(
+                _("You can't give items to bots!"),
+                ephemeral=True,
+            )
+
         # Get the user's inventory
         async with vbu.Database() as db:
             user_inventory = await utils.UserInventory.fetch_by_id(
