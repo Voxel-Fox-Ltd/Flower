@@ -197,6 +197,12 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         """
         Water someone else's plant.
         """
+        
+        # Make sure they aren't pinging themselves - it's "water*other*" afterall
+        if user == ctx.author:
+            return await ctx.interaction.response.send_message(
+                _("You can't use this command on your own plants!")
+            )
 
         # Make sure they have key access to the pinged user's garden
         async with vbu.Database() as db:
