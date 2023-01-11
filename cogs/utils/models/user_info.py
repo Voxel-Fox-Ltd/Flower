@@ -82,7 +82,7 @@ class UserInfo:
         if not record:
             return cls.from_row(dict(user_id=user_id))  # pyright: ignore
         v = cls.from_row(record[0])
-        v.has_premium = cls.check_premium(v.user_id)
+        v.has_premium = await cls.check_premium(v.user_id)
         return v
 
     @staticmethod
