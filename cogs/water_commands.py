@@ -123,11 +123,12 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
 
         # Make sure the user is a premium subscriber
         if not await utils.UserInfo.check_premium(ctx.interaction.user.id):
+            info_command = self.bot.get_command("info").mention  # pyright: ignore
             return await ctx.send(
                 _(
                     "You need to be a premium subscriber to use this "
-                    "command."
-                ),
+                    "command. Please see {info_command} to donate."
+                ).format(info_command=info_command),
                 ephemeral=True,
             )
 

@@ -207,8 +207,12 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
             # See if the user has premium
             user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
             if not user_info.has_premium:
+                info_command = self.bot.get_command("info").mention  # pyright: ignore
                 return await ctx.interaction.response.send_message(
-                    _("You need to have premium to use this command."),
+                    _(
+                        "You need to be a premium subscriber to use this "
+                        "command. Please see {info_command} to donate."
+                    ).format(info_command=info_command),
                     ephemeral=True,
                 )
 
