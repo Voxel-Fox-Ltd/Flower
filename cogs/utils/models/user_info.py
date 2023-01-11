@@ -122,10 +122,7 @@ class UserInfo:
                     pot_type,
                     user_experience,
                     last_plant_shop_time,
-                    plant_pot_hue,
-                    has_premium,
-                    premium_expiry_time,
-                    premium_subscription_delete_url
+                    plant_pot_hue
                 )
             VALUES
                 (
@@ -134,10 +131,7 @@ class UserInfo:
                     $3,
                     $4,
                     $5,
-                    $6,
-                    $7,
-                    $8,
-                    $9
+                    $6
                 )
             ON CONFLICT
                 (user_id)
@@ -147,10 +141,7 @@ class UserInfo:
                 pot_type = excluded.pot_type,
                 user_experience = excluded.user_experience,
                 last_plant_shop_time = excluded.last_plant_shop_time,
-                plant_pot_hue = excluded.plant_pot_hue,
-                has_premium = excluded.has_premium,
-                premium_expiry_time = excluded.premium_expiry_time,
-                premium_subscription_delete_url = excluded.premium_subscription_delete_url
+                plant_pot_hue = excluded.plant_pot_hue
             """,
             self.user_id,
             self.plant_limit,
@@ -158,7 +149,4 @@ class UserInfo:
             self.experience,
             self.last_plant_shop_time,
             self.plant_pot_hue,
-            self.has_premium,
-            self.premium_expiry_time,
-            self.premium_subscription_delete_url,
         )
