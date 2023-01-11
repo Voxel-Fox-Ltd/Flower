@@ -3,3 +3,4 @@ pillow
 numpy
 typing_extensions
 asyncpg
+git+https://github.com/Voxel-Fox-Ltd/VoxelFoxCheckout

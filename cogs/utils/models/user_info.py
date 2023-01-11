@@ -4,7 +4,7 @@ from datetime import datetime as dt
 from typing import Optional, Literal
 from typing_extensions import Self
 
-from discord.ext import vbu
+from discord.ext import vbu, vfc as checkout
 
 from ..types import UserSettingsRow
 
@@ -19,8 +19,6 @@ class UserInfo:
         'last_plant_shop_time',
         '_plant_pot_hue',
         'has_premium',
-        'premium_expiry_time',
-        'premium_subscription_delete_url',
     )
 
     def __init__(
@@ -30,19 +28,25 @@ class UserInfo:
             pot_type: Literal["clay"] = "clay",
             user_experience: int = 0,
             last_plant_shop_time: Optional[dt] = None,
-            plant_pot_hue: Optional[int] = None,
-            has_premium: bool = False,
-            premium_expiry_time: Optional[dt] = None,
-            premium_subscription_delete_url: Optional[str] = None):
+            plant_pot_hue: Optional[int] = None):
         self.user_id = user_id
         self.plant_limit = plant_limit
         self.pot_type = pot_type
         self.experience = user_experience or 0
         self.last_plant_shop_time = last_plant_shop_time or dt(2000, 1, 1)
         self._plant_pot_hue = plant_pot_hue
-        self.has_premium = has_premium
-        self.premium_expiry_time = premium_expiry_time
-        self.premium_subscription_delete_url = premium_subscription_delete_url
+        self.has_premium = False
+
+    @classmethod
+    def from_row(cls, row: UserSettingsRow):
+        return cls(
+            user_id=row["user_id"],
+            plant_limit=row.get("plant_limit", 1),
+            pot_type=row.get("pot_type", "clay"),
+            user_experience=row.get("user_experience", 0),
+            last_plant_shop_time=row.get("last_plant_shop_time", None),
+            plant_pot_hue=row.get("plant_pot_hue", None),
+        )
 
     @property
     def plant_pot_hue(self) -> int:
@@ -76,8 +80,27 @@ class UserInfo:
             type=UserSettingsRow,
         )
         if not record:
-            return cls(user_id=user_id)
-        return cls(**record[0])
+            return cls.from_row(dict(user_id=user_id))  # pyright: ignore
+        v = cls.from_row(record[0])
+        v.has_premium = cls.check_premium(v.user_id)
+        return v
+
+    @staticmethod
+    async def check_premium(user_id: int) -> bool:
+        """
+        Check if a given user ID has a Flower Premium subscription.
+        """
+
+        try:
+            await (
+                checkout
+                .user_is_active("Flower Premium")
+                .predicate(user_id)
+            )
+        except:
+            return False
+        else:
+            return True
 
     async def update(
             self,

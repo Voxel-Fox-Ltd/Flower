@@ -5,6 +5,7 @@ import asyncio
 from typing import Optional, TypedDict
 from datetime import datetime as dt, timedelta
 
+import aiohttp
 import discord
 from discord.ext import commands, vbu
 
@@ -120,19 +121,18 @@ class WaterCommands(vbu.Cog[utils.types.Bot]):
         Water all of your plants.
         """
 
+        # Make sure the user is a premium subscriber
+        if not await utils.UserInfo.check_premium(ctx.interaction.user.id):
+            return await ctx.send(
+                _(
+                    "You need to be a premium subscriber to use this "
+                    "command."
+                ),
+                ephemeral=True,
+            )
+
         # Open db so we can get information
         async with vbu.Database() as db:
-
-            # Make sure the user is a premium subscriber
-            user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
-            if not user_info.has_premium:
-                return await ctx.send(
-                    _(
-                        "You need to be a premium subscriber to use this "
-                        "command."
-                    ),
-                    ephemeral=True,
-                )
 
             # Get all of the user's plants
             all_plants = await utils.UserPlant.fetch_all_by_user_id(
