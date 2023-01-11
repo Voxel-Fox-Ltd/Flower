@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS user_settings(
     user_experience INTEGER DEFAULT 0,
     last_plant_shop_time TIMESTAMP,
     plant_pot_hue SMALLINT,
-    has_premium BOOLEAN NOT NULL DEFAULT FALSE,
-    premium_expiry_time TIMESTAMP,
-    premium_subscription_delete_url TEXT
+    has_premium BOOLEAN NOT NULL DEFAULT FALSE,  -- no longer in use
+    premium_expiry_time TIMESTAMP,  -- no longer in use
+    premium_subscription_delete_url TEXT  -- no longer in use
 );
 
 
