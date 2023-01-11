@@ -41,12 +41,12 @@ bot_support_role_id = 522072743273824262
     include_stats = true
     content = """Flower is a cute lil bot for growing and taking care of flowers. Discord can be a scary place, so it's nice to always have a flower garden for you to come back home to~ :3"""
 
-    bot_info.links.Website.url = "https://voxelfox.co.uk"
-    bot_info.links."Support Server".url = "https://discord.gg/vfl"
-    bot_info.links.Git.url = "https://github.com/Voxel-Fox-Ltd/Flower/"
-    bot_info.links.Donate.url = "https://voxelfox.co.uk/portal/flower"
-    bot_info.links.Vote.url = "https://top.gg/bot/731736201400418314/vote"
-    bot_info.links.Review.url = "https://top.gg/bot/731736201400418314#reviews"
+    links.Website.url = "https://voxelfox.co.uk"
+    links."Support Server".url = "https://discord.gg/vfl"
+    links.Git.url = "https://github.com/Voxel-Fox-Ltd/Flower/"
+    links.Donate.url = "https://voxelfox.co.uk/portal/flower"
+    links.Vote.url = "https://top.gg/bot/731736201400418314/vote"
+    links.Review.url = "https://top.gg/bot/731736201400418314#reviews"
 
 [database]
     user = ""
@@ -97,4 +97,4 @@ bot_support_role_id = 522072743273824262
 [statsd]
     host = "127.0.0.1"
     port = 8125
-    statsd.constant_tags.service = "Flower"
+    constant_tags.service = "Flower"
