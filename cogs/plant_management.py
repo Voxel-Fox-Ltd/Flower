@@ -358,12 +358,12 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
                     discord.ui.Button(
                         label=_("Yes"),
                         style=discord.ButtonStyle.green,
-                        custom_id=f"IMMORTALIZEPLANT {plant} 1",
+                        custom_id=f"IMMORTALIZEPLANT 1 {plant}",
                     ),
                     discord.ui.Button(
                         label=_("No"),
                         style=discord.ButtonStyle.red,
-                        custom_id=f"IMMORTALIZEPLANT {plant} 0",
+                        custom_id=f"IMMORTALIZEPLANT 0 {plant}",
                     ),
                 ),
             ),
@@ -376,11 +376,13 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
     async def on_immortalize_button_pressed(
             self,
             interaction: discord.ComponentInteraction,
-            plant_name: str,
-            immortalize: Literal["1", "0"]):
+            immortalize: Literal["1", "0"],
+            *plant_name_list: str):
         """
         Immortalize a plant if the immortalize plant button is pressed.
         """
+
+        plant_name = " ".join(plant_name_list)
 
         # See if we want to immortalize the plant
         if immortalize == "0":
