@@ -44,7 +44,7 @@ bot_support_role_id = 522072743273824262
     links.Website.url = "https://voxelfox.co.uk"
     links."Support Server".url = "https://discord.gg/vfl"
     links.Git.url = "https://github.com/Voxel-Fox-Ltd/Flower/"
-    links.Donate.url = "https://voxelfox.co.uk/portal/flower"
+    links.Premium.url = "https://voxelfox.co.uk/portal/flower"
     links.Vote.url = "https://top.gg/bot/731736201400418314/vote"
     links.Review.url = "https://top.gg/bot/731736201400418314#reviews"
 
