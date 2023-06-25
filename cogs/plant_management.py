@@ -109,6 +109,10 @@ class PlantManagement(vbu.Cog[utils.types.Bot]):
         """
 
         new_name = new_name.strip()
+        if len(new_name) > 20:
+            return await ctx.send("That plant name is too long.")
+        elif len(new_name) == 0:
+            return await ctx.send("That plant name is too short.")
         async with vbu.Database() as db:
 
             # Get the plant

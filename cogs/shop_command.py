@@ -306,6 +306,7 @@ class ShopCommand(vbu.Cog[utils.types.Bot]):
                         style=discord.TextStyle.short,
                         required=True,
                         custom_id="PLANTNAME",
+                        max_length=20,
                     ),
                 ),
             ],
