@@ -2,29 +2,33 @@ from __future__ import annotations
 
 import io
 import random
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from PIL import Image, ImageOps
 import numpy as np
 import colorsys
-from discord.ext import vbu
 
-from cogs import utils
+from .image_tools import save_transparent_gif
+
+if TYPE_CHECKING:
+    from .types import PlantLevelsRow, UserPlantDisplayData
+    from .models import Plant
 
 
-class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
+__all__ = (
+    'PlantDisplayUtils',
+)
+
+
+class PlantDisplayUtils:
 
     PLANT_SCALE_SIZE = 5
 
     rgb_to_hsv = np.vectorize(colorsys.rgb_to_hsv)
     hsv_to_rgb = np.vectorize(colorsys.hsv_to_rgb)
 
-    def __init__(self, bot):
-        super().__init__(bot)
-        self._available_plants = None
-
     @staticmethod
-    def sort_plant_rows(rows: list[utils.types.PlantLevelsRow]) -> list[utils.types.PlantLevelsRow]:
+    def sort_plant_rows(rows: list[PlantLevelsRow]) -> list[PlantLevelsRow]:
         return sorted(
             rows,
             key=lambda i: (
@@ -110,13 +114,14 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
                 i,
             )
             new_images.append(base)
-        utils.save_transparent_gif(new_images, duration, image_to_send)
+        save_transparent_gif(new_images, duration, image_to_send)
         image_to_send.seek(0)
         return image_to_send
 
+    @classmethod
     def get_plant_image(
-            self,
-            plant_type: str,
+            cls,
+            plant_type: Plant,
             plant_nourishment: int,
             pot_type: str,
             pot_hue: int,
@@ -141,19 +146,19 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
         # Work out the
         if plant_nourishment != 0 and plant_type is not None:
             plant_level = (
-                self.bot.plants[plant_type]
+                plant_type
                 .get_nourishment_display_level(plant_nourishment)
             )
             plant_image = Image.open(
                 (
-                    f"images/plants/{plant_type}/{file_folder}"
+                    f"images/plants/{plant_type.name}/{file_folder}"
                     f"/{plant_level}.png"
                 )
             ).convert("RGBA")
             try:
                 plant_overlay_image = Image.open(
                     (
-                        f"images/plants/{plant_type}/{file_folder}"
+                        f"images/plants/{plant_type.name}/{file_folder}"
                         f"/{plant_level}_overlay.png"
                     )
                 ).convert("RGBA")
@@ -162,7 +167,7 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
             try:
                 plant_underlay_image = Image.open(
                     (
-                        f"images/plants/{plant_type}/{file_folder}"
+                        f"images/plants/{plant_type.name}/{file_folder}"
                         f"/{plant_level}_underlay.png"
                     )
                 ).convert("RGBA")
@@ -190,7 +195,7 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
             Image.open(f"images/pots/{pot_type}/back.png")
             .convert("RGBA")
         )
-        pot_back = self.shift_image_hue(pot_back, pot_hue)
+        pot_back = cls.shift_image_hue(pot_back, pot_hue)
         if plant_image:
             # Work out the offset for the pot based on the image size
             # This works with or without an underlay
@@ -211,12 +216,12 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
             .convert("RGBA")
         )
         if plant_type:
-            pot_soil = self.shift_image_hue(
+            pot_soil = cls.shift_image_hue(
                 pot_soil,
-                self.bot.plants[plant_type].soil_hue,
+                plant_type.soil_hue,
             )
         else:
-            pot_soil = self.shift_image_hue(pot_soil, 0)
+            pot_soil = cls.shift_image_hue(pot_soil, 0)
         image.paste(pot_soil, offset, pot_soil)
 
         # Paste the plant onto the image
@@ -228,7 +233,7 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
             Image.open(f"images/pots/{pot_type}/front.png")
             .convert("RGBA")
         )
-        pot_foreground = self.shift_image_hue(pot_foreground, pot_hue)
+        pot_foreground = cls.shift_image_hue(pot_foreground, pot_hue)
         image.paste(pot_foreground, offset, pot_foreground)
 
         # And see if we have a pot overlay to paste
@@ -238,19 +243,19 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
         # Read the bytes
         image = image.resize(
             (
-                image.size[0] * self.PLANT_SCALE_SIZE,
-                image.size[1] * self.PLANT_SCALE_SIZE,
+                image.size[0] * cls.PLANT_SCALE_SIZE,
+                image.size[1] * cls.PLANT_SCALE_SIZE,
             ),
             Image.NEAREST,
         )
         if crop_image:
-            return self.crop_image_to_content(image)
+            return cls.crop_image_to_content(image)
         return image
 
     @classmethod
     def compile_plant_images(
             cls,
-            *plants,
+            plants: list[Image.Image],
             add_flipping: bool = True):
         """
         Add together some plant images.
@@ -366,8 +371,8 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
 
     @staticmethod
     def get_display_data(
-            plant_row: Optional[utils.types.PlantLevelsRow],
-            user_id: Optional[int] = None) -> utils.types.UserPlantDisplayData:
+            plant_row: Optional[PlantLevelsRow],
+            user_id: Optional[int] = None) -> UserPlantDisplayData:
         """
         Get the display data of a given plant and return it as a dict.
 
@@ -404,8 +409,3 @@ class PlantDisplayUtils(vbu.Cog[utils.types.Bot]):
             'pot_type': 'clay',
             'pot_hue': pot_hue,
         }
-
-
-def setup(bot: utils.types.Bot):
-    x = PlantDisplayUtils(bot)
-    bot.add_cog(x)

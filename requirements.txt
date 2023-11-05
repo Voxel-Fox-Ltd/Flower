@@ -1,8 +1,6 @@
-voxelbotutils[web]
-discord.py
-toml
-
-asyncpg
-
+novus[vbu,speed]
 pillow
 numpy
+typing_extensions
+asyncpg
+git+https://github.com/Voxel-Fox-Ltd/VoxelFoxCheckout

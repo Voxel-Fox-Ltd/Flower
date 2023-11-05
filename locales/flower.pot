@@ -1,0 +1,533 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2023-01-03 05:30+0000\n"
+"PO-Revision-Date: 2023-01-02 21:31+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: _poedit\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/herbiary_command.py:24
+msgid "herbiary"
+msgstr ""
+
+#. TRANSLATORS: Description of a command.
+#: cogs/herbiary_command.py:26
+msgid "Get the information for a given plant."
+msgstr ""
+
+#. TRANSLATORS: Name of a command option. Must be lowercase.
+#. TRANSLATORS: Name of an option in a command. Must be lowercase.
+#. TRANSLATORS: Name of a command option. Must be lowercase.
+#: cogs/herbiary_command.py:28 cogs/plant_management.py:16
+#: cogs/plant_management.py:29 cogs/plant_management.py:38
+#: cogs/plant_management.py:47 cogs/plant_show_commands.py:20
+#: cogs/plant_show_commands.py:33 cogs/water_commands.py:22
+msgid "plant"
+msgstr ""
+
+#: cogs/herbiary_command.py:31
+msgid "The name of the plant that you want to see the information for."
+msgstr ""
+
+#: cogs/herbiary_command.py:125
+msgid "There's no plant with that name."
+msgstr ""
+
+#: cogs/key_commands.py:119
+#, python-brace-format
+msgid ""
+"You have given {user} access to your garden. They can now water your plants "
+"with the {waterother} command."
+msgstr ""
+
+#: cogs/key_commands.py:168
+msgid "There are currently no users with access to your garden."
+msgstr ""
+
+#: cogs/key_commands.py:174
+msgid "Who do you want to remove access to your garden from?"
+msgstr ""
+
+#: cogs/key_commands.py:215
+#, python-brace-format
+msgid "You have removed access to your garden from {user}."
+msgstr ""
+
+#: cogs/key_commands.py:222
+#, python-brace-format
+msgid "{user} doesn't have a key to your garden!"
+msgstr ""
+
+#. TRANSLATORS: Command name. Must be lowercase.
+#: cogs/plant_management.py:12
+msgid "rename"
+msgstr ""
+
+#. TRANSLATORS: Command description.
+#: cogs/plant_management.py:14
+msgid "Rename one of your plants."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/plant_management.py:18
+msgid "The plant that you want to rename."
+msgstr ""
+
+#. TRANSLATORS: Name of an option in a command. Must be lowercase.
+#: cogs/plant_management.py:20
+msgid "new_name"
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/plant_management.py:22
+msgid "The new name for the plant."
+msgstr ""
+
+#. TRANSLATORS: Command name. Must be lowercase.
+#: cogs/plant_management.py:25
+msgid "immortalize"
+msgstr ""
+
+#. TRANSLATORS: Command description.
+#: cogs/plant_management.py:27
+msgid "Immortalize one of your plants."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/plant_management.py:31
+msgid "The plant that you want to immortalize."
+msgstr ""
+
+#. TRANSLATORS: Command name. Must be lowercase.
+#: cogs/plant_management.py:34
+msgid "delete"
+msgstr ""
+
+#. TRANSLATORS: Command description.
+#: cogs/plant_management.py:36
+msgid "Delete one of your plants."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/plant_management.py:40
+msgid "The plant that you want to delete."
+msgstr ""
+
+#. TRANSLATORS: Command name. Must be lowercase.
+#: cogs/plant_management.py:43
+msgid "revive"
+msgstr ""
+
+#. TRANSLATORS: Command description.
+#: cogs/plant_management.py:45
+msgid "Bring one of your dead plants back to life."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/plant_management.py:49
+msgid "The plant that you want to revive."
+msgstr ""
+
+#: cogs/plant_management.py:122 cogs/plant_management.py:200
+#: cogs/plant_management.py:256 cogs/plant_management.py:319
+#: cogs/plant_management.py:401 cogs/plant_management.py:499
+#: cogs/plant_management.py:561
+#, python-brace-format
+msgid "You don't have a plant named **{plant}**."
+msgstr ""
+
+#: cogs/plant_management.py:135
+#, python-brace-format
+msgid "You already have a plant named **{name}**."
+msgstr ""
+
+#: cogs/plant_management.py:146
+#, python-brace-format
+msgid "Successfully renamed your plant to **{name}**."
+msgstr ""
+
+#: cogs/plant_management.py:207
+#, python-brace-format
+msgid "Are you sure you want to delete your plant **{name}**?"
+msgstr ""
+
+#: cogs/plant_management.py:212 cogs/plant_management.py:357
+#: cogs/plant_management.py:519
+msgid "Yes"
+msgstr ""
+
+#: cogs/plant_management.py:217 cogs/plant_management.py:362
+#: cogs/plant_management.py:524
+msgid "No"
+msgstr ""
+
+#: cogs/plant_management.py:241
+#, python-brace-format
+msgid "Not deleting your plant **{name}**."
+msgstr ""
+
+#: cogs/plant_management.py:266
+msgid "Successfully deleted your plant."
+msgstr ""
+
+#: cogs/plant_management.py:327
+#, python-brace-format
+msgid "Your plant **{name}** is already immortal."
+msgstr ""
+
+#: cogs/plant_management.py:341 cogs/plant_management.py:423
+#, python-brace-format
+msgid ""
+"You don't have any immortal plant juice. You can get some from the "
+"{shop_command_mention}."
+msgstr ""
+
+#: cogs/plant_management.py:350
+#, python-brace-format
+msgid ""
+"Are you sure you want to immortalize your plant **{name}**? Doing so will "
+"mean that you only get half the amount of experience from it, but it will "
+"never die."
+msgstr ""
+
+#: cogs/plant_management.py:386
+#, python-brace-format
+msgid "Not immortalizing your plant **{name}**."
+msgstr ""
+
+#: cogs/plant_management.py:409
+#, python-brace-format
+msgid "Your plant **{name}** is dead."
+msgstr ""
+
+#: cogs/plant_management.py:447
+msgid "Successfully immortalized your plant."
+msgstr ""
+
+#: cogs/plant_management.py:507 cogs/plant_management.py:569
+#, python-brace-format
+msgid "Your plant **{name}** isn't dead."
+msgstr ""
+
+#: cogs/plant_management.py:514
+#, python-brace-format
+msgid "Are you sure you want to revive your plant **{name}**?"
+msgstr ""
+
+#: cogs/plant_management.py:548
+msgid "Alright, not reviving your plant."
+msgstr ""
+
+#: cogs/plant_management.py:583
+#, python-brace-format
+msgid ""
+"You don't have any revival tokens. You can get some from the "
+"{shop_command_mention}."
+msgstr ""
+
+#: cogs/plant_management.py:607
+msgid "Successfully revived your plant."
+msgstr ""
+
+#: cogs/plant_show_commands.py:16
+msgid "show"
+msgstr ""
+
+#: cogs/plant_show_commands.py:18
+msgid "Take a look at one of your plants."
+msgstr ""
+
+#: cogs/plant_show_commands.py:22 cogs/plant_show_commands.py:35
+msgid "The plant that you want to see."
+msgstr ""
+
+#: cogs/plant_show_commands.py:25
+msgid "showother"
+msgstr ""
+
+#: cogs/plant_show_commands.py:27
+msgid "Take a look at one of someone else's plants."
+msgstr ""
+
+#. TRANSLATORS: Name of a command option. Must be lowercase.
+#: cogs/plant_show_commands.py:29 cogs/trade_commands.py:14
+#: cogs/user_info_commands.py:17 cogs/user_info_commands.py:26
+msgid "user"
+msgstr ""
+
+#: cogs/plant_show_commands.py:31
+msgid "The user whose plants you want to see."
+msgstr ""
+
+#: cogs/plant_show_commands.py:38
+msgid "showall"
+msgstr ""
+
+#: cogs/plant_show_commands.py:40
+msgid "Show all of your plants at once."
+msgstr ""
+
+#: cogs/plant_show_commands.py:147
+#, python-brace-format
+msgid "You have no plant named **{plant}**."
+msgstr ""
+
+#: cogs/plant_show_commands.py:152
+#, python-brace-format
+msgid "{user} has no plant named **{plant}**."
+msgstr ""
+
+#: cogs/plant_show_commands.py:211
+msgid "You need to have premium to use this command."
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/shop_command.py:13
+msgid "shop"
+msgstr ""
+
+#. TRANSLATORS: Description of a command.
+#: cogs/shop_command.py:15
+msgid "Opens the shop."
+msgstr ""
+
+#: cogs/shop_command.py:251
+msgid "What would you like to get from your shop?"
+msgstr ""
+
+#: cogs/shop_command.py:279 cogs/shop_command.py:293 cogs/shop_command.py:346
+#: cogs/shop_command.py:360
+msgid "You have no more available pots!"
+msgstr ""
+
+#: cogs/shop_command.py:300
+msgid "Plant Name"
+msgstr ""
+
+#: cogs/shop_command.py:305
+msgid "What would you like to name your plant?"
+msgstr ""
+
+#: cogs/shop_command.py:372
+msgid "You already have a plant with that name!"
+msgstr ""
+
+#: cogs/shop_command.py:395
+msgid "You have successfully bought a new plant!"
+msgstr ""
+
+#: cogs/shop_command.py:432
+msgid "You don't have enough experience to buy that!"
+msgstr ""
+
+#: cogs/shop_command.py:468
+msgid "You have successfully bought a new item!"
+msgstr ""
+
+#: cogs/shop_command.py:506
+msgid "You don't have any refresh tokens!"
+msgstr ""
+
+#: cogs/shop_command.py:533
+msgid "You have successfully refreshed your shop!"
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/trade_commands.py:10
+msgid "giveitem"
+msgstr ""
+
+#. TRANSLATORS: Description of a command.
+#: cogs/trade_commands.py:12
+msgid "Give one of your items to another user."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/trade_commands.py:16
+msgid "The user who you want to give items to."
+msgstr ""
+
+#: cogs/trade_commands.py:65
+msgid "You can't give items to yourself!"
+msgstr ""
+
+#: cogs/trade_commands.py:79
+msgid "You don't have any items to give!"
+msgstr ""
+
+#: cogs/trade_commands.py:85
+msgid "What item would you like to give?"
+msgstr ""
+
+#: cogs/trade_commands.py:136
+msgid "You don't have enough of that item to give."
+msgstr ""
+
+#: cogs/trade_commands.py:152
+#, python-brace-format
+msgid "You gave {user} 1x {item}!"
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/user_info_commands.py:13
+msgid "experience"
+msgstr ""
+
+#. TRANSLATORS: Description for a command.
+#: cogs/user_info_commands.py:15
+msgid "Get the amount of experience you have."
+msgstr ""
+
+#. TRANSLATORS: Description for a command option.
+#: cogs/user_info_commands.py:19
+msgid "The user to get info about."
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/user_info_commands.py:22
+msgid "inventory"
+msgstr ""
+
+#. TRANSLATORS: Description for a command.
+#: cogs/user_info_commands.py:24
+msgid "Get the inventory of a user."
+msgstr ""
+
+#. TRANSLATORS: Description for a command option.
+#: cogs/user_info_commands.py:28
+msgid "The user to get inventory of."
+msgstr ""
+
+#: cogs/user_info_commands.py:84
+#, python-brace-format
+msgid "You have {experience} experience."
+msgstr ""
+
+#: cogs/user_info_commands.py:88
+#, python-brace-format
+msgid "{user} has {experience} experience."
+msgstr ""
+
+#: cogs/user_info_commands.py:158
+msgid "Plants"
+msgstr ""
+
+#: cogs/user_info_commands.py:176
+msgid "Items"
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/water_commands.py:18
+msgid "water"
+msgstr ""
+
+#. TRANSLATORS: Description of a command.
+#: cogs/water_commands.py:20
+msgid "Water one of your plants."
+msgstr ""
+
+#. TRANSLATORS: Description of a command option.
+#: cogs/water_commands.py:24
+msgid "The plant to water."
+msgstr ""
+
+#. TRANSLATORS: Name of a command. Must be lowercase.
+#: cogs/water_commands.py:27
+msgid "waterall"
+msgstr ""
+
+#. TRANSLATORS: Description of a command.
+#: cogs/water_commands.py:29
+msgid "Water all of your plants."
+msgstr ""
+
+#: cogs/water_commands.py:131
+msgid "You need to be a premium subscriber to use this command."
+msgstr ""
+
+#: cogs/water_commands.py:154
+msgid "You don't have any plants that need watering right now!"
+msgstr ""
+
+#: cogs/water_commands.py:220
+#, python-brace-format
+msgid "You don't have access to {user}'s garden!"
+msgstr ""
+
+#: cogs/water_commands.py:321
+msgid "You don't have a plant with that name!"
+msgstr ""
+
+#: cogs/water_commands.py:327
+#, python-brace-format
+msgid "{user} doesn't have a plant with that name!"
+msgstr ""
+
+#: cogs/water_commands.py:350
+msgid "You sadly pour water into the soil of your dead plant."
+msgstr ""
+
+#: cogs/water_commands.py:357
+#, python-brace-format
+msgid "You sadly pour water into the soil of {user}'s dead plant."
+msgstr ""
+
+#: cogs/water_commands.py:381
+#, python-brace-format
+msgid "You can't water that plant yet! Please try again {wait_time}."
+msgstr ""
+
+#: cogs/water_commands.py:402
+msgid "You're subscribed to Flower Premium! :D"
+msgstr ""
+
+#: cogs/water_commands.py:417
+msgid "You watered within 30 seconds of the plant's cooldown resetting."
+msgstr ""
+
+#: cogs/water_commands.py:429
+msgid "This plant has been traded away from its original owner!"
+msgstr ""
+
+#: cogs/water_commands.py:449
+#, python-brace-format
+msgid "You [voted for the bot]({topgg_url}) on Top.gg."
+msgstr ""
+
+#: cogs/water_commands.py:460
+msgid "This plant has been alive for over 7 days!"
+msgstr ""
+
+#: cogs/water_commands.py:469
+msgid "This plant is immortal."
+msgstr ""
+
+#: cogs/water_commands.py:501
+#, python-brace-format
+msgid "Watered {plant_name}!"
+msgstr ""
+
+#: cogs/water_commands.py:508
+#, python-brace-format
+msgid ""
+"You pour water into your plant's soil, gaining you **{experience}** "
+"experience."
+msgstr ""
+
+#: cogs/water_commands.py:515
+#, python-brace-format
+msgid ""
+"You pour water into your plant's soil, gaining you ~~{original_experience}~~ "
+"**{experience}** experience."
+msgstr ""

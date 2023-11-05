@@ -1,9 +1,17 @@
+from __future__ import annotations
+
 import random
 import re
 import math
+from typing import ClassVar, Optional
 
 
-class PlantType(object):
+__all__ = (
+    'Plant',
+)
+
+
+class Plant:
     """
     A data type containing the data for any given plant type.
     """
@@ -19,21 +27,53 @@ class PlantType(object):
     }
 
     required_experience = 0
-    # experience_gain = {"maximum": 300, "minimum": 150}
     experience_gain = {"maximum": 700, "minimum": 300}
     max_nourishment_level = 21
+    all_plants: ClassVar[dict[str, 'Plant']] = {}
 
-    __slots__ = ('name', 'available_variants', 'nourishment_display_levels', 'stages', 'soil_hue', 'visible', 'available', 'artist', 'image_data')
+    __slots__ = (
+        'name',
+        'soil_hue',
+        'visible',
+        'available',
+        'artist',
+        'stages',
+        'nourishment_display_levels',
+        'available_variants',
+    )
 
-    def __init__(self, name:str, soil_hue:int, visible:bool, available:bool, artist:str, stages:int=None, plant_level:int=None, nourishment_display_levels:dict=None, available_variants:dict=None):
-        self.name = name
-        self.available_variants = available_variants
-        self.nourishment_display_levels = nourishment_display_levels if nourishment_display_levels else self.calculate_display_for_stages(stages)
-        self.stages = stages if stages else len(nourishment_display_levels)
-        self.soil_hue = soil_hue
-        self.visible = visible  # If this item can appear in the herbiary
-        self.available = available  # If this item can appear in new users' shops
-        self.artist = artist
+    def __init__(
+            self,
+            name: str,
+            soil_hue: int,
+            visible: bool,
+            available: bool,
+            artist: str,
+            stages: Optional[int] = None,
+            nourishment_display_levels: Optional[dict] = None,
+            available_variants: Optional[dict] = None,
+            **kwargs):
+        self.name: str = name
+        self.available_variants: Optional[dict] = available_variants
+        self.nourishment_display_levels: dict = (
+            nourishment_display_levels
+            if
+                nourishment_display_levels
+            else
+                self.calculate_display_for_stages(stages or 0)
+        )
+        self.stages: int = (
+            stages
+            if
+                stages
+            else
+                len(nourishment_display_levels or [])
+        )
+        self.soil_hue: int = soil_hue
+        self.visible: bool = visible  # If this item can appear in the herbiary
+        self.available: bool = available  # If this item can appear in new users' shops
+        self.artist: str = artist
+        self.all_plants[self.name] = self
 
     @staticmethod
     def calculate_display_for_stages(stages:int) -> dict:
@@ -41,13 +81,16 @@ class PlantType(object):
         Work out which stages should level up a plant display level.
         """
 
-        return {str(i): math.ceil((i * stages) / 20) for i in range(1, 21)}
+        return {
+            str(i): math.ceil((i * stages) / 20)
+            for i in range(1, 21)
+        }
 
     def __str__(self):
         return f"<Plant {self.name}>"
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         return self.name.replace("_", " ")
 
     def __gt__(self, other):
@@ -67,19 +110,15 @@ class PlantType(object):
 
     def get_experience(self) -> int:
         """
-        Gets a random amount of experience.
+        Get an amount of experience to be gained when this plant is watered.
         """
 
-        return random.randint(self.experience_gain['minimum'], self.experience_gain['maximum'])
+        return random.randint(
+            self.experience_gain['minimum'],
+            self.experience_gain['maximum'],
+        )
 
-    def get_available_variants(self, stage:int) -> int:
-        """
-        Tells you how many variants are available for a given growth stage.
-        """
-
-        return 1
-
-    def get_nourishment_display_level(self, nourishment:int) -> int:
+    def get_nourishment_display_level(self, nourishment: int) -> int:
         """
         Get the display level for a given amount of nourishment.
         """
@@ -91,7 +130,7 @@ class PlantType(object):
         return self.get_nourishment_display_level(nourishment - 1)
 
     @staticmethod
-    def validate_name(name:str) -> str:
+    def validate_name(name: str) -> str:
         """
         Validates the name of a plant.
         Input is the name, output is their validated plant name.

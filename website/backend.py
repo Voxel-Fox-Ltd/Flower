@@ -2,10 +2,10 @@ from datetime import datetime as dt
 
 import aiohttp
 from aiohttp.web import HTTPFound, Request, RouteTableDef, Response, json_response
-from voxelbotutils import web as webutils
 import aiohttp_session
+from discord.ext.vbu import web as webutils
 
-from cogs import localutils as botlocalutils
+from cogs import utils
 
 
 routes = RouteTableDef()
@@ -234,7 +234,7 @@ async def set_pot_hue(request: Request):
 
     # See if they're allowed on this route
     try:
-        await botlocalutils.checks.has_premium().predicate(ctx)
+        await utils.checks.has_premium().predicate(ctx)
     except Exception:
         return json_response({"message": "User does not have premium."}, status=401)
 
