@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import Optional, Literal
 from typing_extensions import Self
+import aiohttp
 
-from discord.ext import vbu, vfc as checkout
+from discord.ext import vbu
 
 from ..types import UserSettingsRow
 
@@ -91,16 +92,18 @@ class UserInfo:
         Check if a given user ID has a Flower Premium subscription.
         """
 
+        url = "https://voxelfox.co.uk/api/portal/check"
+        params = {
+            "discord_user_id": user_id,
+            "product_id": "818013fb-c079-400b-b116-42ee0ab0ab99",
+        }
         try:
-            await (
-                checkout
-                .user_is_active("Flower Premium")
-                .predicate(user_id)
-            )
-        except:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as site:
+                    data = await site.json()
+            return data["result"]
+        except Exception:
             return False
-        else:
-            return True
 
     async def update(
             self,

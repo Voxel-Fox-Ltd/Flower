@@ -201,20 +201,21 @@ class PlantShowCommands(vbu.Cog[utils.types.Bot]):
         Show all of your plants at once.
         """
 
+        # See if the user has premium
+        user_premium = await utils.UserInfo.check_premium(ctx.author.id)
+        if not user_premium:
+            info_command = self.bot.get_command("info").mention  # pyright: ignore
+            return await ctx.interaction.response.send_message(
+                _(
+                    "You need to be a premium subscriber to use this "
+                    "command. Please see {info_command} to donate."
+                ).format(info_command=info_command),
+                ephemeral=True,
+            )
+
         # Get some user information
         async with vbu.Database() as db:
 
-            # See if the user has premium
-            user_info = await utils.UserInfo.fetch_by_id(db, ctx.author.id)
-            if not user_info.has_premium:
-                info_command = self.bot.get_command("info").mention  # pyright: ignore
-                return await ctx.interaction.response.send_message(
-                    _(
-                        "You need to be a premium subscriber to use this "
-                        "command. Please see {info_command} to donate."
-                    ).format(info_command=info_command),
-                    ephemeral=True,
-                )
 
             # Get all of their plants
             user_plants = await utils.UserPlant.fetch_all_by_user_id(
